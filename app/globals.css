@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 라이트 모드 색상 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    
+    --primary: 41 96% 53%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --ring: 215 20.2% 65.1%;
+    
+    --radius: 0.5rem;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* 다크 모드 색상 */
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+      
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      
+      --primary: 41 96% 53%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 85.7% 97.3%;
+      
+      --ring: 217.2 32.6% 17.5%;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+  
+  /* 다크 모드 지원 (옵션) */
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-gray-900 text-gray-100;
+    }
+  }
+  
+  /* Form 요소 색상 개선 */
+  select,
+  input,
+  textarea {
+    @apply text-gray-900;
+  }
+  
+  select option {
+    @apply text-gray-900 bg-white;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-600;
+  }
+  
+  /* Select 기본 옵션 스타일 */
+  select option[value=""],
+  select option[value="all"] {
+    @apply text-gray-700;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* 모바일 터치 최적화 */
+@media (max-width: 768px) {
+  /* 버튼과 클릭 가능한 요소들의 최소 터치 영역 확보 */
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 텍스트 입력 필드 최적화 */
+  input, textarea, select {
+    font-size: 16px; /* iOS 줌 방지 */
+  }
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* 부드러운 스크롤 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* 포커스 스타일 개선 */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* 모바일 네비게이션 바 고정 */
+.mobile-nav-spacing {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 애니메이션 최적화 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

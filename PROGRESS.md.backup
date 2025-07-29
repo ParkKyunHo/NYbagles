@@ -1,0 +1,233 @@
+# 베이글샵 통합 관리 시스템 - 프로젝트 진행 상황
+
+## 프로젝트 개요
+베이글샵 통합 관리 시스템은 QR 코드 기반 직원 로그인, 근태 관리, 매출 관리 등을 제공하는 종합 관리 솔루션입니다.
+
+### 🎯 주요 기능
+1. QR 코드 기반 직원 출퇴근 시스템
+2. 계층적 조직 구조 관리 (super_admin → admin → manager → employee)
+3. 직원 회원가입 및 승인 프로세스
+4. 매장별 고유 QR 코드 생성 및 관리
+5. 실시간 근태 관리 및 모니터링
+
+### ✅ 완료된 작업
+
+#### 1. 데이터베이스 설계 및 구현
+- **새로운 테이블 생성**:
+  - `regions` - 지역 관리
+  - `store_categories` - 매장 카테고리
+  - `stores` - 매장 정보 (QR 코드 포함)
+  - `qr_tokens` - QR 토큰 관리
+  - `employee_signup_requests` - 직원 가입 요청
+
+- **기존 테이블 수정**:
+  - `profiles`: `super_admin` 역할 추가
+  - `employees`: `store_id` 추가
+  - `attendance_records`: QR 검증 필드 추가
+
+- **파일**: `/supabase/migrations/20240125000000_add_qr_login_system.sql`
+
+#### 2. 타입 정의 업데이트
+- Supabase 타입 정의 파일 업데이트
+- 새로운 테이블, 뷰, 함수 타입 추가
+- **파일**: `/types/supabase.ts`
+
+#### 3. 프론트엔드 컴포넌트 개발
+
+##### QR 관련 컴포넌트
+- **QR 스캐너** (`/components/qr/QRScanner.tsx`)
+  - qr-scanner 라이브러리 사용
+  - 카메라 권한 처리
+  - 실시간 QR 코드 스캔
+
+- **매장 QR 디스플레이** (`/components/qr/StoreQRDisplay.tsx`)
+  - 30초마다 자동 갱신되는 QR 코드
+  - TOTP 기반 토큰 생성
+  - AES 암호화 적용
+
+##### 인증 관련 컴포넌트
+- **직원 회원가입 폼** (`/components/auth/EmployeeSignupForm.tsx`)
+  - 매장 코드 검증
+  - 이메일 인증 프로세스
+  - 관리자 승인 대기 상태
+
+##### 페이지
+- **직원 회원가입 페이지** (`/app/(auth)/signup/employee/page.tsx`)
+- **데모 페이지** (`/app/demo/page.tsx`)
+- **정적 HTML 데모** (`/static-demo.html`)
+
+#### 4. 개발 환경 설정
+- 환경 변수 설정 파일 생성 (`.env.local`, `.env.example`)
+- 필요한 라이브러리 설치:
+  - `react-qr-code` - QR 코드 생성
+  - `qr-scanner` - QR 코드 스캔
+  - `crypto-js` - 암호화
+
+### 🏗️ 시스템 아키텍처
+
+```
+사용자 → 모바일 웹앱 → QR 스캔 → 매장 QR 코드
+                         ↓
+                    QR 데이터 검증
+                         ↓
+                    출퇴근 기록 생성
+```
+
+### 🔐 보안 기능
+- TOTP 기반 동적 QR 코드 (30초마다 갱신)
+- AES-256 암호화
+- HMAC-SHA256 서명 검증
+- 위치 기반 검증 (선택적)
+
+### 📊 계층적 권한 구조
+1. **최상위 관리자 (super_admin)**
+   - 전체 시스템 관리
+   - 지역 생성 및 관리
+
+2. **지역 관리자 (admin)**
+   - 해당 지역 매장 관리
+   - 매장 카테고리 생성
+
+3. **매장 관리자 (manager)**
+   - 해당 매장 직원 관리
+   - QR 코드 생성
+
+4. **직원 (employee/part_time)**
+   - 본인 출퇴근 기록
+   - QR 코드 스캔
+
+### 🚀 구현 완료 (2025년 7월 25일 업데이트)
+
+#### ✅ Supabase 연동
+- 프로덕션 Supabase 프로젝트 "NY베이글" 연결
+- 환경 변수 설정 완료
+- 데이터베이스 마이그레이션 적용
+
+#### ✅ API 라우트 구현
+- **직원 회원가입**: `/api/auth/signup/employee`
+- **이메일 검증**: `/api/auth/signup/employee/verify`
+- **QR 코드 생성**: `/api/qr/generate`
+- **QR 체크인/체크아웃**: `/api/qr/checkin`
+- **가입 요청 관리**: `/api/admin/signup-requests`
+- **가입 승인/거절**: `/api/admin/signup-requests/[id]/approve|reject`
+
+#### ✅ 관리자 페이지
+- 직원 가입 요청 관리 페이지 (`/admin`)
+- 매장 관리 페이지 (`/admin/stores`)
+- 사이드바 네비게이션 업데이트
+
+#### ✅ 보안 및 유틸리티
+- 권한 관리 시스템 (`/lib/auth/permissions.ts`)
+- TOTP 생성 및 검증 함수 (`/lib/utils/crypto.ts`)
+- 역할 기반 접근 제어 (RBAC) 구현
+
+#### ✅ 인프라 구축 (2025년 7월 25일 추가)
+- **보안 인프라**:
+  - Rate Limiting 미들웨어 구현 (`/lib/security/rateLimiter.ts`)
+  - CORS 및 보안 헤더 설정 (`/lib/security/headers.ts`, `/lib/security/cors.ts`)
+  - 미들웨어 통합 (`/middleware.ts`)
+  
+- **로깅 시스템**:
+  - 구조화된 로깅 시스템 구축 (`/lib/logging/logger.ts`)
+  - 개발/프로덕션 환경별 로그 포맷팅
+  
+- **중앙집중식 에러 핸들링**:
+  - 에러 타입 및 코드 체계 정의 (`/lib/errors/types.ts`)
+  - 도메인별 에러 클래스 구현 (`/lib/errors/classes.ts`)
+  - 에러 핸들러 및 재시도 로직 (`/lib/errors/handler.ts`)
+  - API 응답 표준화 (`/lib/api/response.ts`)
+  - Next.js 에러 페이지 (`/app/error.tsx`, `/app/global-error.tsx`)
+  - 에러 바운더리 컴포넌트 (`/components/ErrorBoundary.tsx`)
+  
+- **초기 데이터 설정**:
+  - Seed 스크립트 작성 (`/lib/seed/seedData.ts`)
+  - 환경 변수 템플릿 (`/.env.template`)
+  - 설정 가이드 문서 (`/SETUP_GUIDE.md`)
+
+### 📝 참고 문서
+- 시스템 설계: `/docs/QR_LOGIN_SYSTEM_DESIGN.md`
+- 구현 계획: `/implementation-plan.md`
+- PRD: `/PRD_베이글샵_통합관리시스템.md`
+
+### 📋 다음 작업 계획
+
+#### 1. 테스트 및 초기 설정
+- [ ] 테스트 super_admin 계정 생성
+- [ ] 샘플 매장 데이터 생성
+- [ ] QR 코드 스캔 테스트
+
+#### 2. 프론트엔드 개선
+- [x] 회원가입 페이지 404 오류 수정 (로그인 페이지에서 회원가입 버튼 클릭 시) ✅
+- [x] QR 스캐너에 실제 카메라 스캔 기능 추가 ✅
+- [x] 직원 대시보드 페이지 개발 ✅
+- [x] 출퇴근 현황 실시간 모니터링 대시보드 ✅
+- [ ] 반응형 디자인 최적화
+
+#### 3. 추가 기능 구현
+- [ ] 스케줄 관리 시스템
+- [ ] 급여 계산 자동화
+- [ ] 매출 입력 및 분석 기능
+- [ ] 이메일/SMS 알림 시스템
+- [ ] 보고서 생성 기능
+
+#### 4. 보안 강화
+- [x] Rate limiting 구현 ✅
+- [ ] IP 화이트리스트 기능
+- [ ] 2단계 인증 (2FA) 추가
+- [ ] 감사 로그 시스템 구축
+- [ ] 민감한 데이터 암호화 강화
+
+### 🛠️ 기술 스택
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Realtime)
+- **Security**: TOTP, AES-256 암호화, HMAC-SHA256
+- **Libraries**: react-qr-code, qr-scanner, crypto-js, lucide-react
+
+### 📂 프로젝트 구조
+```
+bagel-shop/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # 인증 관련 페이지
+│   ├── (dashboard)/       # 대시보드 페이지
+│   └── api/               # API 라우트
+├── components/            # React 컴포넌트
+│   ├── auth/             # 인증 컴포넌트
+│   ├── qr/               # QR 관련 컴포넌트
+│   └── ui/               # UI 컴포넌트
+├── lib/                   # 유틸리티 함수
+│   ├── api/              # API 응답 표준화
+│   ├── auth/             # 인증 및 권한
+│   ├── errors/           # 에러 처리 시스템
+│   ├── logging/          # 로깅 시스템
+│   ├── security/         # 보안 미들웨어
+│   ├── seed/             # 시드 데이터
+│   ├── supabase/         # Supabase 클라이언트
+│   └── utils/            # 기타 유틸리티
+└── supabase/             # 데이터베이스 마이그레이션
+```
+
+### 🔒 환경 변수
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT_REF].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[ANON_KEY]
+```
+
+### 🎉 2025년 7월 26일 추가 완료 기능
+
+#### ✅ 회원가입 페이지 404 오류 수정
+- `/app/(auth)/signup/page.tsx` - 회원가입 선택 페이지 생성
+- 직원 회원가입과 관리자 계정 안내 구분
+
+#### ✅ QR 스캐너 페이지 구현
+- `/app/(dashboard)/attendance/page.tsx` - 출퇴근 메인 페이지
+- `/app/(dashboard)/attendance/scan/page.tsx` - QR 스캔 페이지
+- QRScanner 컴포넌트 활용한 실제 카메라 스캔 기능
+
+#### ✅ 직원 대시보드 개선
+- 역할별 대시보드 표시
+- 오늘의 출퇴근 상태 실시간 표시
+- 이번 주 근무 시간 및 평균 근무 시간 계산
+- 빠른 실행 버튼 (QR 스캔, 출퇴근 기록, 근무 시간, 설정)
+
+---
+*마지막 업데이트: 2025년 7월 26일*

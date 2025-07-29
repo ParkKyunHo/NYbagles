@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>베이글샵 QR 로그인 시스템 데모</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-12">
+                베이글샵 통합 관리 시스템 - QR 로그인 데모
+            </h1>
+
+            <!-- 네비게이션 -->
+            <nav class="bg-white shadow rounded-lg mb-8 p-4">
+                <div class="flex space-x-6">
+                    <a href="#home" class="text-blue-600 hover:underline">홈</a>
+                    <a href="#signup" class="text-blue-600 hover:underline">직원 회원가입</a>
+                    <a href="#qr-display" class="text-blue-600 hover:underline">매장 QR 코드</a>
+                    <a href="#scanner" class="text-blue-600 hover:underline">QR 스캐너</a>
+                    <a href="#dashboard" class="text-blue-600 hover:underline">대시보드</a>
+                </div>
+            </nav>
+
+            <!-- 메인 컨텐츠 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 1. 직원 회원가입 -->
+                <div id="signup" class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6">1. 직원 회원가입</h2>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                이메일 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                비밀번호 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="최소 6자 이상">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                이름 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="홍길동">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                전화번호
+                            </label>
+                            <input type="tel" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="010-0000-0000">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">
+                                매장 코드 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="예: STORE001">
+                            <p class="text-xs text-gray-500 mt-1">근무할 매장의 고유 코드를 입력하세요</p>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                            회원가입 요청
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. 매장 QR 코드 -->
+                <div id="qr-display" class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6">2. 매장 QR 코드</h2>
+                    <div class="bg-gray-50 p-8 rounded-lg mb-4">
+                        <canvas id="qrcode" class="mx-auto"></canvas>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">
+                            자동 갱신까지: <span id="countdown" class="font-mono font-bold">30초</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-2">
+                            이 QR 코드는 보안을 위해 30초마다 자동으로 갱신됩니다
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h3 class="font-semibold mb-2">사용 방법</h3>
+                        <ol class="text-sm text-gray-600 space-y-1">
+                            <li>1. 직원이 모바일 앱을 실행합니다</li>
+                            <li>2. QR 스캔 버튼을 누릅니다</li>
+                            <li>3. 이 QR 코드를 스캔합니다</li>
+                            <li>4. 출퇴근이 자동으로 기록됩니다</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- 3. QR 스캐너 -->
+                <div id="scanner" class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6">3. QR 스캐너</h2>
+                    <div class="relative aspect-square bg-black rounded-lg overflow-hidden mb-4">
+                        <div class="absolute inset-0 flex items-center justify-center bg-gray-100">
+                            <div class="text-center">
+                                <div class="w-24 h-24 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-600">QR 코드를 스캔하려면 시작하세요</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+                        QR 코드 스캔 시작
+                    </button>
+                    <p class="mt-2 text-center text-sm text-gray-600">
+                        카메라 권한이 필요합니다
+                    </p>
+                </div>
+            </div>
+
+            <!-- 시스템 특징 -->
+            <div class="mt-12 bg-blue-50 rounded-lg p-6">
+                <h3 class="text-xl font-semibold mb-4">시스템 특징</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-semibold mb-2">🔐 보안 기능</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li>• TOTP 기반 동적 QR 코드 (30초 갱신)</li>
+                            <li>• AES-256 암호화</li>
+                            <li>• HMAC-SHA256 서명 검증</li>
+                            <li>• 위치 기반 검증 (선택적)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">👥 계층적 권한 관리</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li>• 최상위 관리자: 전체 시스템 관리</li>
+                            <li>• 지역 관리자: 지역별 매장 관리</li>
+                            <li>• 매장 관리자: 매장 직원 관리</li>
+                            <li>• 직원: 본인 출퇴근 기록</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 대시보드 미리보기 -->
+            <div id="dashboard" class="mt-12 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-6">대시보드 미리보기</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold">오늘 출근</h3>
+                        <p className="text-3xl font-bold">12명</p>
+                        <p className="text-sm text-gray-600">현재 근무 중</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold">오늘 매출</h3>
+                        <p className="text-3xl font-bold">₩524,000</p>
+                        <p className="text-sm text-gray-600">전일 대비 +12%</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold">베스트 메뉴</h3>
+                        <p className="text-3xl font-bold">플레인 베이글</p>
+                        <p className="text-sm text-gray-600">42개 판매</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // QR 코드 생성
+        const qr = new QRCode(document.getElementById("qrcode"), {
+            text: JSON.stringify({
+                store_id: "STORE001",
+                timestamp: Date.now(),
+                token: Math.random().toString(36).substring(2, 8),
+                signature: "demo_signature"
+            }),
+            width: 256,
+            height: 256,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        // 카운트다운
+        let seconds = 30;
+        setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                seconds = 30;
+                // QR 코드 재생성
+                qr.clear();
+                qr.makeCode(JSON.stringify({
+                    store_id: "STORE001",
+                    timestamp: Date.now(),
+                    token: Math.random().toString(36).substring(2, 8),
+                    signature: "demo_signature"
+                }));
+            }
+            document.getElementById('countdown').textContent = seconds + '초';
+        }, 1000);
+
+        // 폼 제출 방지
+        document.querySelector('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('데모 페이지입니다. 실제 서버 연결이 필요합니다.');
+        });
+
+        // 버튼 클릭 이벤트
+        document.querySelector('button[class*="QR 코드 스캔"]').addEventListener('click', () => {
+            alert('데모 페이지입니다. 실제 카메라 권한이 필요합니다.');
+        });
+    </script>
+</body>
+</html>
