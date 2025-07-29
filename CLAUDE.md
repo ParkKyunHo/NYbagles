@@ -13,9 +13,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 27일 업데이트
+## Repository Status - 2025년 7월 29일 업데이트 (프로덕션 배포 완료)
 
-베이글샵 통합 관리 시스템에 QR 코드 기반 직원 로그인 시스템이 구현되었습니다.
+베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
+
+### 🚀 배포 정보
+- **프로덕션 사이트**: Vercel에 배포 완료
+- **GitHub**: https://github.com/ParkKyunHo/NYbagles.git
+- **자동 배포**: main 브랜치 푸시 시 자동 배포
 
 ### 현재 구현된 기능
 1. **QR 로그인 시스템**
@@ -36,32 +41,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 지역(regions) → 매장 카테고리(store_categories) → 매장(stores) 계층 구조
    - QR 토큰 관리 및 검증 시스템
    - 직원 회원가입 요청 관리
+   - 문서 스토리지 지원 (문서 만료 알림 시스템)
 
-4. **페이지 구현 완료**
+4. **급여 관리 시스템** (7/29 구현)
+   - 간소화된 시급 × 시간 계산
+   - 직원별 시급 설정
+   - 자동 근무시간 집계
+   - 월별 급여 조회 (/dashboard/salary)
+
+5. **페이지 구현 완료**
    - 회원가입 선택 페이지 (/signup)
    - 출퇴근 메인 페이지 (/dashboard/attendance)
    - QR 스캔 페이지 (/dashboard/attendance/scan)
    - 직원 대시보드 개선 (출퇴근 상태 표시)
+   - 급여 관리 페이지 (/dashboard/salary)
+   - 판매 관리 시스템 (/dashboard/sales)
+   - 직원 관리 시스템 (/dashboard/employees)
 
-5. **브랜딩 및 디자인**
+6. **브랜딩 및 디자인**
    - 뉴욕러브 베이글 브랜드 컬러 적용 (노란색 #FDB813)
    - 반응형 디자인 최적화
    - 모바일 우선 UI/UX
 
-6. **초기 데이터 생성 완료**
+7. **초기 데이터 생성 완료**
    - 지역 데이터: 서울, 경기, 부산
    - 매장 카테고리: 강남구, 종로구, 마포구
    - 샘플 매장: NY베이글 강남역점, NY베이글 삼성점
    - 초기화 스크립트: `npx tsx scripts/initializeTestData.ts`
 
 ### 프로젝트 현황
-- **구현 완료**: 로그인, QR 시스템, 출퇴근 페이지
-- **미구현 (404)**: 판매관리, 직원관리, 근무시간, 매출분석 등
+- **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
+- **Phase 2 진행중**: 알림 시스템, 백업/복구, 문서 관리 UI
 - **상세 현황**: `/PROJECT_STATUS.md` 참조
 
 ### 관련 문서
 - 프로젝트 현황: `/PROJECT_STATUS.md`
-- 개발 진행 상황: `/PROGRESS.md.backup`
+- 다음 작업 목록: `/NEXT_TASKS.md`
+- 코드 수정 가이드: `/UPDATE_GUIDE.md` ✨
+- 배포 가이드: `/VERCEL_DEPLOYMENT_GUIDE.md` ✨
 - 관리자 설정: `/ADMIN_SETUP_GUIDE.md`
 - 테스트 결과: `/TEST_RESULTS.md`
 

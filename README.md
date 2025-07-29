@@ -2,6 +2,8 @@
 
 Next.js 14와 Supabase를 활용한 베이글샵 통합 관리 시스템입니다.
 
+🌐 **프로덕션 사이트**: [Vercel에 배포됨]
+
 ## 주요 기능
 
 - 🔐 **인증 시스템**: Supabase Auth를 통한 안전한 로그인
@@ -10,6 +12,10 @@ Next.js 14와 Supabase를 활용한 베이글샵 통합 관리 시스템입니�
   - 직원 QR 코드 스캔을 통한 출퇴근 기록
   - TOTP 기반 보안 토큰
 - 💰 **판매 관리**: 터치 친화적 실시간 판매 입력
+- 💵 **급여 관리**: 간편한 시급 × 근무시간 계산 시스템
+  - 직원별 시급 설정
+  - 자동 근무시간 집계
+  - 실시간 급여 계산
 - 👥 **직원 관리**: 계층적 권한 시스템
   - 최상위 관리자 (super_admin): 전체 시스템 관리
   - 지역 관리자 (admin): 지역별 매장 관리
@@ -17,15 +23,19 @@ Next.js 14와 Supabase를 활용한 베이글샵 통합 관리 시스템입니�
   - 직원 (employee/part_time): 본인 출퇴근 기록
 - 🏢 **매장 관리**: 지역별 카테고리 기반 매장 관리
 - 📊 **매출 분석**: 실시간 대시보드 및 리포트
-- 📄 **문서 관리**: 직원 서류 디지털 보관
+- 📄 **문서 관리**: 직원 서류 디지털 보관 및 만료 알림
+  - 문서 업로드 및 관리
+  - 만료일 자동 알림
+  - 카테고리별 분류
 - 📱 **PWA 지원**: 오프라인 사용 가능
 
 ## 기술 스택
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Realtime)
-- **상태관리**: Zustand, React Query
-- **배포**: Vercel
+- **보안**: TOTP 기반 QR 인증, Row Level Security (RLS)
+- **배포**: Vercel (자동 CI/CD)
+- **모니터링**: Vercel Analytics
 
 ## 시작하기
 
@@ -84,18 +94,24 @@ bagel-shop/
 
 ## 배포
 
-### Vercel 배포
+프로젝트는 GitHub 리포지토리와 Vercel이 연결되어 자동 배포됩니다.
 
-```bash
-vercel
-```
+### 자동 배포 프로세스
+- **main 브랜치**: 프로덕션 환경 자동 배포
+- **feature 브랜치**: 프리뷰 환경 자동 생성
 
 ### 환경 변수 설정
 
 Vercel 대시보드에서 다음 환경 변수를 설정하세요:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+자세한 배포 가이드는 [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md)를 참조하세요.
+
+## 코드 수정 및 업데이트
+
+코드 수정 후 자동 배포 프로세스는 [UPDATE_GUIDE.md](./UPDATE_GUIDE.md)를 참조하세요.
 
 ## 보안 고려사항
 
