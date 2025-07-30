@@ -30,26 +30,23 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       const scanner = new QrScanner(
         videoRef.current,
         (result) => {
-          console.log('QR 코드 스캔 성공:', result.data)
+          console.log('QR 코드 스캔 성공:', result)
+          // ScanResult 타입의 data 속성 사용
           onScan(result.data)
           stopScanning()
         },
         {
+          returnDetailedScanResult: true,
           preferredCamera: 'environment',
           highlightScanRegion: true,
           highlightCodeOutline: true,
           maxScansPerSecond: 5,
           onDecodeError: (error) => {
             // 디코딩 에러는 정상적인 동작이므로 무시
-            if (error.message && !error.message.includes('No QR code found')) {
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            if (errorMessage && !errorMessage.includes('No QR code found')) {
               console.error('QR 디코딩 에러:', error)
             }
-          },
-          // 비디오 설정 추가
-          videoConstraints: {
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
           }
         }
       )
