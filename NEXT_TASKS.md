@@ -44,6 +44,38 @@
 
 ## 📋 다음 개발 우선순위
 
+### 긴급 수정 사항 (2025년 7월 30일 추가)
+
+1. **직원 회원가입 요청 실패 문제 해결**
+   - 현상: 회원가입 요청 시 "회원가입 요청에 실패했습니다" 에러 발생
+   - 원인 분석:
+     - RLS 정책 문제 가능성
+     - 데이터베이스 제약 조건 충돌
+     - 클라이언트 연결 문제
+     - 에러 로깅 부족으로 정확한 원인 파악 어려움
+   
+   - 해결 방안:
+     a) 디버깅 개선
+        - EmployeeSignupForm에 상세 에러 로깅 추가
+        - Supabase 에러 코드와 메시지 표시
+     
+     b) RLS 정책 검증 및 수정
+        - employee_signup_requests 테이블 정책 재검토
+        - anon 역할 INSERT 권한 명시적 추가
+     
+     c) 폼 데이터 검증 강화
+        - 이메일 형식 검증
+        - 필수 필드 검증
+     
+     d) 대체 접근 방식
+        - 서버 사이드 API 엔드포인트 생성 고려
+        - Next.js API 라우트 활용
+
+   - 예상 변경 파일:
+     - /components/auth/EmployeeSignupForm.tsx
+     - /supabase/migrations/[timestamp]_fix_employee_signup_policies.sql
+     - /app/api/auth/signup/route.ts (필요시)
+
 ### Phase 2: 필수 기능 추가 (진행중, 2-3주)
 1. **알림 시스템**
    - Supabase Edge Functions로 이메일 알림

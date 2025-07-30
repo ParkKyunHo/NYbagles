@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 30일 업데이트 (UI/UX 개선 및 전국 지역 데이터 추가)
+## Repository Status - 2025년 7월 30일 업데이트 (코드 품질 개선 및 데이터베이스 수정)
 
 베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
 
@@ -79,6 +79,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 매장 관리 UI 개선 (시/도, 구/군 레이블)
    - 전국 지역 데이터 추가 (17개 시/도, 229개 구/군/시)
    - 직원 회원가입 매장 선택 UI 개선
+   - **데이터베이스 수정**: store_id NULL 문제 해결, 프로필 동기화
+   - **코드 품질 개선**: ESLint 설정 추가, TypeScript 엄격 모드
+   - **수정 스크립트 추가**: `npm run fix:all` 명령어로 일괄 수정
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
@@ -92,6 +95,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 배포 가이드: `/VERCEL_DEPLOYMENT_GUIDE.md` ✨
 - 관리자 설정: `/ADMIN_SETUP_GUIDE.md`
 - 테스트 결과: `/TEST_RESULTS.md`
+- **수정 사항 요약**: `/FIX_SUMMARY.md` ✨ NEW!
 
 
 ## MCP
