@@ -143,7 +143,7 @@ export default function ProductsPage() {
             <Button
               variant="outline"
               onClick={() => setShowCategoryModal(true)}
-              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400"
+              className="flex items-center gap-2 text-gray-900 font-medium hover:text-black border-gray-400 hover:border-gray-600 hover:bg-gray-50"
             >
               <Settings className="h-4 w-4" />
               카테고리 관리
@@ -194,9 +194,28 @@ export default function ProductsPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
+      ) : products.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <p className="text-gray-600 mb-4">등록된 상품이 없습니다.</p>
+          {canManageProducts && (
+            <Link href="/products/create">
+              <Button className="mx-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                첫 상품 추가하기
+              </Button>
+            </Link>
+          )}
+        </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-600">등록된 상품이 없습니다.</p>
+          <p className="text-gray-600">선택한 카테고리에 상품이 없습니다.</p>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedCategory('')}
+            className="mt-4"
+          >
+            전체 상품 보기
+          </Button>
         </div>
       ) : (
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
