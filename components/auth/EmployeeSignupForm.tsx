@@ -12,6 +12,14 @@ interface EmployeeSignupFormProps {
 }
 
 type Store = Database['public']['Tables']['stores']['Row']
+type StoreCategory = Database['public']['Tables']['store_categories']['Row']
+type Region = Database['public']['Tables']['regions']['Row']
+
+interface StoreWithRelations extends Store {
+  store_categories?: StoreCategory & {
+    regions?: Region
+  }
+}
 
 export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
   const router = useRouter()
@@ -20,7 +28,8 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<'form' | 'verify' | 'pending'>('form')
   const [requestId, setRequestId] = useState<string | null>(null)
-  const [stores, setStores] = useState<Store[]>([])
+  const [stores, setStores] = useState<StoreWithRelations[]>([])
+  const [loadingStores, setLoadingStores] = useState(false)
   
   const [formData, setFormData] = useState({
     email: '',
@@ -37,14 +46,30 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
   }, [])
 
   const fetchStores = async () => {
-    const { data, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
+    setLoadingStores(true)
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select(`
+          *,
+          store_categories (
+            *,
+            regions (*)
+          )
+        `)
+        .eq('is_active', true)
+        .order('name')
 
-    if (data && !error) {
-      setStores(data)
+      if (error) throw error
+      
+      if (data) {
+        setStores(data)
+      }
+    } catch (error) {
+      console.error('Error fetching stores:', error)
+      setError('매장 목록을 불러오는 데 실패했습니다.')
+    } finally {
+      setLoadingStores(false)
     }
   }
 
@@ -262,13 +287,41 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
             onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
             className="w-full px-3 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 appearance-none"
             required
+            disabled={loadingStores}
           >
-            <option value="">매장을 선택하세요</option>
-            {stores.map((store) => (
-              <option key={store.id} value={store.id}>
-                {store.name} ({store.code})
-              </option>
-            ))}
+            <option value="">
+              {loadingStores ? '매장 목록 로딩 중...' : '매장을 선택하세요'}
+            </option>
+            {/* Group stores by region for better organization */}
+            {(() => {
+              // Group stores by region
+              const storesByRegion = stores.reduce((acc, store) => {
+                const regionName = store.store_categories?.regions?.name || '기타'
+                if (!acc[regionName]) {
+                  acc[regionName] = []
+                }
+                acc[regionName].push(store)
+                return acc
+              }, {} as Record<string, typeof stores>)
+
+              // Sort region names
+              const sortedRegions = Object.keys(storesByRegion).sort()
+
+              return sortedRegions.map(regionName => (
+                <optgroup key={regionName} label={regionName}>
+                  {storesByRegion[regionName].map(store => {
+                    const categoryName = store.store_categories?.name || ''
+                    const locationDisplay = categoryName ? ` - ${categoryName}` : ''
+                    
+                    return (
+                      <option key={store.id} value={store.id}>
+                        {store.name}{locationDisplay}
+                      </option>
+                    )
+                  })}
+                </optgroup>
+              ))
+            })()}
           </select>
           <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
