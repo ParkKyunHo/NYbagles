@@ -98,7 +98,8 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           email: formData.email,
           fullName: formData.full_name,
           phone: formData.phone,
-          storeCode: selectedStore.code, // API는 storeCode를 사용
+          storeId: formData.store_id, // store_id를 직접 전송
+          storeCode: selectedStore.code, // 혹시 code가 있으면 같이 전송
         }),
       })
 
