@@ -143,7 +143,7 @@ export default function ProductsPage() {
             <Button
               variant="outline"
               onClick={() => setShowCategoryModal(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400"
             >
               <Settings className="h-4 w-4" />
               카테고리 관리

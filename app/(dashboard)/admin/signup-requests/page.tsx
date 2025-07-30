@@ -338,24 +338,26 @@ export default function SignupRequestsPage() {
                       })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(request.status)}
+                      <div className="flex items-center">
+                        {getStatusBadge(request.status)}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {request.status === 'verified' && (
+                      {(request.status === 'verified' || request.status === 'pending') && (
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant="primary"
                             onClick={() => handleApprove(request.id)}
                             disabled={processingId === request.id}
+                            className="bg-green-600 hover:bg-green-700 text-white"
                           >
                             승인
                           </Button>
                           <Button
                             size="sm"
-                            variant="danger"
                             onClick={() => handleReject(request.id)}
                             disabled={processingId === request.id}
+                            className="bg-red-600 hover:bg-red-700 text-white"
                           >
                             거절
                           </Button>

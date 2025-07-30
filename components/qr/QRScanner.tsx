@@ -39,6 +39,18 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           highlightScanRegion: true,
           highlightCodeOutline: true,
           maxScansPerSecond: 5,
+          onDecodeError: (error) => {
+            // 디코딩 에러는 정상적인 동작이므로 무시
+            if (error.message && !error.message.includes('No QR code found')) {
+              console.error('QR 디코딩 에러:', error)
+            }
+          },
+          // 비디오 설정 추가
+          videoConstraints: {
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         }
       )
 
@@ -77,6 +89,9 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           ref={videoRef}
           className="w-full h-full object-cover"
           style={{ display: isScanning ? 'block' : 'none' }}
+          playsInline
+          autoPlay
+          muted
         />
         
         {!isScanning && (

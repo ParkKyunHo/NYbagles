@@ -93,7 +93,13 @@ export default function CreateProductPage() {
 
       if (insertError) throw insertError
 
-      router.push('/products')
+      // 성공 메시지 표시
+      alert('상품이 성공적으로 추가되었습니다.')
+      
+      // 약간의 지연 후 리다이렉션 (데이터베이스 동기화를 위해)
+      setTimeout(() => {
+        router.push('/products')
+      }, 500)
     } catch (error: any) {
       console.error('Error creating product:', error)
       setError(error.message || '상품 생성 중 오류가 발생했습니다.')

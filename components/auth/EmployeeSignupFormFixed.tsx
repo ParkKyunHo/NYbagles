@@ -111,11 +111,8 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
 
       setRequestId(result.requestId)
       
-      // 실제로는 이메일로 인증 코드를 전송해야 함
-      console.log('인증 코드:', result.verificationCode)
-      alert(`테스트용 인증 코드: ${result.verificationCode}`)
-      
-      setStep('verify')
+      // 이메일 인증 절차 생략 - 바로 pending 상태로
+      setStep('pending')
     } catch (error) {
       console.error('회원가입 요청 실패:', error)
       setError(error instanceof Error ? error.message : '회원가입 요청에 실패했습니다')
