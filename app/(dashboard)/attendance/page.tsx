@@ -91,7 +91,7 @@ export default function AttendancePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
-          <Link href="/dashboard/attendance/scan">
+          <Link href="/attendance/scan">
             <Button size="lg" className="w-full bg-bagel-yellow hover:bg-bagel-yellow-600 text-bagel-black text-sm sm:text-base">
               <QrCode className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               QR 코드 스캔하기

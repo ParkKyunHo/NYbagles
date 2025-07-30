@@ -25,7 +25,7 @@ import { useRouter } from 'next/navigation'
 
 const navigation = [
   { name: '대시보드', href: '/dashboard', icon: Home, roles: ['all'] },
-  { name: 'QR 출퇴근', href: '/dashboard/attendance', icon: QrCode, roles: ['all'] },
+  { name: 'QR 출퇴근', href: '/attendance', icon: QrCode, roles: ['all'] },
   { name: '스케줄 관리', href: '/schedule', icon: Calendar, roles: ['all'] },
   { name: '상품 관리', href: '/products', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
   { name: '판매 입력', href: '/sales', icon: ShoppingCart, roles: ['all'] },

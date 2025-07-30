@@ -239,8 +239,8 @@ export default function EmployeesPage() {
       {/* 필터 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-5 w-5 text-gray-600" />
-          <h2 className="text-lg font-semibold">필터</h2>
+          <Filter className="h-5 w-5 text-gray-700" />
+          <h2 className="text-lg font-semibold text-gray-900">필터</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

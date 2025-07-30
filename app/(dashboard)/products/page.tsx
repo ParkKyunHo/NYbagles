@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Edit, Trash2, Search } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { CategoryManagementModal } from '@/components/products/CategoryManagementModal'
 
 interface Product {
   id: string
@@ -30,6 +31,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -122,8 +124,7 @@ export default function ProductsPage() {
   }
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = !selectedCategory || product.category_id === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -138,12 +139,22 @@ export default function ProductsPage() {
           <p className="text-gray-600 mt-2">전체 상품 카탈로그를 관리합니다.</p>
         </div>
         {canManageProducts && (
-          <Link href="/products/create">
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              새 상품 추가
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCategoryModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              카테고리 관리
             </Button>
-          </Link>
+            <Link href="/products/create">
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                새 상품 추가
+              </Button>
+            </Link>
+          </div>
         )}
       </div>
 
@@ -155,7 +166,7 @@ export default function ProductsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="상품명 또는 SKU로 검색..."
+                placeholder="상품명으로 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow"
@@ -200,9 +211,6 @@ export default function ProductsPage() {
                     카테고리
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    SKU
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     기본 가격
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -235,9 +243,6 @@ export default function ProductsPage() {
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
                         {product.product_categories?.name || '-'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.sku || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       ₩{product.price.toLocaleString()}
@@ -293,6 +298,13 @@ export default function ProductsPage() {
           </p>
         </div>
       )}
+
+      {/* 카테고리 관리 모달 */}
+      <CategoryManagementModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onCategoryUpdate={fetchCategories}
+      />
     </div>
   )
 }

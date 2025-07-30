@@ -258,7 +258,7 @@ export default function StoresPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
-                        {store.store_categories?.regions?.name} - {store.store_categories?.name}
+                        {store.store_categories?.regions?.name} {store.store_categories?.name}
                       </div>
                       <div className="text-sm text-gray-500 flex items-center">
                         <MapPin className="h-3 w-3 mr-1" />

@@ -19,8 +19,8 @@ export function MobileNav({ initialRole }: MobileNavProps) {
 
   const navigation = [
     { name: '홈', href: '/dashboard', icon: Home },
-    { name: 'QR 스캔', href: '/dashboard/attendance/scan', icon: QrCode },
-    { name: '출퇴근', href: '/dashboard/attendance', icon: Clock },
+    { name: 'QR 스캔', href: '/attendance/scan', icon: QrCode },
+    { name: '출퇴근', href: '/attendance', icon: Clock },
     { name: '설정', href: '/dashboard/settings', icon: Settings },
   ]
 

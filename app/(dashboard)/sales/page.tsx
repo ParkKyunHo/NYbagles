@@ -395,12 +395,12 @@ export default function SalesPage() {
                     onClick={() => setPaymentMethod(value as PaymentMethod)}
                     className={`p-2 rounded-md border-2 transition-all flex items-center justify-center gap-1 ${
                       paymentMethod === value
-                        ? 'border-bagel-yellow bg-yellow-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-bagel-yellow bg-yellow-50 text-gray-900'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="text-sm">{label}</span>
+                    <span className="text-sm font-medium">{label}</span>
                   </button>
                 ))}
               </div>

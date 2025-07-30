@@ -16,7 +16,6 @@ export default function CreateProductPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    sku: '',
     category_id: '',
     price: '',
     unit: '개',
@@ -85,7 +84,6 @@ export default function CreateProductPage() {
         .insert({
           name: formData.name.trim(),
           description: formData.description.trim() || null,
-          sku: formData.sku.trim() || null,
           category_id: formData.category_id,
           price: price,
           unit: formData.unit,
@@ -155,20 +153,6 @@ export default function CreateProductPage() {
           />
         </div>
 
-        {/* SKU */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            SKU (상품 코드)
-          </label>
-          <input
-            type="text"
-            name="sku"
-            value={formData.sku}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow"
-            placeholder="예: BGL-001"
-          />
-        </div>
 
         {/* 카테고리 */}
         <div>
@@ -189,6 +173,11 @@ export default function CreateProductPage() {
               </option>
             ))}
           </select>
+          {categories.length === 0 && (
+            <p className="mt-2 text-sm text-gray-500">
+              카테고리가 없습니다. 상품 관리 페이지에서 카테고리를 먼저 생성해주세요.
+            </p>
+          )}
         </div>
 
         {/* 가격과 단위 */}
