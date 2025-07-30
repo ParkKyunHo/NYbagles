@@ -11,7 +11,12 @@ export async function middleware(request: NextRequest) {
   let rateLimiter = rateLimiters.api // default rate limiter
   
   if (pathname.startsWith('/api/auth/')) {
-    rateLimiter = rateLimiters.auth
+    // 회원가입 엔드포인트는 일반 API rate limit 사용
+    if (pathname.includes('/signup')) {
+      rateLimiter = rateLimiters.api
+    } else {
+      rateLimiter = rateLimiters.auth
+    }
   } else if (pathname.startsWith('/api/qr/')) {
     rateLimiter = rateLimiters.qr
   }

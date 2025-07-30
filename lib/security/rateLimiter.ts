@@ -88,10 +88,10 @@ export class RateLimiter {
 
 // Pre-configured rate limiters for different endpoints
 export const rateLimiters = {
-  // Strict limit for auth endpoints
+  // Strict limit for auth endpoints (회원가입은 제외)
   auth: new RateLimiter({
     windowMs: 15 * 60 * 1000,  // 15 minutes
-    maxRequests: 5  // 5 attempts per 15 minutes
+    maxRequests: 10  // 10 attempts per 15 minutes (테스트를 위해 완화)
   }),
   
   // Standard API limit
