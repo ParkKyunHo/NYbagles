@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 29일 업데이트 (프로덕션 배포 완료)
+## Repository Status - 2025년 7월 30일 업데이트 (UI/UX 개선 및 전국 지역 데이터 추가)
 
 베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
 
@@ -64,10 +64,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - 모바일 우선 UI/UX
 
 7. **초기 데이터 생성 완료**
-   - 지역 데이터: 서울, 경기, 부산
-   - 매장 카테고리: 강남구, 종로구, 마포구
+   - 지역 데이터: 전국 17개 시/도
+   - 매장 카테고리: 전국 229개 구/군/시
    - 샘플 매장: NY베이글 강남역점, NY베이글 삼성점
-   - 초기화 스크립트: `npx tsx scripts/initializeTestData.ts`
+   - 초기화 스크립트: 
+     - `npx tsx scripts/initializeTestData.ts` - 기본 데이터
+     - `npx tsx scripts/addSeoulDistricts.ts` - 서울 25개 구
+     - `npx tsx scripts/addNationwideLocations.ts` - 전국 지역 데이터
+
+8. **최근 업데이트 (7/30)**
+   - QR 출퇴근 대시보드 404 에러 수정
+   - 상품 관리 카테고리 모달 추가
+   - WCAG 접근성 개선 (폰트 대비)
+   - 매장 관리 UI 개선 (시/도, 구/군 레이블)
+   - 전국 지역 데이터 추가 (17개 시/도, 229개 구/군/시)
+   - 직원 회원가입 매장 선택 UI 개선
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
