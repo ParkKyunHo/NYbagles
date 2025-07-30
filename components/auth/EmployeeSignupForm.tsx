@@ -33,7 +33,6 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
   
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
     full_name: '',
     phone: '',
     store_id: ''
@@ -232,22 +231,6 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           placeholder="이메일 주소"
           required
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2 text-gray-700">
-          비밀번호 <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
-          placeholder="비밀번호 (최소 6자)"
-          minLength={6}
-          required
-        />
-        <p className="text-xs text-gray-500 mt-1">최소 6자 이상</p>
       </div>
 
       <div>

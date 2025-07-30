@@ -18,7 +18,8 @@ import {
   UserCheck,
   Calendar,
   Package,
-  DollarSign
+  DollarSign,
+  UserPlus
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -32,6 +33,7 @@ const navigation = [
   { name: '판매 내역', href: '/sales/history', icon: FileText, roles: ['all'] },
   { name: '매출 요약', href: '/sales/summary', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
   { name: '직원 관리', href: '/dashboard/employees', icon: Users, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '가입 요청', href: '/dashboard/employee-requests', icon: UserPlus, roles: ['super_admin', 'admin', 'manager'] },
   { name: '근무 시간', href: '/dashboard/work-hours', icon: Clock, roles: ['all'] },
   { name: '급여 관리', href: '/dashboard/salary', icon: DollarSign, roles: ['super_admin', 'admin', 'manager'] },
   { name: '매출 분석', href: '/dashboard/analytics', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
