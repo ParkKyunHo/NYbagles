@@ -117,12 +117,12 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">카테고리 관리</h2>
+          <h2 className="text-xl font-bold text-gray-900">카테고리 관리</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-gray-700" />
           </button>
         </div>
 
@@ -151,9 +151,9 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="text-left py-2 px-2">카테고리명</th>
-                <th className="text-center py-2 px-2">상태</th>
-                <th className="text-right py-2 px-2">작업</th>
+                <th className="text-left py-2 px-2 text-gray-700 font-semibold">카테고리명</th>
+                <th className="text-center py-2 px-2 text-gray-700 font-semibold">상태</th>
+                <th className="text-right py-2 px-2 text-gray-700 font-semibold">작업</th>
               </tr>
             </thead>
             <tbody>
@@ -166,11 +166,11 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleUpdateCategory(category.id)}
-                        className="w-full px-2 py-1 border border-gray-300 rounded"
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-gray-900"
                         autoFocus
                       />
                     ) : (
-                      <span className={!category.is_active ? 'text-gray-400' : ''}>
+                      <span className={!category.is_active ? 'text-gray-400' : 'text-gray-900 font-medium'}>
                         {category.name}
                       </span>
                     )}
@@ -178,10 +178,10 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
                   <td className="text-center py-2 px-2">
                     <button
                       onClick={() => handleToggleActive(category.id, category.is_active)}
-                      className={`px-2 py-1 text-xs rounded ${
+                      className={`px-2 py-1 text-xs rounded font-medium ${
                         category.is_active
                           ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-600'
+                          : 'bg-gray-100 text-gray-700'
                       }`}
                     >
                       {category.is_active ? '활성' : '비활성'}
