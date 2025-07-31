@@ -41,9 +41,12 @@ export default function CreateStorePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    checkAuth();
-    fetchData();
-  }, []);
+    const init = async () => {
+      await checkAuth();
+      await fetchData();
+    };
+    init();
+  }, [router, supabase]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

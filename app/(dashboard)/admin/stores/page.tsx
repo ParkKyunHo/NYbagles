@@ -34,7 +34,7 @@ export default function StoresPage() {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [router, supabase]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
