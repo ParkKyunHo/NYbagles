@@ -131,6 +131,34 @@ WHERE p.id IS NULL;
    - QRScanner TypeScript 오류 해결
    - 성공적인 프로덕션 빌드 및 배포
 
+## 2025년 7월 31일 - 시스템 중복 문제 분석
+
+### 발견된 문제
+1. **duplicate key constraint 오류**
+   - 원인: 기존 시스템과 새 시스템 충돌
+   - 위치: products/v2 페이지의 자동 마이그레이션
+   - 메시지: "duplicate key value violates unique constraint 'store_products_store_id_product_id_key'"
+
+2. **대시보드 업데이트 안됨**
+   - 원인: 대시보드가 기존 시스템 참조
+   - 영향: 새 시스템 변경사항 미반영
+
+### 분석 결과
+- 기존: products + product_categories + store_products (복잡한 3테이블 구조)
+- 신규: products_v2 + sales + daily_closing (간소화된 구조)
+- 충돌: 두 시스템이 동시 작동하여 constraint 위반
+
+### 해결 계획
+1. **단기 해결책 (즉시 적용 가능)**
+   - products/v2 페이지의 자동 마이그레이션 로직 제거
+   - 시스템 분리 및 명확한 구분
+   - 대시보드를 새 시스템으로 업데이트
+
+2. **장기 해결책 (단계적 진행)**
+   - 완전한 데이터 마이그레이션
+   - 기존 시스템 비활성화
+   - 모든 페이지 통합
+
 ## ⚠️ 주의사항
 
 - 데이터베이스 수정은 프로덕션 환경에서 신중히 실행하세요

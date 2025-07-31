@@ -9,11 +9,13 @@ import { useRouter } from 'next/navigation'
 
 interface Product {
   id: string
+  sku: string
   name: string
-  price: number
+  base_price: number
+  sale_price?: number
   stock_quantity: number
   category: string
-  is_active: boolean
+  status: string
 }
 
 export default function ProductsV2Page() {
@@ -99,54 +101,24 @@ export default function ProductsV2Page() {
 
   const fetchProducts = async (storeId: string) => {
     try {
-      // Try products_v2 first
-      let { data, error } = await supabase
-        .from('products_v2')
+      // Fetch from products_v3 (new system)
+      const { data, error } = await supabase
+        .from('products_v3')
         .select('*')
         .eq('store_id', storeId)
+        .eq('status', 'active')
         .order('category')
         .order('name')
 
-      if (error || !data || data.length === 0) {
-        // Fallback to migrate from old products
-        const { data: oldProducts } = await supabase
-          .from('products')
-          .select('*, store_products!inner(stock_quantity), product_categories(name)')
-          .eq('store_products.store_id', storeId)
-          .order('name')
-
-        if (oldProducts && oldProducts.length > 0) {
-          // Migrate to products_v2
-          for (const oldProduct of oldProducts) {
-            await supabase
-              .from('products_v2')
-              .insert({
-                store_id: storeId,
-                name: oldProduct.name,
-                category: oldProduct.product_categories?.name || '베이글',
-                price: oldProduct.price,
-                stock_quantity: oldProduct.store_products[0]?.stock_quantity || 0,
-                is_active: oldProduct.is_active
-              })
-          }
-          
-          // Fetch again
-          const { data: newData } = await supabase
-            .from('products_v2')
-            .select('*')
-            .eq('store_id', storeId)
-            .order('category')
-            .order('name')
-          
-          if (newData) {
-            setProducts(newData)
-          }
-        }
+      if (error) {
+        console.error('Error fetching products:', error)
+        alert('상품을 불러오는 중 오류가 발생했습니다.')
       } else {
-        setProducts(data)
+        setProducts(data || [])
       }
     } catch (error) {
       console.error('Error fetching products:', error)
+      alert('상품을 불러오는 중 오류가 발생했습니다.')
     }
   }
 
@@ -157,23 +129,52 @@ export default function ProductsV2Page() {
     }
 
     try {
-      const { error } = await supabase
-        .from('products_v2')
+      // 1. 먼저 products_v3에 상품 생성 (draft 상태)
+      const { data: product, error: productError } = await supabase
+        .from('products_v3')
         .insert({
           store_id: storeId,
+          sku: 'SKU-' + Date.now(),
           name: newProduct.name,
-          price: parseFloat(newProduct.price),
+          base_price: parseFloat(newProduct.price),
           stock_quantity: parseInt(newProduct.stock_quantity) || 0,
-          category: newProduct.category
+          category: newProduct.category,
+          status: 'draft',
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .select()
+        .single()
+
+      if (productError || !product) {
+        throw productError || new Error('상품 생성 실패')
+      }
+
+      // 2. 승인 요청 생성
+      const { error: changeError } = await supabase
+        .from('product_changes')
+        .insert({
+          product_id: product.id,
+          change_type: 'create',
+          new_values: {
+            name: newProduct.name,
+            base_price: parseFloat(newProduct.price),
+            stock_quantity: parseInt(newProduct.stock_quantity) || 0,
+            category: newProduct.category
+          },
+          change_reason: '신규 상품 등록',
+          requested_by: (await supabase.auth.getUser()).data.user?.id
         })
 
-      if (!error) {
-        setNewProduct({ name: '', price: '', stock_quantity: '0', category: '베이글' })
-        setShowAddForm(false)
-        await fetchProducts(storeId)
-      } else {
-        alert('상품 추가 중 오류가 발생했습니다')
+      if (changeError) {
+        // 실패 시 상품도 삭제
+        await supabase.from('products_v3').delete().eq('id', product.id)
+        throw changeError
       }
+
+      alert('상품 등록 요청이 제출되었습니다. 승인 후 판매가 가능합니다.')
+      setNewProduct({ name: '', price: '', stock_quantity: '0', category: '베이글' })
+      setShowAddForm(false)
+      await fetchProducts(storeId)
     } catch (error) {
       console.error('Error adding product:', error)
       alert('상품 추가 중 오류가 발생했습니다')
@@ -187,21 +188,45 @@ export default function ProductsV2Page() {
     }
 
     try {
-      const { error } = await supabase
-        .from('products_v2')
-        .update({
-          name: editProduct.name,
-          price: parseFloat(editProduct.price),
-          stock_quantity: parseInt(editProduct.stock_quantity) || 0,
-          category: editProduct.category
-        })
+      // 현재 상품 정보 가져오기
+      const { data: currentProduct } = await supabase
+        .from('products_v3')
+        .select('*')
         .eq('id', id)
+        .single()
+
+      if (!currentProduct) {
+        throw new Error('상품을 찾을 수 없습니다')
+      }
+
+      // 변경 요청 생성
+      const { error } = await supabase
+        .from('product_changes')
+        .insert({
+          product_id: id,
+          change_type: 'update',
+          old_values: {
+            name: currentProduct.name,
+            base_price: currentProduct.base_price,
+            stock_quantity: currentProduct.stock_quantity,
+            category: currentProduct.category
+          },
+          new_values: {
+            name: editProduct.name,
+            base_price: parseFloat(editProduct.price),
+            stock_quantity: parseInt(editProduct.stock_quantity) || 0,
+            category: editProduct.category
+          },
+          change_reason: '상품 정보 수정',
+          requested_by: (await supabase.auth.getUser()).data.user?.id
+        })
 
       if (!error) {
+        alert('상품 수정 요청이 제출되었습니다. 승인 후 반영됩니다.')
         setEditingId(null)
         if (storeId) await fetchProducts(storeId)
       } else {
-        alert('상품 수정 중 오류가 발생했습니다')
+        alert('상품 수정 요청 중 오류가 발생했습니다')
       }
     } catch (error) {
       console.error('Error updating product:', error)
@@ -213,13 +238,22 @@ export default function ProductsV2Page() {
     if (!confirm('정말 삭제하시겠습니까?')) return
 
     try {
+      // 삭제 요청 생성
       const { error } = await supabase
-        .from('products_v2')
-        .update({ is_active: false })
-        .eq('id', id)
+        .from('product_changes')
+        .insert({
+          product_id: id,
+          change_type: 'delete',
+          new_values: { status: 'archived' },
+          change_reason: '상품 삭제',
+          requested_by: (await supabase.auth.getUser()).data.user?.id
+        })
 
-      if (!error && storeId) {
-        await fetchProducts(storeId)
+      if (!error) {
+        alert('상품 삭제 요청이 제출되었습니다. 승인 후 삭제됩니다.')
+        if (storeId) await fetchProducts(storeId)
+      } else {
+        alert('상품 삭제 요청 중 오류가 발생했습니다')
       }
     } catch (error) {
       console.error('Error deleting product:', error)
@@ -231,7 +265,7 @@ export default function ProductsV2Page() {
     setEditingId(product.id)
     setEditProduct({
       name: product.name,
-      price: product.price.toString(),
+      price: product.base_price.toString(),
       stock_quantity: product.stock_quantity.toString(),
       category: product.category
     })
@@ -364,7 +398,7 @@ export default function ProductsV2Page() {
                     ) : (
                       <>
                         <h3 className="font-semibold text-lg">{product.name}</h3>
-                        <p className="text-gray-600">₩{product.price.toLocaleString()}</p>
+                        <p className="text-gray-600">₩{product.base_price.toLocaleString()}</p>
                         <p className="text-sm text-gray-500 mb-3">재고: {product.stock_quantity}개</p>
                         {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
                           <div className="flex gap-2">

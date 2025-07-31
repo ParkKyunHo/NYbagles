@@ -122,6 +122,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - Supabase SQL 에디터에서 마이그레이션 SQL 직접 실행
      - 새 시스템 테스트 후 점진적 전환
 
+12. **시스템 중복 문제 분석 및 해결 (7/31 11차 업데이트)**
+   - **문제 발견**: 
+     - 기존 시스템(products + store_products)과 새 시스템(products_v2) 동시 작동
+     - "duplicate key constraint" 오류 발생
+     - 대시보드가 기존 시스템 참조로 업데이트 안됨
+   - **원인 분석**:
+     - products/v2 페이지의 자동 마이그레이션 로직이 충돌 유발
+     - 페이지별로 다른 시스템 참조하여 혼란 발생
+   - **해결 방향**:
+     - 단기: 자동 마이그레이션 제거, 시스템 명확히 분리
+     - 장기: 완전한 마이그레이션 후 기존 시스템 제거
+   - **진행 상태**: 문제 분석 완료, 해결책 수립
+
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
 - **Phase 2 진행중**: 알림 시스템, 백업/복구, 문서 관리 UI
