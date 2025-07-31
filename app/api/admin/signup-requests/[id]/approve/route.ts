@@ -27,39 +27,69 @@ export async function POST(
       )
     }
 
-    // Create user in Supabase Auth with password if available
-    const createUserPayload: any = {
-      email: signupRequest.email,
-      email_confirm: true,
-      user_metadata: {
-        full_name: signupRequest.full_name,
-        role: role,
-        store_id: signupRequest.store_id,
-      },
-    }
-
-    // 비밀번호가 있으면 사용, 없으면 임시 비밀번호 생성
-    if (signupRequest.password_hash) {
-      createUserPayload.password = signupRequest.password_hash
+    // Check if user already exists by listing users
+    const { data: { users: existingUsers }, error: listError } = await supabase.auth.admin.listUsers()
+    const existingUser = existingUsers?.find(u => u.email === signupRequest.email)
+    
+    let authData
+    if (existingUser) {
+      // User already exists, just update metadata
+      const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
+        existingUser.id,
+        {
+          user_metadata: {
+            full_name: signupRequest.full_name,
+            role: role,
+            store_id: signupRequest.store_id,
+          },
+        }
+      )
+      
+      if (updateError) {
+        console.error('User update error:', updateError)
+        throw updateError
+      }
+      
+      authData = { user: updatedUser }
     } else {
-      // 비밀번호가 없는 경우 임시 비밀번호 생성
-      createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
-    }
+      // Create new user
+      const createUserPayload: any = {
+        email: signupRequest.email,
+        email_confirm: true,
+        user_metadata: {
+          full_name: signupRequest.full_name,
+          role: role,
+          store_id: signupRequest.store_id,
+        },
+      }
 
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser(createUserPayload)
+      // 비밀번호가 있으면 사용, 없으면 임시 비밀번호 생성
+      if (signupRequest.password_hash) {
+        createUserPayload.password = signupRequest.password_hash
+      } else {
+        // 비밀번호가 없는 경우 임시 비밀번호 생성
+        createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
+      }
 
-    if (authError) {
-      console.error('Auth creation error:', authError)
-      throw authError
+      const { data: newUser, error: authError } = await supabase.auth.admin.createUser(createUserPayload)
+      
+      if (authError) {
+        console.error('Auth creation error:', authError)
+        throw authError
+      }
+      
+      authData = newUser
     }
 
     // Create employee record - check if employees table exists
     // If not, the profile will be created by the trigger
+    const userId = 'user' in authData ? authData.user.id : authData.id
+    
     try {
       const { error: employeeError } = await supabase
         .from('employees')
         .insert({
-          user_id: authData.user.id,
+          user_id: userId,
           store_id: signupRequest.store_id,
           qr_code: `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`,
           hire_date: new Date().toISOString().split('T')[0],
@@ -99,7 +129,7 @@ export async function POST(
 
     return NextResponse.json({
       message: 'Employee approved successfully',
-      userId: authData.user.id,
+      userId: userId,
     })
   } catch (error) {
     console.error('Approve signup request error:', error)

@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 30일 8차 업데이트 (상품 관리 RLS 및 UI 개선)
+## Repository Status - 2025년 7월 31일 9차 업데이트 (RLS 정책 수정 및 코드 정리)
 
 베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
 
@@ -89,6 +89,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - **UI 개선**: 카테고리 관리 모달 폰트 색상 개선 (가독성 향상)
    - **빌드 안정성**: ESLint 설정 간소화, QRScanner TypeScript 오류 수정
    - **배포 완료**: GitHub 푸시 후 Vercel 자동 배포
+
+10. **RLS 정책 수정 및 코드 정리 (7/31 9차 업데이트)**
+   - **RLS 정책 전면 재구성**: 
+     - products, product_categories, store_products 테이블의 모든 중복 정책 제거
+     - 'authenticated' 역할로 통일된 정책 재생성
+     - store_products 자동 생성 트리거 추가
+   - **코드 정리 작업**:
+     - 중복 컴포넌트 제거 (EmployeeSignupFormFixed.tsx)
+     - 프로덕션 코드에서 console.log 12개 제거
+     - 오래된 마이그레이션 스크립트 5개 아카이브
+     - package.json의 사용하지 않는 스크립트 제거
+   - **진행중인 이슈**:
+     - 상품 로딩 오류 지속 ("상품을 불러오는 중 오류가 발생")
+     - 시스템 관리자 매장 선택 제한 문제
+     - 회원가입 시 비밀번호 입력란 누락
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포

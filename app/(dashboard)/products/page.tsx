@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientWithAuth } from '@/lib/supabase/client-auth'
 import { Plus, Edit, Trash2, Search, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -42,7 +42,7 @@ export default function ProductsPage() {
   const [selectedStore, setSelectedStore] = useState<string>('')
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createClientWithAuth()
 
   useEffect(() => {
     checkAuth()
@@ -65,24 +65,24 @@ export default function ProductsPage() {
       return
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, store_id')
       .eq('id', user.id)
       .single()
 
-    if (profile) {
-      setUserRole(profile.role)
-      setUserStoreId(profile.store_id)
+    if (profile && !profileError) {
+      setUserRole(profile.role as string)
+      setUserStoreId(profile.store_id as string | null)
       
       // 일반 직원은 접근 불가
-      if (!['super_admin', 'admin', 'manager'].includes(profile.role)) {
+      if (!['super_admin', 'admin', 'manager'].includes(profile.role as string)) {
         router.push('/dashboard')
       }
       
       // 매니저는 자신의 매장만 선택
       if (profile.role === 'manager' && profile.store_id) {
-        setSelectedStore(profile.store_id)
+        setSelectedStore(profile.store_id as string)
       }
     }
   }
@@ -95,7 +95,7 @@ export default function ProductsPage() {
       .order('display_order')
 
     if (!error && data) {
-      setCategories(data)
+      setCategories(data.map((cat: any) => ({ id: cat.id, name: cat.name })))
     }
   }
 
@@ -158,16 +158,21 @@ export default function ProductsPage() {
 
       const { data, error } = await query
         .eq('is_active', true)  // 활성화된 상품만 표시
-        .order('product_categories(display_order)', { ascending: true })
         .order('display_order', { ascending: true })
         .order('name', { ascending: true })
 
       if (error) throw error
 
-      setProducts(data || [])
-    } catch (error) {
+      setProducts((data || []) as Product[])
+    } catch (error: any) {
       console.error('Error fetching products:', error)
-      alert('상품을 불러오는 중 오류가 발생했습니다.')
+      // 더 상세한 오류 메시지
+      if (error.code === 'PGRST301') {
+        alert('인증 오류가 발생했습니다. 다시 로그인해주세요.')
+        router.push('/login')
+      } else {
+        alert(`상품을 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`)
+      }
     } finally {
       setLoading(false)
     }
@@ -182,7 +187,7 @@ export default function ProductsPage() {
       const { error } = await supabase
         .from('products')
         .update({ is_active: false })
-        .eq('id', productId)
+        .eq('id', productId as any)
 
       if (error) throw error
 
