@@ -23,14 +23,6 @@ export default function AdminPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    const init = async () => {
-      await checkAuth()
-      await fetchDashboardStats()
-    }
-    init()
-  }, [])
-
   const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -48,7 +40,7 @@ export default function AdminPage() {
     if (!profile || !['super_admin', 'admin', 'manager'].includes(profile.role)) {
       router.push('/dashboard')
     }
-  }, [router])
+  }, [router, supabase])
 
   const fetchDashboardStats = useCallback(async () => {
     setLoading(true)
@@ -90,6 +82,14 @@ export default function AdminPage() {
       setLoading(false)
     }
   }, [supabase])
+
+  useEffect(() => {
+    const init = async () => {
+      await checkAuth()
+      await fetchDashboardStats()
+    }
+    init()
+  }, [checkAuth, fetchDashboardStats])
 
   const adminMenuItems = [
     {

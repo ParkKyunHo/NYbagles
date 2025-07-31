@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
@@ -51,12 +51,7 @@ export default function EditStorePage() {
   const storeId = params.id as string;
   const supabase = createClient();
 
-  useEffect(() => {
-    checkAuth();
-    fetchData();
-  }, [storeId]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       router.push('/login');
@@ -73,9 +68,9 @@ export default function EditStorePage() {
       router.push('/dashboard');
       return;
     }
-  };
+  }, [router, supabase]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [storeRes, categoriesRes, regionsRes] = await Promise.all([
         supabase
@@ -134,7 +129,12 @@ export default function EditStorePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [storeId, router, supabase]);
+
+  useEffect(() => {
+    checkAuth();
+    fetchData();
+  }, [storeId, checkAuth, fetchData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
