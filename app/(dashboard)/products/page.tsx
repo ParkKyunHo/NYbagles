@@ -24,6 +24,12 @@ interface Product {
   } | null
 }
 
+interface Store {
+  id: string
+  name: string
+  code: string
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,6 +37,9 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [userStoreId, setUserStoreId] = useState<string | null>(null)
+  const [stores, setStores] = useState<Store[]>([])
+  const [selectedStore, setSelectedStore] = useState<string>('')
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -38,8 +47,14 @@ export default function ProductsPage() {
   useEffect(() => {
     checkAuth()
     fetchCategories()
-    fetchProducts()
+    fetchStores()
   }, [])
+
+  useEffect(() => {
+    if (selectedStore || userRole) {
+      fetchProducts()
+    }
+  }, [selectedStore, userRole])
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -51,15 +66,22 @@ export default function ProductsPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, store_id')
       .eq('id', user.id)
       .single()
 
     if (profile) {
       setUserRole(profile.role)
+      setUserStoreId(profile.store_id)
+      
       // 일반 직원은 접근 불가
       if (!['super_admin', 'admin', 'manager'].includes(profile.role)) {
         router.push('/dashboard')
+      }
+      
+      // 매니저는 자신의 매장만 선택
+      if (profile.role === 'manager' && profile.store_id) {
+        setSelectedStore(profile.store_id)
       }
     }
   }
@@ -76,11 +98,32 @@ export default function ProductsPage() {
     }
   }
 
+  const fetchStores = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name')
+
+      if (!error && data) {
+        setStores(data)
+      }
+    } catch (error) {
+      console.error('Error fetching stores:', error)
+    }
+  }
+
   const fetchProducts = async () => {
+    if (!selectedStore && userRole === 'manager') {
+      // 매니저는 매장 선택 필수
+      return
+    }
+
     setLoading(true)
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('products')
         .select(`
           *,
@@ -89,6 +132,29 @@ export default function ProductsPage() {
             name
           )
         `)
+
+      // 매장이 선택된 경우 해당 매장의 store_products와 조인
+      if (selectedStore) {
+        const { data: storeProducts, error: storeError } = await supabase
+          .from('store_products')
+          .select('product_id')
+          .eq('store_id', selectedStore)
+          .eq('is_available', true)
+
+        if (storeError) throw storeError
+
+        const productIds = storeProducts?.map(sp => sp.product_id) || []
+        if (productIds.length > 0) {
+          query = query.in('id', productIds)
+        } else {
+          // 매장에 상품이 없는 경우
+          setProducts([])
+          setLoading(false)
+          return
+        }
+      }
+
+      const { data, error } = await query
         .order('product_categories(display_order)', { ascending: true })
         .order('display_order', { ascending: true })
         .order('name', { ascending: true })
@@ -185,6 +251,22 @@ export default function ProductsPage() {
               </option>
             ))}
           </select>
+          {/* 매장 선택 (관리자와 매니저용) */}
+          {(['super_admin', 'admin'].includes(userRole || '') || (userRole === 'manager' && stores.length > 0)) && (
+            <select
+              value={selectedStore}
+              onChange={(e) => setSelectedStore(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
+              disabled={userRole === 'manager'}
+            >
+              <option value="">전체 상품 카탈로그</option>
+              {stores.map((store) => (
+                <option key={store.id} value={store.id}>
+                  {store.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -196,8 +278,10 @@ export default function ProductsPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-600 mb-4">등록된 상품이 없습니다.</p>
-          {canManageProducts && (
+          <p className="text-gray-600 mb-4">
+            {selectedStore ? '선택한 매장에 등록된 상품이 없습니다.' : '등록된 상품이 없습니다.'}
+          </p>
+          {canManageProducts && !selectedStore && (
             <Link href="/products/create">
               <Button className="mx-auto">
                 <Plus className="h-4 w-4 mr-2" />

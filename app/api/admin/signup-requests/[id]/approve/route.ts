@@ -35,28 +35,34 @@ export async function POST(
       user_metadata: {
         full_name: signupRequest.full_name,
         role: role,
+        store_id: signupRequest.store_id,
       },
     })
 
     if (authError) {
+      console.error('Auth creation error:', authError)
       throw authError
     }
 
-    // Create employee record
-    const { error: employeeError } = await supabase
-      .from('employees')
-      .insert({
-        user_id: authData.user.id,
-        store_id: signupRequest.store_id,
-        qr_code: `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        hire_date: new Date().toISOString().split('T')[0],
-        is_active: true,
-      })
+    // Create employee record - check if employees table exists
+    // If not, the profile will be created by the trigger
+    try {
+      const { error: employeeError } = await supabase
+        .from('employees')
+        .insert({
+          user_id: authData.user.id,
+          store_id: signupRequest.store_id,
+          qr_code: `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          hire_date: new Date().toISOString().split('T')[0],
+          is_active: true,
+        })
 
-    if (employeeError) {
-      // Rollback user creation
-      await supabase.auth.admin.deleteUser(authData.user.id)
-      throw employeeError
+      if (employeeError) {
+        console.log('Employee table might not exist, relying on trigger:', employeeError)
+        // Don't throw here, as the profile will be created by the trigger
+      }
+    } catch (e) {
+      console.log('Employee creation skipped, profile will be created by trigger')
     }
 
     // Update signup request

@@ -117,7 +117,7 @@ export default function AdminPage() {
     {
       title: '시스템 설정',
       description: '시스템 전반의 설정을 관리합니다',
-      href: '/admin/settings',
+      href: '/admin/system-settings',
       icon: '⚙️',
     },
     {

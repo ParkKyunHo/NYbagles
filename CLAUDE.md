@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 30일 업데이트 (코드 품질 개선 및 데이터베이스 수정)
+## Repository Status - 2025년 7월 30일 8차 업데이트 (상품 관리 RLS 및 UI 개선)
 
 베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
 
@@ -72,7 +72,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - `npx tsx scripts/addSeoulDistricts.ts` - 서울 25개 구
      - `npx tsx scripts/addNationwideLocations.ts` - 전국 지역 데이터
 
-8. **최근 업데이트 (7/30)**
+8. **최근 업데이트 (7/30 8차)**
    - QR 출퇴근 대시보드 404 에러 수정
    - 상품 관리 카테고리 모달 추가
    - WCAG 접근성 개선 (폰트 대비)
@@ -82,6 +82,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - **데이터베이스 수정**: store_id NULL 문제 해결, 프로필 동기화
    - **코드 품질 개선**: ESLint 설정 추가, TypeScript 엄격 모드
    - **수정 스크립트 추가**: `npm run fix:all` 명령어로 일괄 수정
+
+9. **상품 관리 시스템 개선 (7/30 8차 업데이트)**
+   - **RLS 정책 정리**: products, product_categories 테이블의 중복된 정책 제거
+   - **데이터 무결성**: NULL category_id 문제 해결, 기본 카테고리 할당
+   - **UI 개선**: 카테고리 관리 모달 폰트 색상 개선 (가독성 향상)
+   - **빌드 안정성**: ESLint 설정 간소화, QRScanner TypeScript 오류 수정
+   - **배포 완료**: GitHub 푸시 후 Vercel 자동 배포
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
