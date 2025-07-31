@@ -289,9 +289,9 @@
 - ✅ 시간대별 매출 분석
 - ✅ 승인 워크플로우 시스템 설계 (products_v3, product_changes)
 - ✅ products/v2 페이지 수정 (자동 마이그레이션 제거, 승인 워크플로우 통합)
+- ✅ 승인 관리 페이지 구현 (/products/approvals)
 
 #### 진행중
-- 🔄 승인 관리 페이지 구현 (/products/approvals)
 - 🔄 판매 시스템 업데이트 (sales_transactions 사용)
 - 🔄 대시보드 새 시스템 연동
 

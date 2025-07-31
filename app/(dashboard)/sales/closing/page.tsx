@@ -105,68 +105,61 @@ export default function DailyClosingPage() {
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     try {
-      // Fetch today's sales from new table first
-      let salesData: any[] = []
-      let { data: newSales, error: newError } = await supabase
-        .from('sales')
-        .select('*, products_v2(name, stock_quantity)')
+      // Fetch today's sales from sales_transactions and sales_items
+      const { data: transactions, error } = await supabase
+        .from('sales_transactions')
+        .select(`
+          *,
+          sales_items(
+            *,
+            product:products_v3(
+              id,
+              name,
+              stock_quantity
+            )
+          )
+        `)
         .eq('store_id', storeId)
+        .eq('payment_status', 'completed')
         .gte('sold_at', today.toISOString())
         .lt('sold_at', tomorrow.toISOString())
 
-      if (!newError && newSales && newSales.length > 0) {
-        salesData = newSales
-      } else {
-        // Fallback to old sales_records
-        const { data: oldSales } = await supabase
-          .from('sales_records')
-          .select('*')
-          .eq('store_id', storeId)
-          .gte('created_at', today.toISOString())
-          .lt('created_at', tomorrow.toISOString())
-
-        if (oldSales) {
-          salesData = oldSales.map(sale => ({
-            ...sale,
-            quantity: 1,
-            unit_price: sale.total_amount,
-            sold_at: sale.created_at
-          }))
-        }
+      if (error) {
+        console.error('Error fetching sales:', error)
+        return
       }
 
       // Calculate total revenue
-      const total = salesData.reduce((sum, sale) => sum + Number(sale.total_amount), 0)
+      const total = transactions?.reduce((sum, trans) => sum + Number(trans.total_amount), 0) || 0
       setTodayTotal(total)
 
       // Calculate product sales summary
       const productMap = new Map<string, ProductSales>()
       
-      for (const sale of salesData) {
-        if (sale.product_id) {
-          const existing = productMap.get(sale.product_id) || {
-            product_id: sale.product_id,
-            product_name: sale.products_v2?.name || 'Unknown Product',
-            opening_stock: 0,
-            current_stock: sale.products_v2?.stock_quantity || 0,
+      transactions?.forEach(transaction => {
+        transaction.sales_items?.forEach((item: any) => {
+          const existing = productMap.get(item.product_id) || {
+            product_id: item.product_id,
+            product_name: item.product?.name || 'Unknown Product',
+            opening_stock: item.stock_before,
+            current_stock: item.product?.stock_quantity || 0,
             quantity_sold: 0,
             revenue: 0
           }
           
-          existing.quantity_sold += sale.quantity || 1
-          existing.revenue += Number(sale.total_amount)
-          existing.opening_stock = existing.current_stock + existing.quantity_sold
+          existing.quantity_sold += item.quantity
+          existing.revenue += Number(item.total_amount)
           
-          productMap.set(sale.product_id, existing)
-        }
-      }
+          productMap.set(item.product_id, existing)
+        })
+      })
 
       // Get all products to include those with no sales
       const { data: allProducts } = await supabase
-        .from('products_v2')
+        .from('products_v3')
         .select('*')
         .eq('store_id', storeId)
-        .eq('is_active', true)
+        .eq('status', 'active')
 
       if (allProducts) {
         for (const product of allProducts) {
@@ -188,13 +181,13 @@ export default function DailyClosingPage() {
       // Calculate hourly distribution
       const hourlyMap = new Map<number, SalesByHour>()
       
-      for (const sale of salesData) {
-        const hour = new Date(sale.sold_at || sale.created_at).getHours()
+      transactions?.forEach(transaction => {
+        const hour = new Date(transaction.sold_at).getHours()
         const existing = hourlyMap.get(hour) || { hour, count: 0, revenue: 0 }
         existing.count += 1
-        existing.revenue += Number(sale.total_amount)
+        existing.revenue += Number(transaction.total_amount)
         hourlyMap.set(hour, existing)
-      }
+      })
 
       // Fill in missing hours
       for (let hour = 9; hour <= 21; hour++) {

@@ -150,7 +150,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - 자동 마이그레이션 로직 제거 (duplicate key 오류 해결)
      - products_v3 테이블 사용으로 변경
      - 승인 워크플로우 통합
-   - **다음 단계**: 승인 관리 페이지 구현 (/products/approvals)
+   - **승인 페이지 구현 완료**:
+     - /products/approvals 페이지 추가
+     - 대기중/승인/거절 상태별 필터링
+     - 상세 정보 모달 및 승인/거절 기능
+     - RLS 정책 수정 (product_changes 조인 허용)
+   - **다음 단계**: 판매 시스템 업데이트 (sales_transactions 사용)
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포

@@ -77,35 +77,26 @@ export default function SimpleSalesPage() {
 
   const fetchProducts = async (storeId: string) => {
     try {
-      // First try products_v2
-      let { data, error } = await supabase
-        .from('products_v2')
+      // Use products_v3 with active status
+      const { data, error } = await supabase
+        .from('products_v3')
         .select('*')
         .eq('store_id', storeId)
-        .eq('is_active', true)
+        .eq('status', 'active')
         .order('category')
         .order('name')
 
-      if (error || !data || data.length === 0) {
-        // Fallback to products table
-        const { data: oldProducts } = await supabase
-          .from('products')
-          .select('*, store_products!inner(stock_quantity)')
-          .eq('store_products.store_id', storeId)
-          .eq('is_active', true)
-          .order('name')
-
-        if (oldProducts) {
-          setProducts(oldProducts.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            stock_quantity: p.store_products[0]?.stock_quantity || 0,
-            category: '베이글'
-          })))
-        }
+      if (error) {
+        console.error('Error fetching products:', error)
+        alert('상품을 불러오는 중 오류가 발생했습니다.')
       } else {
-        setProducts(data)
+        setProducts(data?.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.base_price,
+          stock_quantity: p.stock_quantity,
+          category: p.category
+        })) || [])
       }
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -117,27 +108,18 @@ export default function SimpleSalesPage() {
     today.setHours(0, 0, 0, 0)
 
     try {
-      // First try new sales table
-      let { data, error } = await supabase
-        .from('sales')
+      // Use sales_transactions table
+      const { data, error } = await supabase
+        .from('sales_transactions')
         .select('total_amount')
         .eq('store_id', storeId)
+        .eq('payment_status', 'completed')
         .gte('sold_at', today.toISOString())
 
-      if (error || !data || data.length === 0) {
-        // Fallback to sales_records
-        const { data: oldSales } = await supabase
-          .from('sales_records')
-          .select('total_amount')
-          .eq('store_id', storeId)
-          .gte('created_at', today.toISOString())
-
-        if (oldSales) {
-          const total = oldSales.reduce((sum, sale) => sum + Number(sale.total_amount), 0)
-          setTodayTotal(total)
-        }
+      if (error) {
+        console.error('Error fetching today sales:', error)
       } else {
-        const total = data.reduce((sum, sale) => sum + Number(sale.total_amount), 0)
+        const total = data?.reduce((sum, sale) => sum + Number(sale.total_amount), 0) || 0
         setTodayTotal(total)
       }
     } catch (error) {
@@ -185,39 +167,62 @@ export default function SimpleSalesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || !storeId) return
 
-      // Process each item in cart
+      // Calculate totals
+      const subtotal = getCartTotal()
+      const taxAmount = 0 // No tax for now
+      const discountAmount = 0 // No discount for now
+      const totalAmount = subtotal
+
+      // Create sales transaction
+      const { data: transaction, error: transactionError } = await supabase
+        .from('sales_transactions')
+        .insert({
+          store_id: storeId,
+          subtotal,
+          tax_amount: taxAmount,
+          discount_amount: discountAmount,
+          total_amount: totalAmount,
+          payment_method: 'cash',
+          payment_status: 'completed',
+          sold_by: user.id
+        })
+        .select()
+        .single()
+
+      if (transactionError) {
+        throw transactionError
+      }
+
+      // Create sales items and update stock
       for (const item of cart) {
-        // Try new sales table first
-        const { error: saleError } = await supabase
-          .from('sales')
+        // Get current stock
+        const { data: product } = await supabase
+          .from('products_v3')
+          .select('stock_quantity')
+          .eq('id', item.product.id)
+          .single()
+
+        if (!product) continue
+
+        const stockBefore = product.stock_quantity
+        const stockAfter = stockBefore - item.quantity
+
+        // Create sales item
+        const { error: itemError } = await supabase
+          .from('sales_items')
           .insert({
-            store_id: storeId,
+            transaction_id: transaction.id,
             product_id: item.product.id,
             quantity: item.quantity,
             unit_price: item.product.price,
+            discount_amount: 0,
             total_amount: item.product.price * item.quantity,
-            sold_by: user.id
+            stock_before: stockBefore,
+            stock_after: stockAfter
           })
 
-        if (saleError) {
-          // Fallback to old system
-          await supabase
-            .from('sales_records')
-            .insert({
-              store_id: storeId,
-              total_amount: item.product.price * item.quantity,
-              payment_method: 'cash',
-              status: 'completed'
-            })
-
-          // Update stock manually for old system
-          await supabase
-            .from('store_products')
-            .update({ 
-              stock_quantity: item.product.stock_quantity - item.quantity 
-            })
-            .eq('store_id', storeId)
-            .eq('product_id', item.product.id)
+        if (itemError) {
+          console.error('Error creating sales item:', itemError)
         }
       }
 
