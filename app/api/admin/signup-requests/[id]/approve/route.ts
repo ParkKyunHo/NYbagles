@@ -18,7 +18,6 @@ export async function POST(
       .from('employee_signup_requests')
       .select('*')
       .eq('id', params.id)
-      .eq('status', 'verified')
       .single()
 
     if (requestError || !signupRequest) {
