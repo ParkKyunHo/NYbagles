@@ -34,7 +34,8 @@ export default function StoresPage() {
 
   useEffect(() => {
     checkAuth();
-  }, [router, supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

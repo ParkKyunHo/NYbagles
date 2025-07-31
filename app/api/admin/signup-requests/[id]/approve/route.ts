@@ -83,7 +83,7 @@ export async function POST(
 
     // Create employee record - check if employees table exists
     // If not, the profile will be created by the trigger
-    const userId = 'user' in authData ? authData.user.id : authData.id
+    const userId = 'user' in authData && authData.user ? authData.user.id : (authData as any).id
     
     try {
       const { error: employeeError } = await supabase

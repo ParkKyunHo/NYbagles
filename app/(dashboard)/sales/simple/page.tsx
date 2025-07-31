@@ -50,7 +50,7 @@ export default function SimpleSalesPage() {
 
       if (employee?.store_id) {
         setStoreId(employee.store_id)
-        setStoreName(employee.stores?.name || '')
+        setStoreName((employee as any).stores?.name || '')
         await fetchProducts(employee.store_id)
         await fetchTodaySales(employee.store_id)
       } else {
@@ -262,7 +262,7 @@ export default function SimpleSalesPage() {
                   onClick={() => addToCart(product)}
                   disabled={product.stock_quantity <= 0}
                   className="w-full"
-                  variant={product.stock_quantity > 0 ? "default" : "secondary"}
+                  variant={product.stock_quantity > 0 ? "primary" : "secondary"}
                 >
                   {product.stock_quantity > 0 ? '담기' : '품절'}
                 </Button>

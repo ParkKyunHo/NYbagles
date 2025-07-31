@@ -59,7 +59,7 @@ export default function DailyClosingPage() {
 
       if (employee?.store_id) {
         setStoreId(employee.store_id)
-        setStoreName(employee.stores?.name || '')
+        setStoreName((employee as any).stores?.name || '')
         await checkClosingStatus(employee.store_id)
         await fetchTodayData(employee.store_id)
       } else {
@@ -95,7 +95,7 @@ export default function DailyClosingPage() {
       .eq('closing_date', today.toISOString().split('T')[0])
       .limit(1)
 
-    setAlreadyClosed(data && data.length > 0)
+    setAlreadyClosed(!!data && data.length > 0)
   }
 
   const fetchTodayData = async (storeId: string) => {

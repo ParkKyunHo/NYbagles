@@ -41,12 +41,10 @@ export default function CreateStorePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    const init = async () => {
-      await checkAuth();
-      await fetchData();
-    };
-    init();
-  }, [router, supabase]);
+    checkAuth();
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

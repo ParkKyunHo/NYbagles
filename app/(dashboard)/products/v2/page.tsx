@@ -74,7 +74,7 @@ export default function ProductsV2Page() {
 
       if (employee?.store_id) {
         setStoreId(employee.store_id)
-        setStoreName(employee.stores?.name || '')
+        setStoreName((employee as any).stores?.name || '')
         await fetchProducts(employee.store_id)
       } else if (profile?.role === 'super_admin' || profile?.role === 'admin') {
         // For admin, get first store
@@ -245,7 +245,7 @@ export default function ProductsV2Page() {
     )
   }
 
-  const categories = [...new Set(products.map(p => p.category))].sort()
+  const categories = Array.from(new Set(products.map(p => p.category))).sort()
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
