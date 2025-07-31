@@ -135,6 +135,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - 장기: 완전한 마이그레이션 후 기존 시스템 제거
    - **진행 상태**: 문제 분석 완료, 해결책 수립
 
+13. **상품 승인 워크플로우 시스템 구현 (7/31 12차 업데이트)**
+   - **개선된 시스템 설계**:
+     - products_v3: 상태 관리 포함 (draft → pending_approval → approved → active)
+     - product_changes: 변경 이력 및 승인 워크플로우
+     - sales_transactions/sales_items: 판매 트랜잭션 관리
+     - inventory_movements: 재고 이동 추적
+   - **주요 기능**:
+     - 상품 변경 시 승인 요청 필수
+     - 관리자/매니저 승인 후 반영
+     - 완전한 감사 추적 (audit log)
+     - 자동 재고 관리 트리거
+   - **products/v2 페이지 수정**:
+     - 자동 마이그레이션 로직 제거 (duplicate key 오류 해결)
+     - products_v3 테이블 사용으로 변경
+     - 승인 워크플로우 통합
+   - **다음 단계**: 승인 관리 페이지 구현 (/products/approvals)
+
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
 - **Phase 2 진행중**: 알림 시스템, 백업/복구, 문서 관리 UI

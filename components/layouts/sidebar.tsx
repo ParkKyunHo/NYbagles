@@ -30,6 +30,7 @@ const navigation = [
   { name: '스케줄 관리', href: '/schedule', icon: Calendar, roles: ['all'] },
   { name: '⚡ 간편 판매', href: '/sales/simple', icon: ShoppingCart, roles: ['all'] },
   { name: '⚡ 간편 상품관리', href: '/products/v2', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '⚡ 상품 승인', href: '/products/approvals', icon: UserCheck, roles: ['super_admin', 'admin', 'manager'] },
   { name: '⚡ 일일 마감', href: '/sales/closing', icon: Calendar, roles: ['super_admin', 'admin', 'manager'] },
   { name: '상품 관리', href: '/products', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
   { name: '🥯 빠른 판매', href: '/dashboard/quick-sale', icon: ShoppingCart, roles: ['all'] },
