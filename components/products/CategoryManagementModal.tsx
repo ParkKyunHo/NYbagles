@@ -63,7 +63,7 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
       fetchCategories()
       onCategoryUpdate()
     } catch (error) {
-      console.error('Error creating category:', error)
+      // Error handled silently
       alert('카테고리 생성 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
@@ -87,7 +87,7 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
       fetchCategories()
       onCategoryUpdate()
     } catch (error) {
-      console.error('Error updating category:', error)
+      // Error handled silently
       alert('카테고리 수정 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
@@ -106,7 +106,7 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
       fetchCategories()
       onCategoryUpdate()
     } catch (error) {
-      console.error('Error toggling category status:', error)
+      // Error handled silently
       alert('카테고리 상태 변경 중 오류가 발생했습니다.')
     }
   }

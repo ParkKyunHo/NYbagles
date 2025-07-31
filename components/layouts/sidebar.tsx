@@ -88,7 +88,7 @@ export function Sidebar({ initialRole }: SidebarProps) {
           }
         }
       } catch (error) {
-        console.error('Error in getUserRole:', error)
+        // Error handled silently
       } finally {
         setLoading(false)
       }

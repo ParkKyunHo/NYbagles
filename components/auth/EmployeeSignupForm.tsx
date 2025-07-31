@@ -35,7 +35,9 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
     email: '',
     full_name: '',
     phone: '',
-    store_id: ''
+    store_id: '',
+    password: '',
+    confirmPassword: ''
   })
 
   const [verificationCode, setVerificationCode] = useState('')
@@ -65,7 +67,7 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
         setStores(data)
       }
     } catch (error) {
-      console.error('Error fetching stores:', error)
+      // Error handled silently
       setError('매장 목록을 불러오는 데 실패했습니다.')
     } finally {
       setLoadingStores(false)
@@ -82,42 +84,49 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
         throw new Error('매장을 선택해주세요')
       }
 
+      // 비밀번호 확인
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error('비밀번호가 일치하지 않습니다')
+      }
+
+      if (formData.password.length < 8) {
+        throw new Error('비밀번호는 8자 이상이어야 합니다')
+      }
+
       // 선택한 매장 정보 가져오기
       const selectedStore = stores.find(s => s.id === formData.store_id)
       if (!selectedStore) {
         throw new Error('유효하지 않은 매장입니다')
       }
 
-      // 회원가입 요청 생성
-      const { data: request, error: requestError } = await supabase
-        .from('employee_signup_requests')
-        .insert({
+      // API 엔드포인트 호출 방식으로 변경
+      const response = await fetch('/api/auth/signup/employee', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           email: formData.email,
-          full_name: formData.full_name,
+          fullName: formData.full_name,
           phone: formData.phone,
-          store_id: formData.store_id,
-          store_code: selectedStore.code,
-          verification_code: Math.random().toString(36).substring(2, 8).toUpperCase()
-        })
-        .select()
-        .single()
+          storeId: formData.store_id, // store_id를 직접 전송
+          storeCode: selectedStore.code, // 혹시 code가 있으면 같이 전송
+          password: formData.password // 비밀번호 추가
+        }),
+      })
 
-      if (requestError) {
-        if (requestError.code === '23505') {
-          throw new Error('이미 가입 요청한 이메일입니다')
-        }
-        throw requestError
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '회원가입 요청에 실패했습니다')
       }
 
-      setRequestId(request.id)
+      setRequestId(result.requestId)
       
-      // 실제로는 이메일로 인증 코드를 전송해야 함
-      console.log('인증 코드:', request.verification_code)
-      alert(`테스트용 인증 코드: ${request.verification_code}`)
-      
-      setStep('verify')
+      // 이메일 인증 절차 생략 - 바로 pending 상태로
+      setStep('pending')
     } catch (error) {
-      console.error('회원가입 요청 실패:', error)
+      // Error handled silently
       setError(error instanceof Error ? error.message : '회원가입 요청에 실패했습니다')
     } finally {
       setLoading(false)
@@ -130,27 +139,28 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
     setError(null)
 
     try {
-      // 인증 코드 확인
-      const { data: request, error: verifyError } = await supabase
-        .from('employee_signup_requests')
-        .update({
-          verified: true,
-          verified_at: new Date().toISOString(),
-          status: 'verified'
-        })
-        .eq('id', requestId)
-        .eq('verification_code', verificationCode.toUpperCase())
-        .select()
-        .single()
+      // API 엔드포인트를 통한 인증 확인
+      const response = await fetch('/api/auth/signup/employee/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId,
+          verificationCode: verificationCode.toUpperCase(),
+        }),
+      })
 
-      if (verifyError || !request) {
-        throw new Error('잘못된 인증 코드입니다')
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '인증에 실패했습니다')
       }
 
       setStep('pending')
       onSuccess?.()
     } catch (error) {
-      console.error('인증 실패:', error)
+      // Error handled silently
       setError(error instanceof Error ? error.message : '인증에 실패했습니다')
     } finally {
       setLoading(false)
@@ -257,6 +267,36 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
           placeholder="010-0000-0000"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
+          비밀번호 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
+          placeholder="비밀번호 (8자 이상)"
+          minLength={8}
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
+          비밀번호 확인 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
+          placeholder="비밀번호 확인"
+          minLength={8}
+          required
         />
       </div>
 

@@ -8,10 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "seed": "tsx scripts/runSeed.ts",
-    "fix:db": "tsx scripts/runDatabaseFixes.ts",
-    "validate:fixes": "tsx scripts/validateFixes.ts",
-    "fix:all": "npm run fix:db && npm run validate:fixes"
+    "seed": "tsx scripts/runSeed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

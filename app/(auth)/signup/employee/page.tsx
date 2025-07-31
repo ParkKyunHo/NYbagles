@@ -1,4 +1,4 @@
-import { EmployeeSignupForm } from '@/components/auth/EmployeeSignupFormFixed'
+import { EmployeeSignupForm } from '@/components/auth/EmployeeSignupForm'
 
 export default function EmployeeSignupPage() {
   return (

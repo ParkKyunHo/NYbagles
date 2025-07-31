@@ -45,7 +45,7 @@ export function StoreQRDisplay({
         .single()
 
       if (error || !store) {
-        console.error('매장 정보 조회 실패:', error)
+        // Store info query failed
         return
       }
 
@@ -78,7 +78,7 @@ export function StoreQRDisplay({
       setQrData(encrypted)
       setNextRefresh(refreshInterval)
     } catch (error) {
-      console.error('QR 코드 생성 실패:', error)
+      // QR code generation failed
     }
   }
 
