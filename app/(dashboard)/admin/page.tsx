@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -24,11 +24,14 @@ export default function AdminPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    checkAuth()
-    fetchDashboardStats()
+    const init = async () => {
+      await checkAuth()
+      await fetchDashboardStats()
+    }
+    init()
   }, [])
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -45,9 +48,9 @@ export default function AdminPage() {
     if (!profile || !['super_admin', 'admin', 'manager'].includes(profile.role)) {
       router.push('/dashboard')
     }
-  }
+  }, [router])
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     setLoading(true)
     try {
       // 매장 수
@@ -86,7 +89,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
 
   const adminMenuItems = [
     {

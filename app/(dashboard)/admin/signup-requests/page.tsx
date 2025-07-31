@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -52,13 +52,7 @@ export default function SignupRequestsPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    checkAuth()
-    fetchRequests()
-    fetchStores()
-  }, [selectedStatus])
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -76,9 +70,9 @@ export default function SignupRequestsPage() {
     if (!profile || !['super_admin', 'admin', 'manager'].includes(profile.role)) {
       router.push('/dashboard')
     }
-  }
+  }, [router, supabase])
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true)
     
     try {
@@ -95,9 +89,9 @@ export default function SignupRequestsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedStatus])
 
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     const { data, error } = await supabase
       .from('stores')
       .select('*')
@@ -107,7 +101,13 @@ export default function SignupRequestsPage() {
     if (data && !error) {
       setStores(data)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    checkAuth()
+    fetchRequests()
+    fetchStores()
+  }, [selectedStatus, checkAuth, fetchRequests, fetchStores])
 
   const handleApprove = async (requestId: string) => {
     if (!confirm('이 직원의 가입을 승인하시겠습니까?')) {
@@ -173,7 +173,7 @@ export default function SignupRequestsPage() {
 
   const handleChangeStore = (request: SignupRequest) => {
     setSelectedRequest(request)
-    setNewStoreId(request.store_id)
+    setNewStoreId(request.store_id || '')
     setShowStoreModal(true)
   }
 
