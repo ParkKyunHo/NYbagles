@@ -134,8 +134,8 @@ export default function ProductsPage() {
           )
         `)
 
-      // 매니저인 경우 또는 매장이 선택된 경우 해당 매장의 store_products와 조인
-      if (selectedStore && userRole === 'manager') {
+      // 매니저인 경우에만 store_products와 조인
+      if (userRole === 'manager' && selectedStore) {
         const { data: storeProducts, error: storeError } = await supabase
           .from('store_products')
           .select('product_id')
@@ -154,7 +154,7 @@ export default function ProductsPage() {
           return
         }
       }
-      // 관리자와 슈퍼관리자는 모든 상품을 볼 수 있음
+      // 관리자와 슈퍼관리자는 store_products 조인 없이 모든 상품을 볼 수 있음
 
       const { data, error } = await query
         .eq('is_active', true)  // 활성화된 상품만 표시
@@ -167,6 +167,7 @@ export default function ProductsPage() {
       setProducts(data || [])
     } catch (error) {
       console.error('Error fetching products:', error)
+      alert('상품을 불러오는 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }

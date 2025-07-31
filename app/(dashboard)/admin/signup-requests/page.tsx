@@ -10,17 +10,23 @@ import { Building2, Edit2 } from 'lucide-react'
 
 interface SignupRequest {
   id: string
-  full_name: string
   email: string
-  phone_number: string
-  birth_date: string
-  emergency_contact: string
-  address: string
-  store_id: string
-  store_code: string
+  full_name: string
+  phone: string | null
+  store_id: string | null
+  store_code: string | null
+  verification_code: string | null
+  verified: boolean
+  verified_at: string | null
+  approved: boolean
+  approved_by: string | null
+  approved_at: string | null
+  rejection_reason: string | null
   status: string
+  expires_at: string
   created_at: string
-  stores: {
+  password_hash: string | null
+  stores?: {
     id: string
     name: string
     code: string
@@ -37,7 +43,7 @@ interface Store {
 export default function SignupRequestsPage() {
   const [requests, setRequests] = useState<SignupRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedStatus, setSelectedStatus] = useState('pending')
+  const [selectedStatus, setSelectedStatus] = useState('verified')
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [stores, setStores] = useState<Store[]>([])
   const [showStoreModal, setShowStoreModal] = useState(false)
@@ -257,7 +263,7 @@ export default function SignupRequestsPage() {
           <div className="p-8 text-center">
             <p className="text-gray-600">
               {selectedStatus === 'pending' && '대기 중인 가입 요청이 없습니다.'}
-              {selectedStatus === 'verified' && '검증된 가입 요청이 없습니다.'}
+              {selectedStatus === 'verified' && '승인 대기 중인 가입 요청이 없습니다.'}
               {selectedStatus === 'approved' && '승인된 가입 요청이 없습니다.'}
               {selectedStatus === 'rejected' && '거절된 가입 요청이 없습니다.'}
             </p>
@@ -274,7 +280,7 @@ export default function SignupRequestsPage() {
                     매장
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    연락처
+                    전화번호
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     신청일
@@ -297,9 +303,6 @@ export default function SignupRequestsPage() {
                         </div>
                         <div className="text-sm text-gray-500">
                           {request.email}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          생년월일: {request.birth_date}
                         </div>
                       </div>
                     </td>
@@ -325,10 +328,7 @@ export default function SignupRequestsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {request.phone_number}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        비상: {request.emergency_contact}
+                        {request.phone || '전화번호 없음'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
