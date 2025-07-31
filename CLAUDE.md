@@ -155,7 +155,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - 대기중/승인/거절 상태별 필터링
      - 상세 정보 모달 및 승인/거절 기능
      - RLS 정책 수정 (product_changes 조인 허용)
-   - **다음 단계**: 판매 시스템 업데이트 (sales_transactions 사용)
+   - **판매 시스템 업데이트 완료**:
+     - 간편 판매 페이지: sales_transactions/sales_items 사용
+     - 일일 마감 페이지: 새 시스템 데이터 조회
+     - 자동 재고 업데이트 (트리거 활용)
+   - **다음 단계**: 대시보드 새 시스템 연동
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
