@@ -12,6 +12,12 @@ interface CartItem extends CreateSaleItem {
   product: Product
 }
 
+interface Store {
+  id: string
+  name: string
+  code: string
+}
+
 export default function SalesPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -21,7 +27,10 @@ export default function SalesPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [store, setStore] = useState<any>(null)
+  const [store, setStore] = useState<Store | null>(null)
+  const [stores, setStores] = useState<Store[]>([])
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('')
+  const [userRole, setUserRole] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -37,64 +46,78 @@ export default function SalesPage() {
       return
     }
 
-    // 직원의 매장 정보 가져오기
-    console.log('Fetching employee data for user:', user.id)
-    
-    // 먼저 employees 테이블에 레코드가 있는지 확인
-    const { data: employeeRecord, error: employeeCheckError } = await supabase
-      .from('employees')
-      .select('id, store_id, user_id')
-      .eq('user_id', user.id)
+    // 사용자 프로필 조회
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, store_id')
+      .eq('id', user.id)
       .single()
 
-    if (employeeCheckError || !employeeRecord) {
-      console.error('Employee record not found:', employeeCheckError)
-      alert('직원 정보가 등록되지 않았습니다. 관리자에게 문의하세요.')
+    if (!profile) {
+      alert('사용자 정보를 찾을 수 없습니다.')
       router.push('/dashboard')
       return
     }
 
-    console.log('Employee record found:', employeeRecord)
+    setUserRole(profile.role)
 
-    // store_id가 없는 경우 처리
-    if (!employeeRecord.store_id) {
-      console.error('Employee has no store_id assigned')
-      alert('매장이 할당되지 않았습니다. 관리자에게 문의하세요.')
-      router.push('/dashboard')
-      return
+    // 관리자/슈퍼관리자인 경우 모든 매장 목록 조회
+    if (profile.role === 'super_admin' || profile.role === 'admin') {
+      const { data: allStores } = await supabase
+        .from('stores')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name')
+
+      if (allStores) {
+        setStores(allStores)
+        // 첫 번째 매장 자동 선택
+        if (allStores.length > 0) {
+          setSelectedStoreId(allStores[0].id)
+          setStore(allStores[0])
+          await fetchProducts(allStores[0].id)
+        }
+      }
+    } else {
+      // 일반 직원/매니저는 자신의 매장 정보만 조회
+      const { data: employeeRecord } = await supabase
+        .from('employees')
+        .select('store_id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!employeeRecord || !employeeRecord.store_id) {
+        // profiles에서 store_id 확인
+        if (profile.store_id) {
+          const { data: storeData } = await supabase
+            .from('stores')
+            .select('id, name, code')
+            .eq('id', profile.store_id)
+            .single()
+
+          if (storeData) {
+            setStore(storeData)
+            setSelectedStoreId(storeData.id)
+            await fetchProducts(storeData.id)
+          }
+        } else {
+          alert('매장이 할당되지 않았습니다. 관리자에게 문의하세요.')
+          router.push('/dashboard')
+        }
+      } else {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('id, name, code')
+          .eq('id', employeeRecord.store_id)
+          .single()
+
+        if (storeData) {
+          setStore(storeData)
+          setSelectedStoreId(storeData.id)
+          await fetchProducts(storeData.id)
+        }
+      }
     }
-
-    // 매장 정보 조회
-    const { data: employee, error: employeeError } = await supabase
-      .from('employees')
-      .select(`
-        store_id,
-        stores (
-          id,
-          name,
-          code
-        )
-      `)
-      .eq('user_id', user.id)
-      .single()
-
-    if (employeeError) {
-      console.error('Employee fetch error:', employeeError)
-      alert('직원 정보를 불러오는 중 오류가 발생했습니다.')
-      router.push('/dashboard')
-      return
-    }
-
-    if (!employee?.stores) {
-      console.error('Store not found for store_id:', employee.store_id)
-      alert('매장 정보를 찾을 수 없습니다. 관리자에게 문의하세요.')
-      router.push('/dashboard')
-      return
-    }
-
-    console.log('Store found:', employee.stores)
-    setStore(employee.stores)
-    await fetchProducts(employee.store_id)
   }
 
   const fetchProducts = async (storeId: string) => {
@@ -244,6 +267,29 @@ export default function SalesPage() {
             <p className="text-gray-600 mt-2">{store?.name} - 판매 입력</p>
           </div>
           <div className="flex gap-2">
+            {/* 관리자/슈퍼관리자용 매장 선택 */}
+            {(userRole === 'super_admin' || userRole === 'admin') && stores.length > 0 && (
+              <select
+                value={selectedStoreId}
+                onChange={async (e) => {
+                  const storeId = e.target.value
+                  setSelectedStoreId(storeId)
+                  const selectedStore = stores.find(s => s.id === storeId)
+                  if (selectedStore) {
+                    setStore(selectedStore)
+                    setCart([]) // 장바구니 초기화
+                    await fetchProducts(storeId)
+                  }
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
+              >
+                {stores.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.code})
+                  </option>
+                ))}
+              </select>
+            )}
             <Button
               onClick={() => router.push('/sales/history')}
               variant="secondary"

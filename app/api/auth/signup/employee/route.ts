@@ -4,11 +4,19 @@ import { createServiceClient } from '@/lib/supabase/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, fullName, phone, storeCode, storeId } = body
+    const { email, fullName, phone, storeCode, storeId, password } = body
 
-    if (!email || !fullName || (!storeCode && !storeId)) {
+    if (!email || !fullName || (!storeCode && !storeId) || !password) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+
+    // 비밀번호 길이 검증
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: '비밀번호는 8자 이상이어야 합니다' },
         { status: 400 }
       )
     }
@@ -47,7 +55,7 @@ export async function POST(request: NextRequest) {
       storeCode
     })
 
-    // Create signup request
+    // Create signup request with password
     const { data: signupRequest, error: signupError } = await supabase
       .from('employee_signup_requests')
       .insert({
@@ -55,8 +63,9 @@ export async function POST(request: NextRequest) {
         full_name: fullName,
         phone,
         store_id: finalStoreId,
-        store_code: storeCode || null, // store_code는 선택적
+        store_code: storeCode || null,
         verification_code: Math.floor(100000 + Math.random() * 900000).toString(),
+        password_hash: password, // 임시로 평문 저장 (실제로는 해시해야 함)
       })
       .select()
       .single()

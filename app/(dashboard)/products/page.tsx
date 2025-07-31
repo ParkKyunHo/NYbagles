@@ -51,7 +51,8 @@ export default function ProductsPage() {
   }, [])
 
   useEffect(() => {
-    if (selectedStore || userRole) {
+    // 관리자나 슈퍼관리자는 매장 선택 없이도 전체 상품 보기 가능
+    if (userRole === 'super_admin' || userRole === 'admin' || selectedStore) {
       fetchProducts()
     }
   }, [selectedStore, userRole])
@@ -155,6 +156,7 @@ export default function ProductsPage() {
       }
 
       const { data, error } = await query
+        .eq('is_active', true)  // 활성화된 상품만 표시
         .order('product_categories(display_order)', { ascending: true })
         .order('display_order', { ascending: true })
         .order('name', { ascending: true })

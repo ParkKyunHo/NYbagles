@@ -35,7 +35,9 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
     email: '',
     full_name: '',
     phone: '',
-    store_id: ''
+    store_id: '',
+    password: '',
+    confirmPassword: ''
   })
 
   const [verificationCode, setVerificationCode] = useState('')
@@ -82,6 +84,15 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
         throw new Error('매장을 선택해주세요')
       }
 
+      // 비밀번호 확인
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error('비밀번호가 일치하지 않습니다')
+      }
+
+      if (formData.password.length < 8) {
+        throw new Error('비밀번호는 8자 이상이어야 합니다')
+      }
+
       // 선택한 매장 정보 가져오기
       const selectedStore = stores.find(s => s.id === formData.store_id)
       if (!selectedStore) {
@@ -100,6 +111,7 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           phone: formData.phone,
           storeId: formData.store_id, // store_id를 직접 전송
           storeCode: selectedStore.code, // 혹시 code가 있으면 같이 전송
+          password: formData.password // 비밀번호 추가
         }),
       })
 
@@ -255,6 +267,36 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
           placeholder="010-0000-0000"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
+          비밀번호 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
+          placeholder="비밀번호 (8자 이상)"
+          minLength={8}
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
+          비밀번호 확인 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-bagel-yellow bg-white text-gray-900 placeholder-gray-500"
+          placeholder="비밀번호 확인"
+          minLength={8}
+          required
         />
       </div>
 

@@ -28,8 +28,8 @@ export async function POST(
       )
     }
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Create user in Supabase Auth with password if available
+    const createUserPayload: any = {
       email: signupRequest.email,
       email_confirm: true,
       user_metadata: {
@@ -37,7 +37,17 @@ export async function POST(
         role: role,
         store_id: signupRequest.store_id,
       },
-    })
+    }
+
+    // 비밀번호가 있으면 사용, 없으면 임시 비밀번호 생성
+    if (signupRequest.password_hash) {
+      createUserPayload.password = signupRequest.password_hash
+    } else {
+      // 비밀번호가 없는 경우 임시 비밀번호 생성
+      createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
+    }
+
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser(createUserPayload)
 
     if (authError) {
       console.error('Auth creation error:', authError)
@@ -80,11 +90,13 @@ export async function POST(
       throw updateError
     }
 
-    // Send password reset email
-    await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email: signupRequest.email,
-    })
+    // Send password reset email only if password was not provided
+    if (!signupRequest.password_hash) {
+      await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: signupRequest.email,
+      })
+    }
 
     return NextResponse.json({
       message: 'Employee approved successfully',
