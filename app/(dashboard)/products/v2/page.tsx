@@ -350,7 +350,7 @@ export default function ProductsV2Page() {
             <h2 className="text-lg font-semibold mb-3">{category}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products
-                .filter(p => p.category === category && p.is_active)
+                .filter(p => p.category === category && p.status === 'active')
                 .map(product => (
                   <Card key={product.id} className="p-4">
                     {editingId === product.id ? (

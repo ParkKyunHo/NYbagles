@@ -159,7 +159,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - 간편 판매 페이지: sales_transactions/sales_items 사용
      - 일일 마감 페이지: 새 시스템 데이터 조회
      - 자동 재고 업데이트 (트리거 활용)
-   - **다음 단계**: 대시보드 새 시스템 연동
+   - **완료된 페이지**:
+     - products/v2: 자동 마이그레이션 제거, products_v3 사용
+     - products/approvals: 승인 워크플로우 관리
+     - sales/simple: sales_transactions/sales_items 사용
+     - sales/closing: 새 시스템 데이터 조회
+     - dashboard/analytics: 실시간 데이터 분석 (Excel 업로드 제거)
 
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포

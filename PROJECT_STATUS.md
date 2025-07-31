@@ -292,8 +292,8 @@
 - ✅ 승인 관리 페이지 구현 (/products/approvals)
 - ✅ 판매 시스템 업데이트 (sales_transactions/sales_items 사용)
 
-#### 진행중
-- 🔄 대시보드 새 시스템 연동
+#### 완료
+- ✅ 대시보드 새 시스템 연동 (analytics 페이지 sales_transactions 사용으로 변경)
 
 #### 대기중
 1. **알림 시스템**

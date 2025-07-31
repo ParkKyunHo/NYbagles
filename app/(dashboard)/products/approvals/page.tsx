@@ -247,14 +247,14 @@ export default function ProductApprovalsPage() {
       {/* Filter tabs */}
       <div className="mb-6 flex gap-2">
         <Button
-          variant={filter === 'all' ? 'default' : 'outline'}
+          variant={filter === 'all' ? 'primary' : 'outline'}
           onClick={() => setFilter('all')}
           size="sm"
         >
           전체
         </Button>
         <Button
-          variant={filter === 'pending' ? 'default' : 'outline'}
+          variant={filter === 'pending' ? 'primary' : 'outline'}
           onClick={() => setFilter('pending')}
           size="sm"
         >
@@ -262,7 +262,7 @@ export default function ProductApprovalsPage() {
           대기중
         </Button>
         <Button
-          variant={filter === 'approved' ? 'default' : 'outline'}
+          variant={filter === 'approved' ? 'primary' : 'outline'}
           onClick={() => setFilter('approved')}
           size="sm"
         >
@@ -270,7 +270,7 @@ export default function ProductApprovalsPage() {
           승인됨
         </Button>
         <Button
-          variant={filter === 'rejected' ? 'default' : 'outline'}
+          variant={filter === 'rejected' ? 'primary' : 'outline'}
           onClick={() => setFilter('rejected')}
           size="sm"
         >
@@ -324,7 +324,7 @@ export default function ProductApprovalsPage() {
                   <>
                     <Button
                       size="sm"
-                      variant="default"
+                      variant="primary"
                       onClick={() => handleApprove(change.id)}
                       className="bg-green-600 hover:bg-green-700"
                     >
@@ -333,7 +333,7 @@ export default function ProductApprovalsPage() {
                     </Button>
                     <Button
                       size="sm"
-                      variant="destructive"
+                      variant="danger"
                       onClick={() => {
                         setSelectedChange(change)
                         setReviewComment('')
@@ -426,7 +426,7 @@ export default function ProductApprovalsPage() {
                       승인
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="danger"
                       onClick={() => handleReject(selectedChange.id)}
                     >
                       <X className="w-4 h-4 mr-2" />
