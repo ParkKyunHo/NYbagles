@@ -105,6 +105,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - 시스템 관리자 매장 선택 제한 문제
      - 회원가입 시 비밀번호 입력란 누락
 
+11. **상품 관리 시스템 전면 재설계 (7/31 10차 업데이트)**
+   - **문제 인식**: 복잡한 상품 관리 시스템으로 인한 지속적인 오류
+   - **새로운 간소화 시스템 구현**:
+     - ⚡ 간편 판매 (/sales/simple): 클릭 한 번으로 판매 처리
+     - ⚡ 간편 상품관리 (/products/v2): 직관적인 상품 추가/수정
+     - ⚡ 일일 마감 (/sales/closing): 매일 판매 현황과 재고 확인
+   - **데이터베이스 재설계**:
+     - products_v2: 간소화된 상품 테이블 (매장별 직접 관리)
+     - sales: 판매 기록 (자동 재고 차감)
+     - daily_closing: 일일 마감 데이터
+   - **마이그레이션 파일**: 
+     - /supabase/migrations/20250131_redesign_product_system.sql
+     - 기존 시스템과 병행 운영 가능 (안전한 전환)
+   - **적용 방법**:
+     - Supabase SQL 에디터에서 마이그레이션 SQL 직접 실행
+     - 새 시스템 테스트 후 점진적 전환
+
 ### 프로젝트 현황
 - **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
 - **Phase 2 진행중**: 알림 시스템, 백업/복구, 문서 관리 UI
