@@ -42,37 +42,33 @@ export default function SystemSettingsPage() {
         return
       }
 
-      await fetchSettings()
+      // fetchSettings 로직을 직접 포함
+      setLoading(true)
+      
+      try {
+        const { data, error } = await supabase
+          .from('system_settings')
+          .select('*')
+          .order('key')
+
+        if (error) throw error
+
+        const formattedSettings = data?.map(setting => ({
+          ...setting,
+          value: setting.value === true || setting.value === 'true'
+        })) || []
+
+        setSettings(formattedSettings)
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+        setError('설정을 불러오는 중 오류가 발생했습니다.')
+      } finally {
+        setLoading(false)
+      }
     }
 
     checkAuthAndLoadSettings()
   }, [router, supabase])
-
-
-  const fetchSettings = async () => {
-    setLoading(true)
-    
-    try {
-      const { data, error } = await supabase
-        .from('system_settings')
-        .select('*')
-        .order('key')
-
-      if (error) throw error
-
-      const formattedSettings = data?.map(setting => ({
-        ...setting,
-        value: setting.value === true || setting.value === 'true'
-      })) || []
-
-      setSettings(formattedSettings)
-    } catch (error) {
-      console.error('Error fetching settings:', error)
-      setError('설정을 불러오는 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleToggle = (key: string) => {
     setSettings(settings.map(setting => 

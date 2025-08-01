@@ -43,9 +43,9 @@ export function StoreSelector({
         .select(`
           id,
           name,
-          store_categories (
+          store_categories!inner (
             name,
-            regions (
+            regions!inner (
               name
             )
           )

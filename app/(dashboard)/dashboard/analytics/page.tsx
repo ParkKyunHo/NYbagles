@@ -63,120 +63,120 @@ export default function AnalyticsPage() {
   const supabase = createClientWithAuth();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (storeId) {
-      fetchSalesData();
-    }
-  }, [selectedMonth, storeId]);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (!profileData || !['super_admin', 'admin', 'manager'].includes(profileData.role)) {
-      router.push('/dashboard');
-      return;
-    }
-
-    setUserRole(profileData.role);
-
-    // Get user's store or all stores for admin
-    if (profileData.role === 'super_admin' || profileData.role === 'admin') {
-      // Fetch all stores
-      const { data: storesData } = await supabase
-        .from('stores')
-        .select('*')
-        .order('name');
-      
-      if (storesData && storesData.length > 0) {
-        setStores(storesData);
-        setStoreId(storesData[0].id);
-        setStoreName(storesData[0].name);
-      }
-    } else {
-      // Manager - get their store
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('store_id, stores(id, name)')
-        .eq('user_id', user.id)
-        .single();
-
-      if (employee?.store_id) {
-        setStoreId(employee.store_id);
-        setStoreName((employee as any).stores?.name || '');
-        setStores([{ id: employee.store_id, name: (employee as any).stores?.name }]);
-      }
-    }
-
-    setLoading(false);
-  };
-
-  const fetchSalesData = async () => {
-    if (!storeId) return;
-
-    const startDate = new Date(selectedMonth + '-01');
-    const endDate = endOfMonth(startDate);
-
-    try {
-      // Fetch sales transactions with items and product details
-      const { data: transactions, error } = await supabase
-        .from('sales_transactions')
-        .select(`
-          *,
-          sales_items(
-            *,
-            product:products_v3(
-              name,
-              category
-            )
-          )
-        `)
-        .eq('store_id', storeId)
-        .eq('payment_status', 'completed')
-        .gte('sold_at', startDate.toISOString())
-        .lte('sold_at', endDate.toISOString())
-        .order('sold_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching sales data:', error);
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
         return;
       }
 
-      // Transform data to SalesData format
-      const transformedData: SalesData[] = [];
-      
-      transactions?.forEach(transaction => {
-        transaction.sales_items?.forEach((item: any) => {
-          transformedData.push({
-            date: transaction.sold_at,
-            productName: item.product?.name || 'Unknown Product',
-            category: item.product?.category || 'Unknown',
-            quantity: item.quantity,
-            unitPrice: item.unit_price,
-            totalAmount: item.total_amount,
-            paymentMethod: transaction.payment_method,
-            storeName: storeName
-          });
-        });
-      });
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-      setSalesData(transformedData);
-    } catch (error) {
-      console.error('Error:', error);
+      if (!profileData || !['super_admin', 'admin', 'manager'].includes(profileData.role)) {
+        router.push('/dashboard');
+        return;
+      }
+
+      setUserRole(profileData.role);
+
+      // Get user's store or all stores for admin
+      if (profileData.role === 'super_admin' || profileData.role === 'admin') {
+        // Fetch all stores
+        const { data: storesData } = await supabase
+          .from('stores')
+          .select('*')
+          .order('name');
+        
+        if (storesData && storesData.length > 0) {
+          setStores(storesData);
+          setStoreId(storesData[0].id);
+          setStoreName(storesData[0].name);
+        }
+      } else {
+        // Manager - get their store
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('store_id, stores(id, name)')
+          .eq('user_id', user.id)
+          .single();
+
+        if (employee?.store_id) {
+          setStoreId(employee.store_id);
+          setStoreName((employee as any).stores?.name || '');
+          setStores([{ id: employee.store_id, name: (employee as any).stores?.name }]);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [router, supabase]);
+
+  useEffect(() => {
+    if (storeId) {
+      const fetchSalesData = async () => {
+        const startDate = new Date(selectedMonth + '-01');
+        const endDate = endOfMonth(startDate);
+
+        try {
+          // Fetch sales transactions with items and product details
+          const { data: transactions, error } = await supabase
+            .from('sales_transactions')
+            .select(`
+              *,
+              sales_items(
+                *,
+                product:products_v3(
+                  name,
+                  category
+                )
+              )
+            `)
+            .eq('store_id', storeId)
+            .eq('payment_status', 'completed')
+            .gte('sold_at', startDate.toISOString())
+            .lte('sold_at', endDate.toISOString())
+            .order('sold_at', { ascending: false });
+
+          if (error) {
+            console.error('Error fetching sales data:', error);
+            return;
+          }
+
+          // Transform data to SalesData format
+          const transformedData: SalesData[] = [];
+          
+          transactions?.forEach(transaction => {
+            transaction.sales_items?.forEach((item: any) => {
+              transformedData.push({
+                date: transaction.sold_at,
+                productName: item.product?.name || 'Unknown Product',
+                category: item.product?.category || 'Unknown',
+                quantity: item.quantity,
+                unitPrice: item.unit_price,
+                totalAmount: item.total_amount,
+                paymentMethod: transaction.payment_method,
+                storeName: storeName
+              });
+            });
+          });
+
+          setSalesData(transformedData);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+
+      fetchSalesData();
     }
-  };
+  }, [selectedMonth, storeId, storeName, supabase]);
+
+
 
   // 일별 매출 집계
   const getDailySales = () => {
