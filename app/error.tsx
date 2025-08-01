@@ -41,14 +41,14 @@ export default function Error({
           
           {process.env.NODE_ENV === 'development' && error.stack && (
             <details className="mb-8 text-left">
-              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+              <summary className="cursor-pointer text-sm text-gray-700 hover:text-gray-700">
                 개발자 정보 보기
               </summary>
               <pre className="mt-2 p-4 bg-gray-100 rounded-lg text-xs overflow-auto">
                 {error.stack}
               </pre>
               {error.digest && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-700 mt-2">
                   Error ID: {error.digest}
                 </p>
               )}
@@ -72,7 +72,7 @@ export default function Error({
           </button>
         </div>
 
-        <p className="text-sm text-gray-500 mt-8">
+        <p className="text-sm text-gray-700 mt-8">
           문제가 계속되면 관리자에게 문의해주세요.
         </p>
       </div>

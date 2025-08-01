@@ -421,7 +421,7 @@ export default function AnalyticsPage() {
 
       {salesData.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <Calendar className="h-16 w-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             매출 데이터가 없습니다
           </h3>
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
                 {getTopProducts().map((product, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <span className="text-sm font-medium text-gray-500 w-8">
+                      <span className="text-sm font-medium text-gray-700 w-8">
                         {index + 1}.
                       </span>
                       <span className="text-sm font-medium text-gray-900">
@@ -477,7 +477,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm font-medium text-gray-900">
                         ₩{product.sales.toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-700">
                         {product.quantity}개
                       </p>
                     </div>

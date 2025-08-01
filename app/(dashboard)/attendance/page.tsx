@@ -134,15 +134,15 @@ export default function AttendancePage() {
               ) : (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span className="text-sm sm:text-base font-medium text-gray-600">퇴근</span>
                   </div>
-                  <span className="text-sm sm:text-base text-gray-400">미등록</span>
+                  <span className="text-sm sm:text-base text-gray-600">미등록</span>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
+            <div className="text-center py-6 sm:py-8 text-gray-700">
               <XCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 text-gray-300" />
               <p className="text-sm sm:text-base">오늘은 아직 출근하지 않았습니다</p>
             </div>
@@ -166,7 +166,7 @@ export default function AttendancePage() {
               {recentRecords.map((record) => (
                 <div key={record.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b last:border-0">
                   <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-0">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
                     <span className="text-sm sm:text-base font-medium">{formatDate(record.date)}</span>
                   </div>
                   <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm ml-5 sm:ml-0">
@@ -178,14 +178,14 @@ export default function AttendancePage() {
                         퇴근 {formatTime(record.check_out_time)}
                       </span>
                     ) : (
-                      <span className="text-gray-400">퇴근 미등록</span>
+                      <span className="text-gray-600">퇴근 미등록</span>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
+            <div className="text-center py-6 sm:py-8 text-gray-700">
               <p className="text-sm sm:text-base">최근 출퇴근 기록이 없습니다</p>
             </div>
           )}

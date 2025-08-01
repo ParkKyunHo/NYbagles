@@ -195,8 +195,6 @@ export default function EmployeeRequestsPage() {
     switch (status) {
       case 'pending':
         return <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">대기중</span>
-      case 'verified':
-        return <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">인증완료</span>
       case 'approved':
         return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">승인됨</span>
       case 'rejected':
@@ -249,7 +247,6 @@ export default function EmployeeRequestsPage() {
         <div className="flex space-x-2">
           {[
             { value: 'pending', label: '대기중', icon: Clock },
-            { value: 'verified', label: '인증완료', icon: CheckCircle },
             { value: 'approved', label: '승인됨', icon: CheckCircle },
             { value: 'rejected', label: '거절됨', icon: XCircle }
           ].map((status) => {
@@ -275,8 +272,8 @@ export default function EmployeeRequestsPage() {
       {/* Requests List */}
       {requests.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">가입 요청이 없습니다.</p>
+          <UserPlus className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-700">가입 요청이 없습니다.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -293,21 +290,21 @@ export default function EmployeeRequestsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                     <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                      <Mail className="h-4 w-4 mr-2 text-gray-600" />
                       {request.email}
                     </div>
                     {request.phone && (
                       <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                        <Phone className="h-4 w-4 mr-2 text-gray-600" />
                         {request.phone}
                       </div>
                     )}
                     <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                      <Building2 className="h-4 w-4 mr-2 text-gray-600" />
                       {getLocationDisplay(request)}
                     </div>
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-gray-400" />
+                      <Clock className="h-4 w-4 mr-2 text-gray-600" />
                       신청일: {format(new Date(request.created_at), 'yyyy년 MM월 dd일 HH:mm', { locale: ko })}
                     </div>
                   </div>

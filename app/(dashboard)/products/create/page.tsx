@@ -180,7 +180,7 @@ export default function CreateProductPage() {
             ))}
           </select>
           {categories.length === 0 && (
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-700">
               카테고리가 없습니다. 상품 관리 페이지에서 카테고리를 먼저 생성해주세요.
             </p>
           )}
@@ -193,7 +193,7 @@ export default function CreateProductPage() {
               기본 가격 <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700">
                 ₩
               </span>
               <input

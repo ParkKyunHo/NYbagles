@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { StoreSelector } from '@/components/ui/store-selector'
 
 interface Product {
   id: string
@@ -271,6 +272,22 @@ export default function ProductsV2Page() {
     })
   }
 
+  const handleStoreChange = async (newStoreId: string, newStoreName: string) => {
+    setStoreId(newStoreId)
+    setStoreName(newStoreName)
+    setLoading(true)
+    setShowAddForm(false)
+    setEditingId(null)
+    
+    try {
+      await fetchProducts(newStoreId)
+    } catch (error) {
+      console.error('Error changing store:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -283,17 +300,26 @@ export default function ProductsV2Page() {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">상품 관리</h1>
-          <p className="text-gray-600">{storeName}</p>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <div>
+            <h1 className="text-2xl font-bold">상품 관리</h1>
+            <p className="text-gray-600">{storeName}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <StoreSelector
+              selectedStoreId={storeId}
+              onStoreChange={handleStoreChange}
+              userRole={userRole}
+            />
+            {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
+              <Button onClick={() => setShowAddForm(!showAddForm)}>
+                <Plus className="w-4 h-4 mr-2" />
+                상품 추가
+              </Button>
+            )}
+          </div>
         </div>
-        {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
-          <Button onClick={() => setShowAddForm(!showAddForm)}>
-            <Plus className="w-4 h-4 mr-2" />
-            상품 추가
-          </Button>
-        )}
       </div>
 
       {showAddForm && (
@@ -399,7 +425,7 @@ export default function ProductsV2Page() {
                       <>
                         <h3 className="font-semibold text-lg">{product.name}</h3>
                         <p className="text-gray-600">₩{product.base_price.toLocaleString()}</p>
-                        <p className="text-sm text-gray-500 mb-3">재고: {product.stock_quantity}개</p>
+                        <p className="text-sm text-gray-700 mb-3">재고: {product.stock_quantity}개</p>
                         {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
                           <div className="flex gap-2">
                             <Button
@@ -430,7 +456,7 @@ export default function ProductsV2Page() {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-700">
           <p>등록된 상품이 없습니다.</p>
           <p className="text-sm mt-2">상품을 추가해주세요.</p>
         </div>

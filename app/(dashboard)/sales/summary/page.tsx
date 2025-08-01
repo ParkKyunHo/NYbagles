@@ -240,7 +240,7 @@ export default function SalesSummaryPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">총 매출</p>
+              <p className="text-sm font-medium text-gray-700">총 매출</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{stats.total_sales.toLocaleString()}
               </p>
@@ -252,19 +252,19 @@ export default function SalesSummaryPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">현금 매출</p>
+              <p className="text-sm font-medium text-gray-700">현금 매출</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{stats.cash_sales.toLocaleString()}
               </p>
             </div>
-            <DollarSign className="h-8 w-8 text-gray-500" />
+            <DollarSign className="h-8 w-8 text-gray-700" />
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">카드 매출</p>
+              <p className="text-sm font-medium text-gray-700">카드 매출</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{stats.card_sales.toLocaleString()}
               </p>
@@ -276,7 +276,7 @@ export default function SalesSummaryPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">일평균 매출</p>
+              <p className="text-sm font-medium text-gray-700">일평균 매출</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{Math.round(stats.daily_average).toLocaleString()}
               </p>
@@ -314,14 +314,14 @@ export default function SalesSummaryPage() {
                   </span>
                   <div>
                     <p className="font-medium text-gray-900">{product.product_name}</p>
-                    <p className="text-sm text-gray-500">{product.category_name}</p>
+                    <p className="text-sm text-gray-700">{product.category_name}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">
                     {product.total_quantity.toLocaleString()}{product.unit}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-700">
                     ₩{product.total_revenue.toLocaleString()}
                   </p>
                 </div>
@@ -336,12 +336,12 @@ export default function SalesSummaryPage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">결제 방법별 매출</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
-            <DollarSign className="h-12 w-12 text-gray-500 mx-auto mb-2" />
+            <DollarSign className="h-12 w-12 text-gray-700 mx-auto mb-2" />
             <p className="text-sm text-gray-600">현금</p>
             <p className="text-xl font-bold text-gray-900">
               ₩{stats.cash_sales.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-700">
               {stats.total_sales > 0 
                 ? `${Math.round((stats.cash_sales / stats.total_sales) * 100)}%`
                 : '0%'
@@ -354,7 +354,7 @@ export default function SalesSummaryPage() {
             <p className="text-xl font-bold text-gray-900">
               ₩{stats.card_sales.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-700">
               {stats.total_sales > 0 
                 ? `${Math.round((stats.card_sales / stats.total_sales) * 100)}%`
                 : '0%'
@@ -367,7 +367,7 @@ export default function SalesSummaryPage() {
             <p className="text-xl font-bold text-gray-900">
               ₩{stats.other_sales.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-700">
               {stats.total_sales > 0 
                 ? `${Math.round((stats.other_sales / stats.total_sales) * 100)}%`
                 : '0%'

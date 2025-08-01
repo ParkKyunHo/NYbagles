@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Calendar, Package, DollarSign, TrendingUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { StoreSelector } from '@/components/ui/store-selector'
 
 interface ProductSales {
   product_id: string
@@ -32,6 +33,7 @@ export default function DailyClosingPage() {
   const [productSales, setProductSales] = useState<ProductSales[]>([])
   const [hourlyData, setHourlyData] = useState<SalesByHour[]>([])
   const [alreadyClosed, setAlreadyClosed] = useState(false)
+  const [userRole, setUserRole] = useState<string>('')
   
   const router = useRouter()
   const supabase = createClientWithAuth()
@@ -48,6 +50,17 @@ export default function DailyClosingPage() {
       if (!user) {
         router.push('/login')
         return
+      }
+
+      // Get user role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setUserRole(profile.role)
       }
 
       // Get user's store
@@ -245,6 +258,21 @@ export default function DailyClosingPage() {
     return Math.max(...hourlyData.map(h => h.revenue), 1)
   }
 
+  const handleStoreChange = async (newStoreId: string, newStoreName: string) => {
+    setStoreId(newStoreId)
+    setStoreName(newStoreName)
+    setLoading(true)
+    
+    try {
+      await checkClosingStatus(newStoreId)
+      await fetchTodayData(newStoreId)
+    } catch (error) {
+      console.error('Error changing store:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -256,7 +284,14 @@ export default function DailyClosingPage() {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">일일 마감</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold">일일 마감</h1>
+          <StoreSelector
+            selectedStoreId={storeId}
+            onStoreChange={handleStoreChange}
+            userRole={userRole}
+          />
+        </div>
         <p className="text-gray-600">{storeName} - {todayDate}</p>
       </div>
 
@@ -268,7 +303,7 @@ export default function DailyClosingPage() {
               <p className="text-sm text-gray-600">오늘 매출</p>
               <p className="text-2xl font-bold">₩{todayTotal.toLocaleString()}</p>
             </div>
-            <DollarSign className="w-8 h-8 text-gray-400" />
+            <DollarSign className="w-8 h-8 text-gray-600" />
           </div>
         </Card>
         
@@ -280,7 +315,7 @@ export default function DailyClosingPage() {
                 {productSales.reduce((sum, p) => sum + p.quantity_sold, 0)}개
               </p>
             </div>
-            <Package className="w-8 h-8 text-gray-400" />
+            <Package className="w-8 h-8 text-gray-600" />
           </div>
         </Card>
         
@@ -294,7 +329,7 @@ export default function DailyClosingPage() {
                   : '-'}
               </p>
             </div>
-            <TrendingUp className="w-8 h-8 text-gray-400" />
+            <TrendingUp className="w-8 h-8 text-gray-600" />
           </div>
         </Card>
       </div>
@@ -364,7 +399,7 @@ export default function DailyClosingPage() {
       <div className="text-center">
         {alreadyClosed ? (
           <div className="text-gray-600">
-            <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+            <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-600" />
             <p>오늘 마감이 완료되었습니다.</p>
           </div>
         ) : (

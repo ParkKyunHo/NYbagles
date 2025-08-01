@@ -249,7 +249,7 @@ export default function EmployeesPage() {
               검색
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
               <input
                 type="text"
                 value={searchTerm}
@@ -310,22 +310,22 @@ export default function EmployeesPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   직원 정보
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   매장
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   직급
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   입사일
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   상태
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   작업
                 </th>
               </tr>
@@ -338,18 +338,18 @@ export default function EmployeesPage() {
                       <div className="text-sm font-medium text-gray-900">
                         {employee.profiles.name || '이름 없음'}
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
                         <Mail className="h-3 w-3" />
                         {employee.profiles.email}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         사번: {employee.employee_number}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                      <MapPin className="h-4 w-4 text-gray-600 mr-2" />
                       <span className="text-sm text-gray-900">
                         {employee.stores?.name}
                       </span>
@@ -360,9 +360,9 @@ export default function EmployeesPage() {
                       {getRoleLabel(employee.profiles.role)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                      <Calendar className="h-4 w-4 text-gray-600 mr-2" />
                       {format(new Date(employee.created_at), 'yyyy-MM-dd', { locale: ko })}
                     </div>
                   </td>
@@ -405,8 +405,8 @@ export default function EmployeesPage() {
 
         {filteredEmployees.length === 0 && (
           <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">직원이 없습니다.</p>
+            <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-700">직원이 없습니다.</p>
           </div>
         )}
       </div>
@@ -414,25 +414,25 @@ export default function EmployeesPage() {
       {/* 통계 */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">전체 직원</h3>
+          <h3 className="text-sm font-medium text-gray-700">전체 직원</h3>
           <p className="text-2xl font-bold text-gray-900 mt-1">
             {employees.length}명
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">활성 직원</h3>
+          <h3 className="text-sm font-medium text-gray-700">활성 직원</h3>
           <p className="text-2xl font-bold text-green-600 mt-1">
             {employees.filter(e => e.is_active).length}명
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">매니저</h3>
+          <h3 className="text-sm font-medium text-gray-700">매니저</h3>
           <p className="text-2xl font-bold text-blue-600 mt-1">
             {employees.filter(e => e.profiles.role === 'manager').length}명
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-500">파트타임</h3>
+          <h3 className="text-sm font-medium text-gray-700">파트타임</h3>
           <p className="text-2xl font-bold text-gray-600 mt-1">
             {employees.filter(e => e.profiles.role === 'part_time').length}명
           </p>

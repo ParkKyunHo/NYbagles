@@ -283,7 +283,7 @@ export default function EditStorePage() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <p className="mt-1 text-sm text-gray-500">대문자로 자동 변환됩니다</p>
+              <p className="mt-1 text-sm text-gray-700">대문자로 자동 변환됩니다</p>
             </div>
           </div>
 
@@ -434,7 +434,7 @@ export default function EditStorePage() {
             </div>
           </div>
           
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-gray-700">
             위치 정보는 QR 체크인 시 거리 검증에 사용됩니다
           </p>
         </div>
@@ -461,7 +461,7 @@ export default function EditStorePage() {
                   onChange={(e) => handleOperatingHoursChange(day, 'open', e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
                 />
-                <span className="text-gray-500">~</span>
+                <span className="text-gray-700">~</span>
                 <input
                   type="time"
                   value={hours.close}

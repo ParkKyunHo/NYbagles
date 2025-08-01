@@ -218,7 +218,7 @@ export default function WorkHoursPage() {
                   {monthSummary.totalDays}일
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-gray-400" />
+              <Calendar className="h-8 w-8 text-gray-600" />
             </div>
           </div>
 
@@ -230,7 +230,7 @@ export default function WorkHoursPage() {
                   {monthSummary.totalHours.toFixed(1)}시간
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-gray-400" />
+              <Clock className="h-8 w-8 text-gray-600" />
             </div>
           </div>
 
@@ -242,7 +242,7 @@ export default function WorkHoursPage() {
                   {monthSummary.averageHours.toFixed(1)}시간
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-gray-400" />
+              <Clock className="h-8 w-8 text-gray-600" />
             </div>
           </div>
 
@@ -292,22 +292,22 @@ export default function WorkHoursPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     날짜
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     매장
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     출근 시간
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     퇴근 시간
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     근무 시간
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     상태
                   </th>
                 </tr>
@@ -324,7 +324,7 @@ export default function WorkHoursPage() {
                       <div className="text-sm text-gray-900">
                         {record.stores?.name || '-'}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-700">
                         {record.stores?.code || '-'}
                       </div>
                     </td>

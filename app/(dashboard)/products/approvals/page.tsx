@@ -29,11 +29,9 @@ interface ProductChange {
       name: string
     }
   }
-  requester?: {
+  requester_profile?: {
+    full_name: string
     email: string
-    profiles?: {
-      full_name: string
-    }
   }
 }
 
@@ -105,16 +103,12 @@ export default function ProductApprovalsPage() {
         .from('product_changes')
         .select(`
           *,
-          product:products_v3(
+          product:products_v3!inner(
             id,
             sku,
             name,
             store_id,
-            store:stores(name)
-          ),
-          requester:requested_by(
-            email,
-            profiles:profiles(full_name)
+            store:stores!inner(name)
           )
         `)
         .order('requested_at', { ascending: false })
@@ -135,7 +129,26 @@ export default function ProductApprovalsPage() {
         console.error('Error fetching changes:', error)
         alert('변경 요청을 불러오는 중 오류가 발생했습니다.')
       } else {
-        setChanges(data || [])
+        // Fetch requester profiles
+        const changesWithProfiles = await Promise.all(
+          (data || []).map(async (change) => {
+            if (change.requested_by) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, email')
+                .eq('id', change.requested_by)
+                .single()
+              
+              return {
+                ...change,
+                requester_profile: profile
+              }
+            }
+            return change
+          })
+        )
+        
+        setChanges(changesWithProfiles)
       }
     } catch (error) {
       console.error('Error fetching changes:', error)
@@ -288,14 +301,14 @@ export default function ProductApprovalsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold">{change.product?.name || '알 수 없는 상품'}</h3>
                   {getStatusBadge(change.status)}
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-700">
                     {getChangeTypeLabel(change.change_type)}
                   </span>
                 </div>
                 
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>매장: {change.product?.store?.name || '알 수 없음'}</p>
-                  <p>요청자: {change.requester?.profiles?.full_name || change.requester?.email || '알 수 없음'}</p>
+                  <p>요청자: {change.requester_profile?.full_name || change.requester_profile?.email || '알 수 없음'}</p>
                   <p>요청일: {new Date(change.requested_at).toLocaleString()}</p>
                   {change.change_reason && (
                     <p>사유: {change.change_reason}</p>
@@ -351,7 +364,7 @@ export default function ProductApprovalsPage() {
       </div>
 
       {changes.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-700">
           <AlertCircle className="w-12 h-12 mx-auto mb-3" />
           <p>표시할 변경 요청이 없습니다.</p>
         </div>
@@ -371,7 +384,7 @@ export default function ProductApprovalsPage() {
                   <p><strong>SKU:</strong> {selectedChange.product?.sku}</p>
                   <p><strong>매장:</strong> {selectedChange.product?.store?.name}</p>
                   <p><strong>변경 유형:</strong> {getChangeTypeLabel(selectedChange.change_type)}</p>
-                  <p><strong>요청자:</strong> {selectedChange.requester?.profiles?.full_name || selectedChange.requester?.email}</p>
+                  <p><strong>요청자:</strong> {selectedChange.requester_profile?.full_name || selectedChange.requester_profile?.email}</p>
                   <p><strong>요청일:</strong> {new Date(selectedChange.requested_at).toLocaleString()}</p>
                   <p><strong>사유:</strong> {selectedChange.change_reason || '없음'}</p>
                 </div>

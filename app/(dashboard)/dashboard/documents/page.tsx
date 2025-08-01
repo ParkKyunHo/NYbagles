@@ -337,7 +337,7 @@ export default function DocumentsPage() {
                 placeholder="직원명 또는 파일명 검색"
                 className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
             </div>
           </div>
         </div>
@@ -353,30 +353,30 @@ export default function DocumentsPage() {
 
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">등록된 문서가 없습니다.</p>
+            <FileText className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-700">등록된 문서가 없습니다.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     직원
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     문서 유형
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     파일명
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     만료일
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     업로드
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     액션
                   </th>
                 </tr>
@@ -389,7 +389,7 @@ export default function DocumentsPage() {
                     <tr key={doc.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <User className="h-4 w-4 text-gray-400 mr-2" />
+                          <User className="h-4 w-4 text-gray-600 mr-2" />
                           <span className="text-sm font-medium text-gray-900">
                             {doc.employees?.profiles?.full_name}
                           </span>
@@ -408,7 +408,7 @@ export default function DocumentsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {doc.expiry_date ? (
                           <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                            <Calendar className="h-4 w-4 text-gray-600 mr-2" />
                             <span className={`text-sm ${isExpired ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
                               {format(new Date(doc.expiry_date), 'yyyy-MM-dd')}
                             </span>
@@ -417,14 +417,14 @@ export default function DocumentsPage() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-500">-</span>
+                          <span className="text-sm text-gray-700">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {doc.uploaded_by_profile?.full_name}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-700">
                           {format(new Date(doc.created_at), 'yyyy-MM-dd', { locale: ko })}
                         </div>
                       </td>
@@ -528,7 +528,7 @@ export default function DocumentsPage() {
                   accept=".pdf,.jpg,.jpeg,.png"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent text-gray-900 bg-white"
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-700">
                   PDF, JPG, PNG 파일만 업로드 가능합니다
                 </p>
               </div>

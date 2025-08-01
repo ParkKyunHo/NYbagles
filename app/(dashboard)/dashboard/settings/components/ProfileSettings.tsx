@@ -101,9 +101,9 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
               type="email"
               value={formData.email}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-700">
               이메일은 변경할 수 없습니다
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
               type="text"
               value={formData.employee_code}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
               type="text"
               value={getRoleDisplay(profile.role)}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
             />
           </div>
 
@@ -154,7 +154,7 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
               type="text"
               value={new Date(profile.created_at).toLocaleDateString('ko-KR')}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
             />
           </div>
         </div>

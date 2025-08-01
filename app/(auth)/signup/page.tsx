@@ -29,11 +29,11 @@ export default function SignupPage() {
           >
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-bagel-yellow-600" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600 group-hover:text-bagel-yellow-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">직원 회원가입</h3>
-                <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                <p className="mt-1 text-xs sm:text-sm text-gray-700">
                   매장 직원으로 가입하여 출퇴근 관리를 시작하세요
                 </p>
               </div>
@@ -44,11 +44,11 @@ export default function SignupPage() {
           <div className="relative block w-full px-4 sm:px-6 py-3 sm:py-4 border-2 border-gray-200 rounded-lg bg-bagel-cream">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+                <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-base sm:text-lg font-medium text-gray-700">관리자 계정</h3>
-                <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                <p className="mt-1 text-xs sm:text-sm text-gray-700">
                   관리자 계정은 기존 관리자가 직접 추가합니다.
                   매장 관리자에게 문의해주세요.
                 </p>

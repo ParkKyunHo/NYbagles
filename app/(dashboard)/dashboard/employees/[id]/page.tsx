@@ -333,7 +333,7 @@ export default function EmployeeDetailPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-500">이름</label>
+                <label className="text-sm text-gray-700">이름</label>
                 {editing ? (
                   <input
                     type="text"
@@ -347,20 +347,20 @@ export default function EmployeeDetailPage() {
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">이메일</label>
+                <label className="text-sm text-gray-700">이메일</label>
                 <p className="font-medium text-gray-900 flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                  <Mail className="h-4 w-4 mr-2 text-gray-600" />
                   {employee.profiles.email}
                 </p>
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">사번</label>
+                <label className="text-sm text-gray-700">사번</label>
                 <p className="font-medium text-gray-900">{employee.employee_number}</p>
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">직급</label>
+                <label className="text-sm text-gray-700">직급</label>
                 {editing && (userRole === 'super_admin' || userRole === 'admin') ? (
                   <select
                     value={editData.role}
@@ -379,14 +379,14 @@ export default function EmployeeDetailPage() {
                   </select>
                 ) : (
                   <p className="font-medium text-gray-900 flex items-center">
-                    <Shield className="h-4 w-4 mr-2 text-gray-400" />
+                    <Shield className="h-4 w-4 mr-2 text-gray-600" />
                     {getRoleLabel(employee.profiles.role)}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">소속 매장</label>
+                <label className="text-sm text-gray-700">소속 매장</label>
                 {editing ? (
                   <select
                     value={editData.store_id}
@@ -401,22 +401,22 @@ export default function EmployeeDetailPage() {
                   </select>
                 ) : (
                   <p className="font-medium text-gray-900 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                    <MapPin className="h-4 w-4 mr-2 text-gray-600" />
                     {employee.stores.name}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">입사일</label>
+                <label className="text-sm text-gray-700">입사일</label>
                 <p className="font-medium text-gray-900 flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                  <Calendar className="h-4 w-4 mr-2 text-gray-600" />
                   {format(new Date(employee.created_at), 'yyyy년 MM월 dd일', { locale: ko })}
                 </p>
               </div>
 
               <div>
-                <label className="text-sm text-gray-500">상태</label>
+                <label className="text-sm text-gray-700">상태</label>
                 {editing ? (
                   <select
                     value={editData.is_active ? 'active' : 'inactive'}
@@ -453,11 +453,11 @@ export default function EmployeeDetailPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">날짜</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">출근</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">퇴근</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">근무시간</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">상태</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">날짜</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">출근</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">퇴근</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">근무시간</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">상태</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -487,7 +487,7 @@ export default function EmployeeDetailPage() {
             </div>
 
             {attendanceRecords.length === 0 && (
-              <p className="text-center text-gray-500 py-4">근무 기록이 없습니다.</p>
+              <p className="text-center text-gray-700 py-4">근무 기록이 없습니다.</p>
             )}
           </div>
 
@@ -515,7 +515,7 @@ export default function EmployeeDetailPage() {
             </div>
 
             {schedules.length === 0 && (
-              <p className="text-center text-gray-500 py-4">예정된 스케줄이 없습니다.</p>
+              <p className="text-center text-gray-700 py-4">예정된 스케줄이 없습니다.</p>
             )}
           </div>
         </div>

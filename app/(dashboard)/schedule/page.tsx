@@ -307,7 +307,7 @@ export default function SchedulePage() {
                           )}
                         </p>
                         {schedule.stores && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-700 mt-1">
                             {schedule.stores.name}
                           </p>
                         )}
@@ -337,7 +337,7 @@ export default function SchedulePage() {
                 }, 0).toFixed(1)}시간
               </p>
             </div>
-            <Clock className="h-8 w-8 text-gray-400" />
+            <Clock className="h-8 w-8 text-gray-600" />
           </div>
         </div>
 
@@ -349,7 +349,7 @@ export default function SchedulePage() {
                 {weekDays.filter(day => day.schedules.length > 0).length}일
               </p>
             </div>
-            <Calendar className="h-8 w-8 text-gray-400" />
+            <Calendar className="h-8 w-8 text-gray-600" />
           </div>
         </div>
 
@@ -361,7 +361,7 @@ export default function SchedulePage() {
                 {weekDays.reduce((total, day) => total + day.schedules.length, 0)}개
               </p>
             </div>
-            <Users className="h-8 w-8 text-gray-400" />
+            <Users className="h-8 w-8 text-gray-600" />
           </div>
         </div>
       </div>

@@ -262,22 +262,22 @@ export default function StoreProductsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   상품명
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   카테고리
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   기본 가격
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   매장 가격
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   재고
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   판매 여부
                 </th>
               </tr>
@@ -291,7 +291,7 @@ export default function StoreProductsPage() {
                         {product.product_name}
                       </div>
                       {product.sku && (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-700">
                           SKU: {product.sku}
                         </div>
                       )}
@@ -307,7 +307,7 @@ export default function StoreProductsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 text-sm">
                         ₩
                       </span>
                       <input

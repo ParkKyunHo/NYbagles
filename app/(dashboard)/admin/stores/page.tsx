@@ -220,7 +220,7 @@ export default function StoresPage() {
         <div className="overflow-x-auto">
           {filteredStores.length === 0 ? (
             <div className="text-center py-12">
-              <Store className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+              <Store className="h-12 w-12 text-gray-700 mx-auto mb-4" />
               <p className="text-gray-600">검색 결과가 없습니다.</p>
             </div>
           ) : (
@@ -261,7 +261,7 @@ export default function StoresPage() {
                       <div className="text-sm text-gray-900">
                         {store.store_categories?.regions?.name} {store.store_categories?.name}
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center">
+                      <div className="text-sm text-gray-700 flex items-center">
                         <MapPin className="h-3 w-3 mr-1" />
                         {store.address || '주소 미등록'}
                       </div>
@@ -274,7 +274,7 @@ export default function StoresPage() {
                         </div>
                       )}
                       {store.email && (
-                        <div className="text-sm text-gray-500 flex items-center">
+                        <div className="text-sm text-gray-700 flex items-center">
                           <Mail className="h-3 w-3 mr-1" />
                           {store.email}
                         </div>

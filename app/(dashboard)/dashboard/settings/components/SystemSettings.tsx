@@ -116,8 +116,8 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
   if (!['super_admin', 'admin'].includes(profile.role)) {
     return (
       <div className="text-center py-12">
-        <ShieldCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-500">시스템 설정은 관리자만 접근 가능합니다.</p>
+        <ShieldCheck className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+        <p className="text-gray-700">시스템 설정은 관리자만 접근 가능합니다.</p>
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                 max="60"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-700">
                 출근 예정 시간보다 몇 분 늦으면 지각으로 처리할지 설정
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                 max="60"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-700">
                 퇴근 예정 시간보다 몇 분 일찍 퇴근하면 조퇴로 처리할지 설정
               </p>
             </div>
@@ -227,7 +227,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                 max="24"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">시간 단위</p>
+              <p className="mt-1 text-xs text-gray-700">시간 단위</p>
             </div>
 
             <div>
@@ -256,7 +256,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                 max="30"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-700">
                 며칠 전부터 스케줄 변경을 제한할지 설정
               </p>
             </div>
@@ -299,7 +299,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                   step="10000"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
                 />
-                <p className="mt-1 text-xs text-gray-500">원 단위</p>
+                <p className="mt-1 text-xs text-gray-700">원 단위</p>
               </div>
 
               <div>
@@ -314,7 +314,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                   step="100000"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
                 />
-                <p className="mt-1 text-xs text-gray-500">원 단위</p>
+                <p className="mt-1 text-xs text-gray-700">원 단위</p>
               </div>
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                   max="365"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
                 />
-                <p className="mt-1 text-xs text-gray-500">일 단위 (0은 만료 없음)</p>
+                <p className="mt-1 text-xs text-gray-700">일 단위 (0은 만료 없음)</p>
               </div>
 
               <div>
@@ -370,7 +370,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
                   max="480"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bagel-yellow focus:border-transparent"
                 />
-                <p className="mt-1 text-xs text-gray-500">분 단위</p>
+                <p className="mt-1 text-xs text-gray-700">분 단위</p>
               </div>
             </div>
 
@@ -393,7 +393,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
 
         <div className="pt-6 border-t border-gray-200">
           <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-700">
               <DatabaseIcon className="h-4 w-4 inline mr-1" />
               변경사항은 모든 매장에 적용됩니다
             </div>

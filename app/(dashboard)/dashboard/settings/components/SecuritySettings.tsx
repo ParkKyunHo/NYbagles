@@ -173,7 +173,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
             <button
               type="button"
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-gray-700"
             >
               {showCurrentPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -204,7 +204,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-gray-700"
             >
               {showNewPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -235,7 +235,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-gray-700"
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -281,7 +281,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
                 계정 보안을 강화하기 위한 추가 인증
               </p>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-700">
               준비 중
             </span>
           </div>
@@ -293,7 +293,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
                 최근 로그인 활동 확인
               </p>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-700">
               준비 중
             </span>
           </div>

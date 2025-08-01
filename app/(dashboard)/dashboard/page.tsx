@@ -97,11 +97,11 @@ export default async function DashboardPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-700">
           환영합니다, {profile?.full_name || user?.email}님
         </p>
         {employee?.stores && (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-700">
             소속: {employee.stores.name} ({employee.stores.store_code})
           </p>
         )}
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
+                  <dt className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                     오늘 출근 상태
                   </dt>
                   <dd className="text-sm sm:text-lg font-semibold text-gray-900">
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
+                  <dt className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                     이번 주 근무시간
                   </dt>
                   <dd className="text-sm sm:text-lg font-semibold text-gray-900">
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
+                  <dt className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                     이번 주 근무일
                   </dt>
                   <dd className="text-sm sm:text-lg font-semibold text-gray-900">
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
               </div>
               <div className="ml-3 sm:ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
+                  <dt className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                     이번 달 근무시간
                   </dt>
                   <dd className="text-sm sm:text-lg font-semibold text-gray-900">
@@ -258,7 +258,7 @@ export default async function DashboardPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">출근 시간</p>
+                  <p className="text-sm text-gray-700">출근 시간</p>
                   <p className="text-lg font-medium">
                     {new Date(todayAttendance.check_in_time).toLocaleTimeString('ko-KR', {
                       hour: '2-digit',
@@ -268,7 +268,7 @@ export default async function DashboardPage() {
                 </div>
                 {todayAttendance.check_out_time ? (
                   <div>
-                    <p className="text-sm text-gray-500">퇴근 시간</p>
+                    <p className="text-sm text-gray-700">퇴근 시간</p>
                     <p className="text-lg font-medium">
                       {new Date(todayAttendance.check_out_time).toLocaleTimeString('ko-KR', {
                         hour: '2-digit',

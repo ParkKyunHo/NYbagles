@@ -200,19 +200,19 @@ export default function SalesHistoryPage() {
       {/* 통계 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">총 판매 건수</h3>
+          <h3 className="text-sm font-medium text-gray-700">총 판매 건수</h3>
           <p className="text-2xl font-bold text-gray-900 mt-2">
             {totalStats.count.toLocaleString()}건
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">총 매출액</h3>
+          <h3 className="text-sm font-medium text-gray-700">총 매출액</h3>
           <p className="text-2xl font-bold text-bagel-yellow mt-2">
             ₩{totalStats.amount.toLocaleString()}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">취소 건수</h3>
+          <h3 className="text-sm font-medium text-gray-700">취소 건수</h3>
           <p className="text-2xl font-bold text-red-600 mt-2">
             {totalStats.canceled.toLocaleString()}건
           </p>
@@ -225,22 +225,22 @@ export default function SalesHistoryPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   일시
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   매장
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   결제방법
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                   금액
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   상태
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                   작업
                 </th>
               </tr>
@@ -261,7 +261,7 @@ export default function SalesHistoryPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                      <span className={sale.is_canceled ? 'line-through text-gray-400' : 'text-gray-900'}>
+                      <span className={sale.is_canceled ? 'line-through text-gray-600' : 'text-gray-900'}>
                         ₩{sale.total_amount.toLocaleString()}
                       </span>
                     </td>
@@ -333,10 +333,10 @@ export default function SalesHistoryPage() {
                                 <table className="min-w-full divide-y divide-gray-200">
                                   <thead className="bg-gray-50">
                                     <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">상품명</th>
-                                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-500">수량</th>
-                                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">단가</th>
-                                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">금액</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">상품명</th>
+                                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-700">수량</th>
+                                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-700">단가</th>
+                                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-700">금액</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-gray-200">
@@ -373,7 +373,7 @@ export default function SalesHistoryPage() {
 
         {sales.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">조회 결과가 없습니다.</p>
+            <p className="text-gray-700">조회 결과가 없습니다.</p>
           </div>
         )}
       </div>

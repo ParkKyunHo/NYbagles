@@ -374,7 +374,7 @@ export default function SalesPage() {
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 장바구니
               </h2>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-700">
                 {cart.length}개 상품
               </span>
             </div>
@@ -382,7 +382,7 @@ export default function SalesPage() {
             {/* 장바구니 아이템 */}
             <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-gray-700 py-8">
                   상품을 선택해주세요
                 </p>
               ) : (
@@ -394,7 +394,7 @@ export default function SalesPage() {
                       </h4>
                       <button
                         onClick={() => removeFromCart(item.product_id)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="text-gray-600 hover:text-red-600"
                       >
                         <X className="h-4 w-4" />
                       </button>

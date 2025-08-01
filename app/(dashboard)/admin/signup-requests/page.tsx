@@ -203,7 +203,6 @@ export default function SignupRequestsPage() {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { text: '대기중', class: 'bg-yellow-100 text-yellow-800' },
-      verified: { text: '검증됨', class: 'bg-blue-100 text-blue-800' },
       approved: { text: '승인됨', class: 'bg-green-100 text-green-800' },
       rejected: { text: '거절됨', class: 'bg-red-100 text-red-800' },
     }
@@ -233,12 +232,6 @@ export default function SignupRequestsPage() {
           대기중
         </Button>
         <Button
-          variant={selectedStatus === 'verified' ? 'primary' : 'ghost'}
-          onClick={() => setSelectedStatus('verified')}
-        >
-          검증됨
-        </Button>
-        <Button
           variant={selectedStatus === 'approved' ? 'primary' : 'ghost'}
           onClick={() => setSelectedStatus('approved')}
         >
@@ -263,7 +256,6 @@ export default function SignupRequestsPage() {
           <div className="p-8 text-center">
             <p className="text-gray-600">
               {selectedStatus === 'pending' && '대기 중인 가입 요청이 없습니다.'}
-              {selectedStatus === 'verified' && '승인 대기 중인 가입 요청이 없습니다.'}
               {selectedStatus === 'approved' && '승인된 가입 요청이 없습니다.'}
               {selectedStatus === 'rejected' && '거절된 가입 요청이 없습니다.'}
             </p>
@@ -273,22 +265,22 @@ export default function SignupRequestsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     직원 정보
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     매장
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     전화번호
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     신청일
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     상태
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     작업
                   </th>
                 </tr>
@@ -301,7 +293,7 @@ export default function SignupRequestsPage() {
                         <div className="text-sm font-medium text-gray-900">
                           {request.full_name}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-700">
                           {request.email}
                         </div>
                       </div>
@@ -312,7 +304,7 @@ export default function SignupRequestsPage() {
                           <div className="text-sm text-gray-900">
                             {request.stores?.name || '알 수 없음'}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-700">
                             코드: {request.store_code}
                           </div>
                         </div>
@@ -331,7 +323,7 @@ export default function SignupRequestsPage() {
                         {request.phone || '전화번호 없음'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {formatDistanceToNow(new Date(request.created_at), {
                         addSuffix: true,
                         locale: ko,
@@ -400,7 +392,7 @@ export default function SignupRequestsPage() {
                     </option>
                   ))}
                 </select>
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
               </div>
             </div>
 

@@ -5,6 +5,7 @@ import { createClientWithAuth } from '@/lib/supabase/client-auth'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
+import { StoreSelector } from '@/components/ui/store-selector'
 
 interface Product {
   id: string
@@ -26,6 +27,7 @@ export default function SimpleSalesPage() {
   const [storeId, setStoreId] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string>('')
   const [todayTotal, setTodayTotal] = useState(0)
+  const [userRole, setUserRole] = useState<string>('')
   const router = useRouter()
   const supabase = createClientWithAuth()
 
@@ -39,6 +41,17 @@ export default function SimpleSalesPage() {
       if (!user) {
         router.push('/login')
         return
+      }
+
+      // Get user role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setUserRole(profile.role)
       }
 
       // Get user's store
@@ -238,6 +251,22 @@ export default function SimpleSalesPage() {
     }
   }
 
+  const handleStoreChange = async (newStoreId: string, newStoreName: string) => {
+    setStoreId(newStoreId)
+    setStoreName(newStoreName)
+    setLoading(true)
+    setCart([]) // Clear cart when changing stores
+    
+    try {
+      await fetchProducts(newStoreId)
+      await fetchTodaySales(newStoreId)
+    } catch (error) {
+      console.error('Error changing store:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -249,8 +278,17 @@ export default function SimpleSalesPage() {
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <div className="mb-6 bg-bagel-yellow p-4 rounded-lg">
-        <h1 className="text-2xl font-bold text-bagel-black mb-2">🥯 {storeName} - 판매</h1>
-        <p className="text-xl text-bagel-black">오늘 매출: ₩{todayTotal.toLocaleString()}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-bagel-black mb-2">🥯 {storeName} - 판매</h1>
+            <p className="text-xl text-bagel-black">오늘 매출: ₩{todayTotal.toLocaleString()}</p>
+          </div>
+          <StoreSelector
+            selectedStoreId={storeId}
+            onStoreChange={handleStoreChange}
+            userRole={userRole}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -262,7 +300,7 @@ export default function SimpleSalesPage() {
               <Card key={product.id} className="p-4">
                 <h3 className="font-semibold text-lg">{product.name}</h3>
                 <p className="text-gray-600">₩{product.price.toLocaleString()}</p>
-                <p className="text-sm text-gray-500 mb-3">재고: {product.stock_quantity}개</p>
+                <p className="text-sm text-gray-700 mb-3">재고: {product.stock_quantity}개</p>
                 <Button
                   onClick={() => addToCart(product)}
                   disabled={product.stock_quantity <= 0}
@@ -281,7 +319,7 @@ export default function SimpleSalesPage() {
           <h2 className="text-lg font-semibold mb-4">주문 내역</h2>
           <Card className="p-4">
             {cart.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">상품을 선택해주세요</p>
+              <p className="text-gray-700 text-center py-8">상품을 선택해주세요</p>
             ) : (
               <>
                 <div className="space-y-3 mb-4">
