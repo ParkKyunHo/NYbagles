@@ -83,14 +83,18 @@ export function useStore() {
             .single()
 
           if (employee?.stores) {
+            const storeData = Array.isArray(employee.stores) 
+              ? employee.stores[0] 
+              : employee.stores;
+            
             const store = {
-              id: employee.stores.id,
-              name: employee.stores.name,
-              code: employee.stores.code,
-              address: employee.stores.address,
-              phone: employee.stores.phone,
-              region: employee.stores.store_categories?.regions?.name,
-              category: employee.stores.store_categories?.name
+              id: storeData.id,
+              name: storeData.name,
+              code: storeData.code,
+              address: storeData.address,
+              phone: storeData.phone,
+              region: storeData.store_categories?.regions?.name,
+              category: storeData.store_categories?.name
             }
             setStores([store])
             setCurrentStore(store)
