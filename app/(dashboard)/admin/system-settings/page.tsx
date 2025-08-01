@@ -23,30 +23,31 @@ export default function SystemSettingsPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    const checkAuthAndLoadSettings = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile || profile.role !== 'super_admin') {
+        router.push('/dashboard')
+        return
+      }
+
+      await fetchSettings()
+    }
+
     checkAuthAndLoadSettings()
-  }, [])
+  }, [router, supabase])
 
-  const checkAuthAndLoadSettings = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || profile.role !== 'super_admin') {
-      router.push('/dashboard')
-      return
-    }
-
-    await fetchSettings()
-  }
 
   const fetchSettings = async () => {
     setLoading(true)

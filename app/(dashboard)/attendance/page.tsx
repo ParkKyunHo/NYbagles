@@ -24,48 +24,49 @@ export default function AttendancePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchAttendanceData()
-  }, [])
+    const fetchAttendanceData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-  const fetchAttendanceData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+        // 오늘의 출퇴근 기록
+        const today = new Date().toISOString().split('T')[0]
+        const { data: todayData } = await supabase
+          .from('attendance_records')
+          .select('*')
+          .eq('employee_id', user.id)
+          .eq('date', today)
+          .single()
 
-      // 오늘의 출퇴근 기록
-      const today = new Date().toISOString().split('T')[0]
-      const { data: todayData } = await supabase
-        .from('attendance_records')
-        .select('*')
-        .eq('employee_id', user.id)
-        .eq('date', today)
-        .single()
+        if (todayData) {
+          setTodayAttendance(todayData)
+        }
 
-      if (todayData) {
-        setTodayAttendance(todayData)
+        // 최근 7일 기록
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+        
+        const { data: recentData } = await supabase
+          .from('attendance_records')
+          .select('*')
+          .eq('employee_id', user.id)
+          .gte('date', sevenDaysAgo.toISOString().split('T')[0])
+          .order('date', { ascending: false })
+          .limit(7)
+
+        if (recentData) {
+          setRecentRecords(recentData)
+        }
+      } catch (error) {
+        console.error('Error fetching attendance data:', error)
+      } finally {
+        setLoading(false)
       }
-
-      // 최근 7일 기록
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      
-      const { data: recentData } = await supabase
-        .from('attendance_records')
-        .select('*')
-        .eq('employee_id', user.id)
-        .gte('date', sevenDaysAgo.toISOString().split('T')[0])
-        .order('date', { ascending: false })
-        .limit(7)
-
-      if (recentData) {
-        setRecentRecords(recentData)
-      }
-    } catch (error) {
-      console.error('Error fetching attendance data:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+
+    fetchAttendanceData()
+  }, [supabase])
+
 
   const formatTime = (timeString: string) => {
     return format(new Date(timeString), 'HH:mm', { locale: ko })
