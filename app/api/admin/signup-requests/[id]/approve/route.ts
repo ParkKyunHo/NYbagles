@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireRole } from '@/lib/auth/permissions'
 
 export async function POST(
@@ -12,6 +13,7 @@ export async function POST(
     const { role = 'employee' } = body
 
     const supabase = await createClient()
+    const adminClient = createAdminClient()
 
     // Get signup request
     const { data: signupRequest, error: requestError } = await supabase
@@ -21,20 +23,30 @@ export async function POST(
       .single()
 
     if (requestError || !signupRequest) {
+      console.error('Error fetching signup request:', requestError)
       return NextResponse.json(
-        { error: 'Signup request not found or not verified' },
+        { error: '가입 요청을 찾을 수 없습니다.', details: requestError?.message },
         { status: 404 }
       )
     }
 
     // Check if user already exists by listing users
-    const { data: { users: existingUsers }, error: listError } = await supabase.auth.admin.listUsers()
+    const { data: { users: existingUsers }, error: listError } = await adminClient.auth.admin.listUsers()
+    
+    if (listError) {
+      console.error('Error listing users:', listError)
+      return NextResponse.json(
+        { error: '사용자 목록 조회 실패', details: listError.message },
+        { status: 500 }
+      )
+    }
+    
     const existingUser = existingUsers?.find(u => u.email === signupRequest.email)
     
     let authData
     if (existingUser) {
       // User already exists, just update metadata
-      const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
+      const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(
         existingUser.id,
         {
           user_metadata: {
@@ -47,7 +59,10 @@ export async function POST(
       
       if (updateError) {
         console.error('User update error:', updateError)
-        throw updateError
+        return NextResponse.json(
+          { error: '사용자 정보 업데이트 실패', details: updateError.message },
+          { status: 500 }
+        )
       }
       
       authData = { user: updatedUser }
@@ -66,11 +81,14 @@ export async function POST(
       // 항상 임시 비밀번호 생성 (승인 후 이메일로 재설정 링크 전송)
       createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
 
-      const { data: newUser, error: authError } = await supabase.auth.admin.createUser(createUserPayload)
+      const { data: newUser, error: authError } = await adminClient.auth.admin.createUser(createUserPayload)
       
       if (authError) {
         console.error('Auth creation error:', authError)
-        throw authError
+        return NextResponse.json(
+          { error: '사용자 생성 실패', details: authError.message },
+          { status: 500 }
+        )
       }
       
       authData = newUser
@@ -115,19 +133,28 @@ export async function POST(
     }
 
     // 항상 비밀번호 재설정 이메일 전송
-    await supabase.auth.admin.generateLink({
+    const { error: linkError } = await adminClient.auth.admin.generateLink({
       type: 'recovery',
       email: signupRequest.email,
     })
+    
+    if (linkError) {
+      console.error('Error generating recovery link:', linkError)
+      // 이메일 전송 실패해도 승인은 완료로 처리
+    }
 
     return NextResponse.json({
       message: 'Employee approved successfully',
       userId: userId,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Approve signup request error:', error)
     return NextResponse.json(
-      { error: 'Failed to approve signup request' },
+      { 
+        error: '가입 승인 처리 중 오류가 발생했습니다.', 
+        details: error?.message || '알 수 없는 오류',
+        code: error?.code
+      },
       { status: 500 }
     )
   }

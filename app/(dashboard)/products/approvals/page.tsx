@@ -43,6 +43,7 @@ export default function ProductApprovalsPage() {
   const [reviewComment, setReviewComment] = useState('')
   const [userRole, setUserRole] = useState<string>('')
   const [storeId, setStoreId] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   
   const router = useRouter()
   const supabase = createClientWithAuth()
@@ -127,7 +128,7 @@ export default function ProductApprovalsPage() {
 
       if (error) {
         console.error('Error fetching changes:', error)
-        alert('변경 요청을 불러오는 중 오류가 발생했습니다.')
+        alert(`변경 요청을 불러오는 중 오류가 발생했습니다: ${error.message}`)
       } else {
         // Fetch requester profiles
         const changesWithProfiles = await Promise.all(
@@ -156,10 +157,13 @@ export default function ProductApprovalsPage() {
   }
 
   const handleApprove = async (changeId: string) => {
+    if (isProcessing) return
+    
+    setIsProcessing(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('product_changes')
         .update({
           status: 'approved',
@@ -168,18 +172,43 @@ export default function ProductApprovalsPage() {
           review_comment: reviewComment || null
         })
         .eq('id', changeId)
+        .select()
+        .single()
 
       if (error) {
-        alert('승인 처리 중 오류가 발생했습니다.')
+        console.error('Approval error:', error)
+        alert(`승인 처리 중 오류가 발생했습니다: ${error.message}`)
       } else {
+        // 승인 후 product가 업데이트되었는지 확인
+        if (data) {
+          const { data: product, error: productError } = await supabase
+            .from('products_v3')
+            .select('status')
+            .eq('id', data.product_id)
+            .single()
+          
+          if (productError) {
+            console.error('Product check error:', productError)
+          } else if (data.change_type === 'create' && product?.status !== 'active') {
+            console.warn('Product status not updated after approval, applying manual update')
+            // 트리거가 실패한 경우 수동으로 업데이트
+            await supabase
+              .from('products_v3')
+              .update({ status: 'active' })
+              .eq('id', data.product_id)
+          }
+        }
+        
         alert('승인되었습니다.')
         setSelectedChange(null)
         setReviewComment('')
         await fetchChanges()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving change:', error)
-      alert('승인 처리 중 오류가 발생했습니다.')
+      alert(`승인 처리 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`)
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -188,7 +217,10 @@ export default function ProductApprovalsPage() {
       alert('거절 사유를 입력해주세요.')
       return
     }
-
+    
+    if (isProcessing) return
+    
+    setIsProcessing(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -203,16 +235,19 @@ export default function ProductApprovalsPage() {
         .eq('id', changeId)
 
       if (error) {
-        alert('거절 처리 중 오류가 발생했습니다.')
+        console.error('Rejection error:', error)
+        alert(`거절 처리 중 오류가 발생했습니다: ${error.message}`)
       } else {
         alert('거절되었습니다.')
         setSelectedChange(null)
         setReviewComment('')
         await fetchChanges()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rejecting change:', error)
-      alert('거절 처리 중 오류가 발생했습니다.')
+      alert(`거절 처리 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`)
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -340,9 +375,10 @@ export default function ProductApprovalsPage() {
                       variant="primary"
                       onClick={() => handleApprove(change.id)}
                       className="bg-green-600 hover:bg-green-700"
+                      disabled={isProcessing}
                     >
                       <Check className="w-4 h-4" />
-                      승인
+                      {isProcessing ? '처리중...' : '승인'}
                     </Button>
                     <Button
                       size="sm"
@@ -434,16 +470,18 @@ export default function ProductApprovalsPage() {
                     <Button
                       onClick={() => handleApprove(selectedChange.id)}
                       className="bg-green-600 hover:bg-green-700"
+                      disabled={isProcessing}
                     >
                       <Check className="w-4 h-4 mr-2" />
-                      승인
+                      {isProcessing ? '처리중...' : '승인'}
                     </Button>
                     <Button
                       variant="danger"
                       onClick={() => handleReject(selectedChange.id)}
+                      disabled={isProcessing}
                     >
                       <X className="w-4 h-4 mr-2" />
-                      거절
+                      {isProcessing ? '처리중...' : '거절'}
                     </Button>
                   </>
                 )}

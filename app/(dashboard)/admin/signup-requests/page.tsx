@@ -125,15 +125,18 @@ export default function SignupRequestsPage() {
         body: JSON.stringify({ role: 'employee' }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to approve request')
+        console.error('Approval error:', data)
+        throw new Error(data.error || 'Failed to approve request')
       }
 
       alert('직원 가입이 승인되었습니다. 직원에게 비밀번호 설정 이메일이 발송됩니다.')
       fetchRequests()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving request:', error)
-      alert('승인 처리 중 오류가 발생했습니다.')
+      alert(`승인 처리 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`)
     } finally {
       setProcessingId(null)
     }
@@ -343,7 +346,7 @@ export default function SignupRequestsPage() {
                             disabled={processingId === request.id}
                             className="bg-green-600 hover:bg-green-700 text-white"
                           >
-                            승인
+                            {processingId === request.id ? '처리중...' : '승인'}
                           </Button>
                           <Button
                             size="sm"
@@ -351,7 +354,7 @@ export default function SignupRequestsPage() {
                             disabled={processingId === request.id}
                             className="bg-red-600 hover:bg-red-700 text-white"
                           >
-                            거절
+                            {processingId === request.id ? '처리중...' : '거절'}
                           </Button>
                         </div>
                       )}
