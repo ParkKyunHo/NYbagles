@@ -128,3 +128,8 @@ MIT
 1. PowerShell에서 `wsl` 입력
 2. `cd /home/albra/NYbalges/bagel-shop`
 3. `npm run dev`
+
+## 최근 업데이트 (2025-08-04)
+- 상품 관리 시스템 개선
+- 매장별 상품 표시 기능 추가
+- UI/UX 개선 (텍스트 가독성 향상)
