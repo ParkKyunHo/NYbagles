@@ -304,7 +304,7 @@ export default function ProductsV2Page() {
         <div className="flex justify-between items-center mb-2">
           <div>
             <h1 className="text-2xl font-bold">상품 관리</h1>
-            <p className="text-gray-600">{storeName}</p>
+            <p className="text-gray-900">{storeName}</p>
           </div>
           <div className="flex items-center gap-4">
             <StoreSelector
@@ -424,8 +424,8 @@ export default function ProductsV2Page() {
                     ) : (
                       <>
                         <h3 className="font-semibold text-lg">{product.name}</h3>
-                        <p className="text-gray-600">₩{product.base_price.toLocaleString()}</p>
-                        <p className="text-sm text-gray-700 mb-3">재고: {product.stock_quantity}개</p>
+                        <p className="text-gray-900">₩{product.base_price.toLocaleString()}</p>
+                        <p className="text-sm text-gray-900 mb-3">재고: {product.stock_quantity}개</p>
                         {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
                           <div className="flex gap-2">
                             <Button
@@ -456,7 +456,7 @@ export default function ProductsV2Page() {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center py-12 text-gray-700">
+        <div className="text-center py-12 text-gray-900">
           <p>등록된 상품이 없습니다.</p>
           <p className="text-sm mt-2">상품을 추가해주세요.</p>
         </div>

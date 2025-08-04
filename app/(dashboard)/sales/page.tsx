@@ -124,43 +124,30 @@ export default function SalesPage() {
     setLoading(true)
     
     try {
-      // 매장의 판매 가능한 상품 조회
+      // 매장의 판매 가능한 상품 조회 (products_v3 사용)
       const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          product_categories (
-            id,
-            name
-          ),
-          store_products!inner (
-            store_id,
-            custom_price,
-            is_available,
-            stock_quantity
-          )
-        `)
-        .eq('is_active', true)
-        .eq('store_products.store_id', storeId)
-        .eq('store_products.is_available', true)
-        .order('product_categories.display_order')
-        .order('display_order')
+        .from('products_v3')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('status', 'active')
+        .order('category')
+        .order('name')
 
       if (error) throw error
 
-      // 매장 가격 적용
-      const productsWithStorePrice = data?.map(product => ({
+      // products_v3 형식으로 데이터 변환
+      const productsWithPrice = data?.map(product => ({
         ...product,
-        price: product.store_products[0]?.custom_price || product.price,
-        stock_quantity: product.store_products[0]?.stock_quantity || 0
+        price: product.base_price,
+        product_categories: { id: product.category, name: product.category }
       })) || []
 
-      setProducts(productsWithStorePrice)
+      setProducts(productsWithPrice)
 
       // 카테고리 추출
       const uniqueCategories = Array.from(
-        new Set(productsWithStorePrice.map(p => JSON.stringify(p.product_categories)))
-      ).map(str => JSON.parse(str)).filter(Boolean)
+        new Set(productsWithPrice.map(p => p.category))
+      ).map(cat => ({ id: cat, name: cat }))
       
       setCategories(uniqueCategories)
     } catch (error) {
@@ -264,7 +251,7 @@ export default function SalesPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">판매 관리</h1>
-            <p className="text-gray-600 mt-2">{store?.name} - 판매 입력</p>
+            <p className="text-gray-900 mt-2">{store?.name} - 판매 입력</p>
           </div>
           <div className="flex gap-2">
             {/* 관리자/슈퍼관리자용 매장 선택 */}
@@ -318,7 +305,7 @@ export default function SalesPage() {
                   className={`px-4 py-2 rounded-md whitespace-nowrap transition-colors ${
                     !selectedCategory 
                       ? 'bg-bagel-yellow text-black' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
                   전체
@@ -330,7 +317,7 @@ export default function SalesPage() {
                     className={`px-4 py-2 rounded-md whitespace-nowrap transition-colors ${
                       selectedCategory === category.id
                         ? 'bg-bagel-yellow text-black' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                     }`}
                   >
                     {category.name}
@@ -374,7 +361,7 @@ export default function SalesPage() {
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 장바구니
               </h2>
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-900">
                 {cart.length}개 상품
               </span>
             </div>
@@ -382,7 +369,7 @@ export default function SalesPage() {
             {/* 장바구니 아이템 */}
             <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-700 py-8">
+                <p className="text-center text-gray-900 py-8">
                   상품을 선택해주세요
                 </p>
               ) : (
@@ -426,7 +413,7 @@ export default function SalesPage() {
 
             {/* 결제 방법 */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 결제 방법
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -442,7 +429,7 @@ export default function SalesPage() {
                     className={`p-2 rounded-md border-2 transition-all flex items-center justify-center gap-1 ${
                       paymentMethod === value
                         ? 'border-bagel-yellow bg-yellow-50 text-gray-900'
-                        : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-900'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -454,7 +441,7 @@ export default function SalesPage() {
 
             {/* 메모 */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 메모 (선택)
               </label>
               <textarea

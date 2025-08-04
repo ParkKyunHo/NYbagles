@@ -254,7 +254,7 @@ export default function ProductApprovalsPage() {
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">상품 변경 승인 관리</h1>
-        <p className="text-gray-600">상품 등록 및 변경 요청을 검토하고 승인합니다.</p>
+        <p className="text-gray-900">상품 등록 및 변경 요청을 검토하고 승인합니다.</p>
       </div>
 
       {/* Filter tabs */}
@@ -301,12 +301,12 @@ export default function ProductApprovalsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold">{change.product?.name || '알 수 없는 상품'}</h3>
                   {getStatusBadge(change.status)}
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-gray-900">
                     {getChangeTypeLabel(change.change_type)}
                   </span>
                 </div>
                 
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-gray-900 space-y-1">
                   <p>매장: {change.product?.store?.name || '알 수 없음'}</p>
                   <p>요청자: {change.requester_profile?.full_name || change.requester_profile?.email || '알 수 없음'}</p>
                   <p>요청일: {new Date(change.requested_at).toLocaleString()}</p>
@@ -364,7 +364,7 @@ export default function ProductApprovalsPage() {
       </div>
 
       {changes.length === 0 && (
-        <div className="text-center py-12 text-gray-700">
+        <div className="text-center py-12 text-gray-900">
           <AlertCircle className="w-12 h-12 mx-auto mb-3" />
           <p>표시할 변경 요청이 없습니다.</p>
         </div>

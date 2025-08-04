@@ -13,14 +13,16 @@ interface Product {
   name: string
   description: string | null
   sku: string | null
-  price: number
-  unit: string
-  is_active: boolean
-  category_id: string | null
-  display_order: number | null
-  product_categories: {
+  base_price: number
+  sale_price: number | null
+  category: string
+  status: string
+  stock_quantity: number
+  store_id: string
+  stores?: {
     id: string
     name: string
+    code: string
   } | null
 }
 
@@ -125,40 +127,28 @@ export default function ProductsPage() {
     
     try {
       let query = supabase
-        .from('products')
+        .from('products_v3')
         .select(`
           *,
-          product_categories (
+          stores (
             id,
-            name
+            name,
+            code
           )
         `)
 
-      // 매니저인 경우에만 store_products와 조인
+      // 매니저인 경우 자신의 매장 상품만 표시
       if (userRole === 'manager' && selectedStore) {
-        const { data: storeProducts, error: storeError } = await supabase
-          .from('store_products')
-          .select('product_id')
-          .eq('store_id', selectedStore)
-          .eq('is_available', true)
-
-        if (storeError) throw storeError
-
-        const productIds = storeProducts?.map(sp => sp.product_id) || []
-        if (productIds.length > 0) {
-          query = query.in('id', productIds)
-        } else {
-          // 매장에 상품이 없는 경우
-          setProducts([])
-          setLoading(false)
-          return
-        }
+        query = query.eq('store_id', selectedStore)
+      } else if (selectedStore) {
+        // 관리자가 특정 매장을 선택한 경우
+        query = query.eq('store_id', selectedStore)
       }
-      // 관리자와 슈퍼관리자는 store_products 조인 없이 모든 상품을 볼 수 있음
+      // 관리자와 슈퍼관리자는 매장 선택하지 않으면 모든 상품 표시
 
       const { data, error } = await query
-        .eq('is_active', true)  // 활성화된 상품만 표시
-        .order('display_order', { ascending: true })
+        .eq('status', 'active')  // 활성화된 상품만 표시
+        .order('created_at', { ascending: false })
         .order('name', { ascending: true })
 
       if (error) throw error
@@ -185,8 +175,8 @@ export default function ProductsPage() {
 
     try {
       const { error } = await supabase
-        .from('products')
-        .update({ is_active: false })
+        .from('products_v3')
+        .update({ status: 'inactive' })
         .eq('id', productId as any)
 
       if (error) throw error
@@ -200,7 +190,7 @@ export default function ProductsPage() {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory
+    const matchesCategory = !selectedCategory || product.category === selectedCategory
     return matchesSearch && matchesCategory
   })
 
@@ -326,10 +316,13 @@ export default function ProductsPage() {
                     기본 가격
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                    단위
+                    재고
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     상태
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                    매장
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-900 uppercase tracking-wider">
                     작업
@@ -353,22 +346,27 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {product.product_categories?.name || '-'}
+                        {product.category || '베이글'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ₩{product.price.toLocaleString()}
+                      ₩{product.base_price.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.unit}
+                      {product.stock_quantity}개
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.is_active
+                        product.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {product.is_active ? '활성' : '비활성'}
+                        {product.status === 'active' ? '활성' : '비활성'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">
+                        {product.stores?.name || '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
