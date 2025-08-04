@@ -63,13 +63,8 @@ export async function POST(
         },
       }
 
-      // 비밀번호가 있으면 사용, 없으면 임시 비밀번호 생성
-      if (signupRequest.password_hash) {
-        createUserPayload.password = signupRequest.password_hash
-      } else {
-        // 비밀번호가 없는 경우 임시 비밀번호 생성
-        createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
-      }
+      // 항상 임시 비밀번호 생성 (승인 후 이메일로 재설정 링크 전송)
+      createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
 
       const { data: newUser, error: authError } = await supabase.auth.admin.createUser(createUserPayload)
       
@@ -119,13 +114,11 @@ export async function POST(
       throw updateError
     }
 
-    // Send password reset email only if password was not provided
-    if (!signupRequest.password_hash) {
-      await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: signupRequest.email,
-      })
-    }
+    // 항상 비밀번호 재설정 이메일 전송
+    await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: signupRequest.email,
+    })
 
     return NextResponse.json({
       message: 'Employee approved successfully',
