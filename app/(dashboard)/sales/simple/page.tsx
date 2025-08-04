@@ -299,8 +299,8 @@ export default function SimpleSalesPage() {
             {products.map(product => (
               <Card key={product.id} className="p-4">
                 <h3 className="font-semibold text-lg">{product.name}</h3>
-                <p className="text-gray-600">₩{product.price.toLocaleString()}</p>
-                <p className="text-sm text-gray-700 mb-3">재고: {product.stock_quantity}개</p>
+                <p className="text-gray-900">₩{product.price.toLocaleString()}</p>
+                <p className="text-sm text-gray-900 mb-3">재고: {product.stock_quantity}개</p>
                 <Button
                   onClick={() => addToCart(product)}
                   disabled={product.stock_quantity <= 0}
@@ -319,7 +319,7 @@ export default function SimpleSalesPage() {
           <h2 className="text-lg font-semibold mb-4">주문 내역</h2>
           <Card className="p-4">
             {cart.length === 0 ? (
-              <p className="text-gray-700 text-center py-8">상품을 선택해주세요</p>
+              <p className="text-gray-900 text-center py-8">상품을 선택해주세요</p>
             ) : (
               <>
                 <div className="space-y-3 mb-4">
@@ -327,7 +327,7 @@ export default function SimpleSalesPage() {
                     <div key={item.product.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-900">
                           ₩{item.product.price.toLocaleString()} × {item.quantity}
                         </p>
                       </div>

@@ -11,12 +11,20 @@ interface Category {
   name: string
 }
 
+interface Store {
+  id: string
+  name: string
+  code: string
+}
+
 export default function CreateProductPage() {
   const [categories, setCategories] = useState<Category[]>([])
+  const [stores, setStores] = useState<Store[]>([])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category_id: '',
+    store_id: '',
     price: '',
     unit: '개',
     display_order: '',
@@ -29,6 +37,7 @@ export default function CreateProductPage() {
   useEffect(() => {
     checkAuth()
     fetchCategories()
+    fetchStores()
   }, [])
 
   const checkAuth = async () => {
@@ -62,6 +71,18 @@ export default function CreateProductPage() {
     }
   }
 
+  const fetchStores = async () => {
+    const { data, error } = await supabase
+      .from('stores')
+      .select('id, name, code')
+      .eq('is_active', true)
+      .order('name')
+
+    if (!error && data) {
+      setStores(data)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -69,7 +90,7 @@ export default function CreateProductPage() {
 
     try {
       // 유효성 검사
-      if (!formData.name || !formData.category_id || !formData.price) {
+      if (!formData.name || !formData.category_id || !formData.price || !formData.store_id) {
         throw new Error('필수 항목을 모두 입력해주세요.')
       }
 
@@ -78,17 +99,20 @@ export default function CreateProductPage() {
         throw new Error('올바른 가격을 입력해주세요.')
       }
 
-      // 상품 생성
+      // 상품 생성 (products_v3 사용)
+      const { data: { user } } = await supabase.auth.getUser()
       const { error: insertError } = await supabase
-        .from('products')
+        .from('products_v3')
         .insert({
           name: formData.name.trim(),
           description: formData.description.trim() || null,
-          category_id: formData.category_id,
-          price: price,
-          unit: formData.unit,
-          display_order: formData.display_order ? parseInt(formData.display_order) : null,
-          is_active: true
+          category: categories.find(c => c.id === formData.category_id)?.name || '베이글',
+          store_id: formData.store_id,
+          sku: `SKU-${Date.now()}`, // 임시 SKU 생성
+          base_price: price,
+          stock_quantity: 0,
+          status: 'active',
+          created_by: user?.id
         })
 
       if (insertError) throw insertError
@@ -159,10 +183,30 @@ export default function CreateProductPage() {
           />
         </div>
 
+        {/* 매장 선택 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            매장 <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="store_id"
+            value={formData.store_id}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900"
+            required
+          >
+            <option value="">매장을 선택하세요</option>
+            {stores.map((store) => (
+              <option key={store.id} value={store.id}>
+                {store.name} ({store.code})
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* 카테고리 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             카테고리 <span className="text-red-500">*</span>
           </label>
           <select
@@ -180,7 +224,7 @@ export default function CreateProductPage() {
             ))}
           </select>
           {categories.length === 0 && (
-            <p className="mt-2 text-sm text-gray-700">
+            <p className="mt-2 text-sm text-gray-900">
               카테고리가 없습니다. 상품 관리 페이지에서 카테고리를 먼저 생성해주세요.
             </p>
           )}
@@ -189,11 +233,11 @@ export default function CreateProductPage() {
         {/* 가격과 단위 */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               기본 가격 <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-900">
                 ₩
               </span>
               <input
@@ -210,7 +254,7 @@ export default function CreateProductPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               단위
             </label>
             <select
@@ -230,7 +274,7 @@ export default function CreateProductPage() {
 
         {/* 표시 순서 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             표시 순서
           </label>
           <input

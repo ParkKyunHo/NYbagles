@@ -211,7 +211,7 @@ export default function ProductsPage() {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">상품 관리</h1>
-          <p className="text-gray-600 mt-2">전체 상품 카탈로그를 관리합니다.</p>
+          <p className="text-gray-900 mt-2">전체 상품 카탈로그를 관리합니다.</p>
         </div>
         {canManageProducts && (
           <div className="flex gap-2">
@@ -238,7 +238,7 @@ export default function ProductsPage() {
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-900" />
               <input
                 type="text"
                 placeholder="상품명으로 검색..."
@@ -283,11 +283,11 @@ export default function ProductsPage() {
       {loading ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-900">로딩 중...</p>
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-900 mb-4">
             {selectedStore ? '선택한 매장에 등록된 상품이 없습니다.' : '등록된 상품이 없습니다.'}
           </p>
           {canManageProducts && !selectedStore && (
@@ -301,7 +301,7 @@ export default function ProductsPage() {
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-600">선택한 카테고리에 상품이 없습니다.</p>
+          <p className="text-gray-900">선택한 카테고리에 상품이 없습니다.</p>
           <Button
             variant="outline"
             onClick={() => setSelectedCategory('')}
@@ -316,22 +316,22 @@ export default function ProductsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     상품명
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     카테고리
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     기본 가격
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     단위
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     상태
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-900 uppercase tracking-wider">
                     작업
                   </th>
                 </tr>
@@ -345,7 +345,7 @@ export default function ProductsPage() {
                           {product.name}
                         </div>
                         {product.description && (
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm text-gray-900">
                             {product.description}
                           </div>
                         )}

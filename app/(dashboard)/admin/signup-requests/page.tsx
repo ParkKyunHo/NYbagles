@@ -43,7 +43,7 @@ interface Store {
 export default function SignupRequestsPage() {
   const [requests, setRequests] = useState<SignupRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedStatus, setSelectedStatus] = useState('verified')
+  const [selectedStatus, setSelectedStatus] = useState('pending')
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [stores, setStores] = useState<Store[]>([])
   const [showStoreModal, setShowStoreModal] = useState(false)
@@ -220,7 +220,7 @@ export default function SignupRequestsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">직원 가입 요청 관리</h1>
-        <p className="text-gray-600 mt-2">직원들의 가입 요청을 검토하고 승인하세요.</p>
+        <p className="text-gray-900 mt-2">직원들의 가입 요청을 검토하고 승인하세요.</p>
       </div>
 
       {/* 상태 필터 */}
@@ -250,11 +250,11 @@ export default function SignupRequestsPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-            <p className="mt-4 text-gray-600">로딩 중...</p>
+            <p className="mt-4 text-gray-900">로딩 중...</p>
           </div>
         ) : requests.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-900">
               {selectedStatus === 'pending' && '대기 중인 가입 요청이 없습니다.'}
               {selectedStatus === 'approved' && '승인된 가입 요청이 없습니다.'}
               {selectedStatus === 'rejected' && '거절된 가입 요청이 없습니다.'}
@@ -265,22 +265,22 @@ export default function SignupRequestsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     직원 정보
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     매장
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     전화번호
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     신청일
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     상태
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                     작업
                   </th>
                 </tr>
@@ -293,7 +293,7 @@ export default function SignupRequestsPage() {
                         <div className="text-sm font-medium text-gray-900">
                           {request.full_name}
                         </div>
-                        <div className="text-sm text-gray-700">
+                        <div className="text-sm text-gray-900">
                           {request.email}
                         </div>
                       </div>
@@ -304,7 +304,7 @@ export default function SignupRequestsPage() {
                           <div className="text-sm text-gray-900">
                             {request.stores?.name || '알 수 없음'}
                           </div>
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm text-gray-900">
                             코드: {request.store_code}
                           </div>
                         </div>
@@ -323,7 +323,7 @@ export default function SignupRequestsPage() {
                         {request.phone || '전화번호 없음'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDistanceToNow(new Date(request.created_at), {
                         addSuffix: true,
                         locale: ko,
@@ -371,12 +371,12 @@ export default function SignupRequestsPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               매장 변경
             </h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-900 mb-4">
               {selectedRequest.full_name} 님의 소속 매장을 변경합니다.
             </p>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 변경할 매장
               </label>
               <div className="relative">
@@ -392,7 +392,7 @@ export default function SignupRequestsPage() {
                     </option>
                   ))}
                 </select>
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-900" />
               </div>
             </div>
 

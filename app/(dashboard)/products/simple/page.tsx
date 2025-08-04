@@ -133,7 +133,7 @@ export default function SimpleProductManagementPage() {
           <div key={product.id} className="bg-white p-4 rounded-lg shadow flex justify-between items-center">
             <div>
               <h3 className="font-semibold">{product.name}</h3>
-              <p className="text-gray-600">₩{product.price.toLocaleString()}</p>
+              <p className="text-gray-900">₩{product.price.toLocaleString()}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">

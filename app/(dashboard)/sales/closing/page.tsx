@@ -292,7 +292,7 @@ export default function DailyClosingPage() {
             userRole={userRole}
           />
         </div>
-        <p className="text-gray-600">{storeName} - {todayDate}</p>
+        <p className="text-gray-900">{storeName} - {todayDate}</p>
       </div>
 
       {/* Summary Cards */}
@@ -300,36 +300,36 @@ export default function DailyClosingPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">오늘 매출</p>
+              <p className="text-sm text-gray-900">오늘 매출</p>
               <p className="text-2xl font-bold">₩{todayTotal.toLocaleString()}</p>
             </div>
-            <DollarSign className="w-8 h-8 text-gray-600" />
+            <DollarSign className="w-8 h-8 text-gray-900" />
           </div>
         </Card>
         
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">판매 수량</p>
+              <p className="text-sm text-gray-900">판매 수량</p>
               <p className="text-2xl font-bold">
                 {productSales.reduce((sum, p) => sum + p.quantity_sold, 0)}개
               </p>
             </div>
-            <Package className="w-8 h-8 text-gray-600" />
+            <Package className="w-8 h-8 text-gray-900" />
           </div>
         </Card>
         
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">베스트셀러</p>
+              <p className="text-sm text-gray-900">베스트셀러</p>
               <p className="text-2xl font-bold">
                 {productSales.length > 0 
                   ? productSales.sort((a, b) => b.quantity_sold - a.quantity_sold)[0].product_name
                   : '-'}
               </p>
             </div>
-            <TrendingUp className="w-8 h-8 text-gray-600" />
+            <TrendingUp className="w-8 h-8 text-gray-900" />
           </div>
         </Card>
       </div>
@@ -398,8 +398,8 @@ export default function DailyClosingPage() {
       {/* Closing Button */}
       <div className="text-center">
         {alreadyClosed ? (
-          <div className="text-gray-600">
-            <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-600" />
+          <div className="text-gray-900">
+            <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-900" />
             <p>오늘 마감이 완료되었습니다.</p>
           </div>
         ) : (
