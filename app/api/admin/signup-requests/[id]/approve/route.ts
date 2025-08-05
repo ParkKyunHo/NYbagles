@@ -129,28 +129,9 @@ export async function POST(
       authData = newUser
     }
 
-    // Create employee record - check if employees table exists
-    // If not, the profile will be created by the trigger
+    // Employee record will be created automatically by trigger
     const userId = (authData as any)?.user?.id || (authData as any)?.id || null
-    
-    try {
-      const { error: employeeError } = await supabase
-        .from('employees')
-        .insert({
-          user_id: userId,
-          store_id: signupRequest.store_id,
-          qr_code: `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-          hire_date: new Date().toISOString().split('T')[0],
-          is_active: true,
-        })
-
-      if (employeeError) {
-        console.log('Employee table might not exist, relying on trigger:', employeeError)
-        // Don't throw here, as the profile will be created by the trigger
-      }
-    } catch (e) {
-      console.log('Employee creation skipped, profile will be created by trigger')
-    }
+    console.log('User created/updated with ID:', userId)
 
     // Update signup request
     const { error: updateError } = await supabase

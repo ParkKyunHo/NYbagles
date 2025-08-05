@@ -3,21 +3,54 @@
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { salesService } from '@/lib/services/sales.service'
+import { createClientWithAuth } from '@/lib/supabase/client-auth'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Calendar, Filter, X, ChevronDown, ChevronUp, AlertCircle, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StoreSelector } from '@/components/ui/store-selector'
-import type { SaleRecord, PaymentMethod } from '@/types/sales'
+
+interface SaleTransaction {
+  id: string
+  store_id: string
+  customer_name?: string
+  sold_at: string
+  total_amount: number
+  discount_amount: number
+  final_amount: number
+  payment_method: string
+  payment_status: string
+  canceled_at?: string
+  canceled_by?: string
+  canceled_reason?: string
+  sales_items?: Array<{
+    id: string
+    product_id: string
+    quantity: number
+    unit_price: number
+    total_amount: number
+    stock_before: number
+    stock_after: number
+    product?: {
+      id: string
+      name: string
+    }
+  }>
+  stores?: {
+    id: string
+    name: string
+  }
+  profiles?: {
+    full_name: string
+  }
+}
 
 export default function SalesHistoryPage() {
-  const [sales, setSales] = useState<SaleRecord[]>([])
+  const [sales, setSales] = useState<SaleTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('')
+  const [paymentMethod, setPaymentMethod] = useState<string>('')
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
   const [userRole, setUserRole] = useState<string>('')
   const [storeId, setStoreId] = useState<string | null>(null)
@@ -28,7 +61,7 @@ export default function SalesHistoryPage() {
     canceled: 0
   })
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createClientWithAuth()
 
   useEffect(() => {
     checkAuthAndLoadData()
@@ -77,29 +110,59 @@ export default function SalesHistoryPage() {
     setLoading(true)
     
     try {
-      const params: any = {
-        start_date: startDate,
-        end_date: endDate,
-        limit: 100
-      }
+      // Build query for sales_transactions
+      let query = supabase
+        .from('sales_transactions')
+        .select(`
+          *,
+          sales_items (
+            *,
+            product:products_v3 (
+              id,
+              name
+            )
+          ),
+          stores (
+            id,
+            name
+          ),
+          profiles:sold_by (
+            full_name
+          )
+        `)
+        .order('sold_at', { ascending: false })
+        .limit(100)
+
+      // Apply filters
+      const startDateTime = new Date(startDate)
+      startDateTime.setHours(0, 0, 0, 0)
+      const endDateTime = new Date(endDate)
+      endDateTime.setHours(23, 59, 59, 999)
+
+      query = query
+        .gte('sold_at', startDateTime.toISOString())
+        .lte('sold_at', endDateTime.toISOString())
 
       if (paymentMethod) {
-        params.payment_method = paymentMethod
+        query = query.eq('payment_method', paymentMethod)
       }
 
       // 특정 매장이 선택된 경우에만 store_id 추가
       if (storeId) {
-        params.store_id = storeId
+        query = query.eq('store_id', storeId)
       }
 
-      const response = await salesService.getSales(params)
-      setSales(response.data || [])
+      const { data, error } = await query
+
+      if (error) throw error
+
+      setSales(data || [])
 
       // 통계 계산
-      const stats = response.data?.reduce((acc, sale) => ({
+      const stats = data?.reduce((acc, sale) => ({
         count: acc.count + 1,
-        amount: acc.amount + (sale.is_canceled ? 0 : sale.total_amount),
-        canceled: acc.canceled + (sale.is_canceled ? 1 : 0)
+        amount: acc.amount + (sale.canceled_at ? 0 : sale.final_amount),
+        canceled: acc.canceled + (sale.canceled_at ? 1 : 0)
       }), { count: 0, amount: 0, canceled: 0 }) || { count: 0, amount: 0, canceled: 0 }
 
       setTotalStats(stats)
@@ -127,14 +190,23 @@ export default function SalesHistoryPage() {
     if (!confirm('정말로 이 판매를 취소하시겠습니까?')) return
 
     try {
-      const result = await salesService.cancelSale(saleId, reason)
-      
-      if (result.success) {
-        alert('판매가 취소되었습니다.')
-        fetchSales()
-      } else {
-        alert(result.error || '취소 실패')
-      }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from('sales_transactions')
+        .update({
+          payment_status: 'canceled',
+          canceled_at: new Date().toISOString(),
+          canceled_by: user.id,
+          canceled_reason: reason
+        })
+        .eq('id', saleId)
+
+      if (error) throw error
+
+      alert('판매가 취소되었습니다.')
+      fetchSales()
     } catch (error) {
       console.error('Error canceling sale:', error)
       alert('취소 중 오류가 발생했습니다.')
@@ -142,6 +214,17 @@ export default function SalesHistoryPage() {
   }
 
   const canCancelSale = ['super_admin', 'admin', 'manager'].includes(userRole)
+
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      cash: '현금',
+      card: '카드',
+      transfer: '계좌이체',
+      mobile: '모바일결제',
+      other: '기타'
+    }
+    return labels[method] || method
+  }
 
   if (loading) {
     return (
@@ -171,11 +254,12 @@ export default function SalesHistoryPage() {
             <span className="text-sm font-medium text-black">매장 선택:</span>
             <div className="flex-1 max-w-md">
               <StoreSelector
-                value={storeId || ''}
-                onChange={(newStoreId, newStoreName) => {
-                  setStoreId(newStoreId)
+                selectedStoreId={storeId}
+                onStoreChange={(newStoreId, newStoreName) => {
+                  setStoreId(newStoreId || null)
                   setStoreName(newStoreName)
                 }}
+                userRole={userRole}
                 showAll={true}
                 allLabel="전체 매장"
               />
@@ -220,7 +304,7 @@ export default function SalesHistoryPage() {
             </label>
             <select
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | '')}
+              onChange={(e) => setPaymentMethod(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
             >
               <option value="">전체</option>
@@ -293,25 +377,25 @@ export default function SalesHistoryPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {sales.map((sale) => (
                 <React.Fragment key={sale.id}>
-                  <tr className={sale.is_canceled ? 'bg-gray-50' : ''}>
+                  <tr className={sale.canceled_at ? 'bg-gray-50' : ''}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {format(new Date(`${sale.sale_date} ${sale.sale_time}`), 'yyyy-MM-dd HH:mm', { locale: ko })}
+                      {format(new Date(sale.sold_at), 'yyyy-MM-dd HH:mm', { locale: ko })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.stores?.name}
+                      {sale.stores?.name || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {salesService.getPaymentMethodLabel(sale.payment_method)}
+                        {getPaymentMethodLabel(sale.payment_method)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                      <span className={sale.is_canceled ? 'line-through text-gray-600' : 'text-gray-900'}>
-                        ₩{sale.total_amount.toLocaleString()}
+                      <span className={sale.canceled_at ? 'line-through text-gray-600' : 'text-gray-900'}>
+                        ₩{sale.final_amount.toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {sale.is_canceled ? (
+                      {sale.canceled_at ? (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                           취소됨
                         </span>
@@ -333,7 +417,7 @@ export default function SalesHistoryPage() {
                             <ChevronDown className="h-5 w-5" />
                           )}
                         </button>
-                        {canCancelSale && !sale.is_canceled && (
+                        {canCancelSale && !sale.canceled_at && (
                           <button
                             onClick={() => handleCancelSale(sale.id)}
                             className="text-red-600 hover:text-red-900"
@@ -352,20 +436,26 @@ export default function SalesHistoryPage() {
                           <div className="flex flex-wrap gap-4 text-sm">
                             <div>
                               <span className="font-medium text-gray-700">판매자:</span>{' '}
-                              <span className="text-gray-900">{sale.profiles?.name || '알 수 없음'}</span>
+                              <span className="text-gray-900">{sale.profiles?.full_name || '알 수 없음'}</span>
                             </div>
-                            {sale.notes && (
+                            {sale.customer_name && (
                               <div>
-                                <span className="font-medium text-gray-700">메모:</span>{' '}
-                                <span className="text-gray-900">{sale.notes}</span>
+                                <span className="font-medium text-gray-700">고객명:</span>{' '}
+                                <span className="text-gray-900">{sale.customer_name}</span>
                               </div>
                             )}
-                            {sale.is_canceled && sale.canceled_at && (
+                            {sale.canceled_at && (
                               <div>
                                 <span className="font-medium text-gray-700">취소일시:</span>{' '}
                                 <span className="text-gray-900">
                                   {format(new Date(sale.canceled_at), 'yyyy-MM-dd HH:mm', { locale: ko })}
                                 </span>
+                              </div>
+                            )}
+                            {sale.canceled_reason && (
+                              <div>
+                                <span className="font-medium text-gray-700">취소사유:</span>{' '}
+                                <span className="text-gray-900">{sale.canceled_reason}</span>
                               </div>
                             )}
                           </div>
@@ -388,7 +478,7 @@ export default function SalesHistoryPage() {
                                     {sale.sales_items.map((item) => (
                                       <tr key={item.id}>
                                         <td className="px-4 py-2 text-sm text-gray-900">
-                                          {item.products?.name}
+                                          {item.product?.name || '알 수 없는 상품'}
                                         </td>
                                         <td className="px-4 py-2 text-sm text-center text-gray-900">
                                           {item.quantity}
