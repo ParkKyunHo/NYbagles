@@ -107,6 +107,7 @@ export async function POST(
         console.error('Auth creation error:', authError)
         console.error('Error code:', authError.code)
         console.error('Error status:', authError.status)
+        console.error('Full error object:', JSON.stringify(authError, null, 2))
         
         // 더 구체적인 에러 메시지 제공
         let errorMessage = '사용자 생성 실패'
@@ -114,13 +115,18 @@ export async function POST(
           errorMessage = 'Service role 키 권한 오류'
         } else if (authError.message.includes('already registered')) {
           errorMessage = '이미 등록된 이메일입니다'
+        } else if (authError.message.includes('not authorized')) {
+          errorMessage = 'Service role 키가 유효하지 않습니다. Vercel 환경변수를 다시 확인해주세요.'
+        } else if (authError.status === 401) {
+          errorMessage = 'Service role 키 인증 실패. 올바른 키인지 확인해주세요.'
         }
         
         return NextResponse.json(
           { 
             error: errorMessage, 
             details: authError.message,
-            code: authError.code || 'unknown'
+            code: authError.code || 'unknown',
+            status: authError.status
           },
           { status: 500 }
         )

@@ -74,7 +74,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-black;
   }
   
   /* 다크 모드 지원 (옵션) */
@@ -88,11 +88,11 @@
   select,
   input,
   textarea {
-    @apply text-gray-900;
+    @apply text-black;
   }
   
   select option {
-    @apply text-gray-900 bg-white;
+    @apply text-black bg-white;
   }
   
   input::placeholder,
