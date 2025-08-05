@@ -129,14 +129,22 @@ export default function SignupRequestsPage() {
 
       if (!response.ok) {
         console.error('Approval error:', data)
-        throw new Error(data.error || 'Failed to approve request')
+        // 더 자세한 에러 메시지 표시
+        let errorMessage = data.error || 'Failed to approve request'
+        if (data.details) {
+          errorMessage += '\n\n상세 오류: ' + data.details
+        }
+        if (data.status) {
+          errorMessage += '\n오류 코드: ' + data.status
+        }
+        throw new Error(errorMessage)
       }
 
-      alert('직원 가입이 승인되었습니다. 직원에게 비밀번호 설정 이메일이 발송됩니다.')
+      alert('직원 가입이 승인되었습니다.\n\n임시 비밀번호가 이메일로 전송됩니다.\n직원은 이메일의 링크를 통해 비밀번호를 재설정할 수 있습니다.')
       fetchRequests()
     } catch (error: any) {
       console.error('Error approving request:', error)
-      alert(`승인 처리 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`)
+      alert(`승인 처리 중 오류가 발생했습니다:\n\n${error.message || '알 수 없는 오류'}`)
     } finally {
       setProcessingId(null)
     }

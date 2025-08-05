@@ -138,6 +138,57 @@ export async function POST(
     // Employee record will be created automatically by trigger
     const userId = (authData as any)?.user?.id || (authData as any)?.id || null
     console.log('User created/updated with ID:', userId)
+    
+    // Verify profile was created by trigger
+    if (userId) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+        
+      if (profileError || !profile) {
+        console.error('Profile not created by trigger, creating manually')
+        // Create profile manually if trigger failed
+        const { error: createProfileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            full_name: signupRequest.full_name,
+            email: signupRequest.email,
+            role: role,
+            store_id: signupRequest.store_id
+          })
+          
+        if (createProfileError) {
+          console.error('Failed to create profile manually:', createProfileError)
+        }
+      }
+      
+      // Verify or create employee record
+      const { data: employee, error: employeeError } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+        
+      if (employeeError || !employee) {
+        console.error('Employee not created by trigger, creating manually')
+        // Create employee record manually if trigger failed
+        const { error: createEmployeeError } = await supabase
+          .from('employees')
+          .insert({
+            user_id: userId,
+            store_id: signupRequest.store_id,
+            hourly_rate: 10500, // 최저시급
+            is_active: true
+          })
+          
+        if (createEmployeeError) {
+          console.error('Failed to create employee manually:', createEmployeeError)
+        }
+      }
+    }
 
     // Update signup request
     const { error: updateError } = await supabase
@@ -154,15 +205,21 @@ export async function POST(
       throw updateError
     }
 
-    // 항상 비밀번호 재설정 이메일 전송
-    const { error: linkError } = await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: signupRequest.email,
-    })
-    
-    if (linkError) {
-      console.error('Error generating recovery link:', linkError)
-      // 이메일 전송 실패해도 승인은 완료로 처리
+    // 항상 비밀번호 재설정 이메일 전송 (선택사항)
+    try {
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email: signupRequest.email,
+      })
+      
+      if (linkError) {
+        console.error('Error generating recovery link:', linkError)
+        // 이메일 전송 실패해도 승인은 완료로 처리
+      } else {
+        console.log('Recovery link generated successfully')
+      }
+    } catch (e) {
+      console.error('Failed to generate recovery link:', e)
     }
 
     return NextResponse.json({
