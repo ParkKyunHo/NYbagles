@@ -60,7 +60,28 @@ export async function POST(
     
     let authData
     if (existingUser) {
-      // User already exists, just update metadata
+      console.log('User already exists with email:', signupRequest.email)
+      console.log('Existing user ID:', existingUser.id)
+      
+      // Check if user is already approved
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', existingUser.id)
+        .single()
+        
+      if (existingProfile) {
+        return NextResponse.json(
+          { 
+            error: '이미 승인된 사용자입니다', 
+            details: '해당 이메일로 이미 가입된 사용자가 있습니다.',
+            userId: existingUser.id
+          },
+          { status: 400 }
+        )
+      }
+      
+      // User exists in auth but not in profiles, update metadata
       const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(
         existingUser.id,
         {
@@ -113,12 +134,30 @@ export async function POST(
         let errorMessage = '사용자 생성 실패'
         if (authError.message.includes('service_role')) {
           errorMessage = 'Service role 키 권한 오류'
-        } else if (authError.message.includes('already registered')) {
+        } else if (authError.message.includes('already registered') || authError.message.includes('duplicate key')) {
           errorMessage = '이미 등록된 이메일입니다'
         } else if (authError.message.includes('not authorized')) {
           errorMessage = 'Service role 키가 유효하지 않습니다. Vercel 환경변수를 다시 확인해주세요.'
         } else if (authError.status === 401) {
           errorMessage = 'Service role 키 인증 실패. 올바른 키인지 확인해주세요.'
+        } else if (authError.message.includes('Database error')) {
+          errorMessage = '데이터베이스 오류: 이메일이 이미 존재하거나 데이터베이스 제약조건 위반'
+          
+          // Try to clean up any partial data
+          try {
+            console.log('Attempting to clean up partial user data...')
+            const { data: partialUser } = await adminClient.auth.admin.listUsers({
+              page: 1,
+              perPage: 1000
+            })
+            const problemUser = partialUser?.users?.find(u => u.email === signupRequest.email)
+            if (problemUser && !problemUser.confirmed_at) {
+              console.log('Found unconfirmed user, attempting to delete...')
+              await adminClient.auth.admin.deleteUser(problemUser.id)
+            }
+          } catch (cleanupError) {
+            console.error('Cleanup failed:', cleanupError)
+          }
         }
         
         return NextResponse.json(
@@ -126,7 +165,8 @@ export async function POST(
             error: errorMessage, 
             details: authError.message,
             code: authError.code || 'unknown',
-            status: authError.status
+            status: authError.status,
+            email: signupRequest.email
           },
           { status: 500 }
         )
