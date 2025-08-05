@@ -7,8 +7,9 @@ import { createClient } from '@/lib/supabase/client'
 import { salesService } from '@/lib/services/sales.service'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Calendar, Filter, X, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react'
+import { Calendar, Filter, X, ChevronDown, ChevronUp, AlertCircle, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { StoreSelector } from '@/components/ui/store-selector'
 import type { SaleRecord, PaymentMethod } from '@/types/sales'
 
 export default function SalesHistoryPage() {
@@ -19,6 +20,8 @@ export default function SalesHistoryPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('')
   const [expandedSales, setExpandedSales] = useState<Set<string>>(new Set())
   const [userRole, setUserRole] = useState<string>('')
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const [storeName, setStoreName] = useState<string>('')
   const [totalStats, setTotalStats] = useState({
     count: 0,
     amount: 0,
@@ -32,10 +35,10 @@ export default function SalesHistoryPage() {
   }, [])
 
   useEffect(() => {
-    if (userRole) {
+    if (userRole && (storeId || userRole === 'super_admin' || userRole === 'admin')) {
       fetchSales()
     }
-  }, [startDate, endDate, paymentMethod, userRole])
+  }, [startDate, endDate, paymentMethod, userRole, storeId])
 
   const checkAuthAndLoadData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -47,12 +50,26 @@ export default function SalesHistoryPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, store_id')
       .eq('id', user.id)
       .single()
 
     if (profile) {
       setUserRole(profile.role)
+      
+      // 직원/매니저는 자신의 매장만 볼 수 있음
+      if (['employee', 'manager'].includes(profile.role) && profile.store_id) {
+        const { data: store } = await supabase
+          .from('stores')
+          .select('id, name')
+          .eq('id', profile.store_id)
+          .single()
+
+        if (store) {
+          setStoreId(store.id)
+          setStoreName(store.name)
+        }
+      }
     }
   }
 
@@ -68,6 +85,11 @@ export default function SalesHistoryPage() {
 
       if (paymentMethod) {
         params.payment_method = paymentMethod
+      }
+
+      // 특정 매장이 선택된 경우에만 store_id 추가
+      if (storeId) {
+        params.store_id = storeId
       }
 
       const response = await salesService.getSales(params)
@@ -126,7 +148,7 @@ export default function SalesHistoryPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     )
@@ -135,20 +157,43 @@ export default function SalesHistoryPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">판매 내역</h1>
-        <p className="text-gray-600 mt-2">판매 기록을 조회하고 관리합니다.</p>
+        <h1 className="text-3xl font-bold text-black">판매 내역</h1>
+        <p className="text-black mt-2">
+          {storeName ? `${storeName} - ` : ''}판매 기록을 조회하고 관리합니다.
+        </p>
       </div>
+
+      {/* 매장 선택 (관리자만) */}
+      {(userRole === 'super_admin' || userRole === 'admin') && (
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center gap-4">
+            <Building2 className="h-5 w-5 text-black" />
+            <span className="text-sm font-medium text-black">매장 선택:</span>
+            <div className="flex-1 max-w-md">
+              <StoreSelector
+                value={storeId || ''}
+                onChange={(newStoreId, newStoreName) => {
+                  setStoreId(newStoreId)
+                  setStoreName(newStoreName)
+                }}
+                showAll={true}
+                allLabel="전체 매장"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 필터 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-5 w-5 text-gray-600" />
+          <Filter className="h-5 w-5 text-black" />
           <h2 className="text-lg font-semibold">필터</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               시작일
             </label>
             <input
@@ -159,7 +204,7 @@ export default function SalesHistoryPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               종료일
             </label>
             <input
@@ -170,7 +215,7 @@ export default function SalesHistoryPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-black mb-1">
               결제 방법
             </label>
             <select

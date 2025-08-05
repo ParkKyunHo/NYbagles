@@ -14,9 +14,11 @@ import {
   DollarSign,
   CreditCard,
   Smartphone,
-  RefreshCw
+  RefreshCw,
+  Building2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { StoreSelector } from '@/components/ui/store-selector'
 import type { PopularProduct, DailySalesSummary, AggregatedSummary } from '@/types/sales'
 
 // 차트 컴포넌트 (recharts 대신 간단한 막대 차트)
@@ -36,7 +38,7 @@ const SimpleBarChart = ({ data, dataKey, color = '#FDB813' }: any) => {
                 backgroundColor: color
               }}
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium">
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-black">
               ₩{item[dataKey].toLocaleString()}
             </span>
           </div>
@@ -55,6 +57,9 @@ export default function SalesSummaryPage() {
     start: format(subDays(new Date(), 6), 'yyyy-MM-dd'),
     end: format(new Date(), 'yyyy-MM-dd')
   })
+  const [storeId, setStoreId] = useState<string | null>(null)
+  const [storeName, setStoreName] = useState<string>('')
+  const [userRole, setUserRole] = useState<string>('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -69,8 +74,10 @@ export default function SalesSummaryPage() {
   }, [period])
 
   useEffect(() => {
-    fetchData()
-  }, [dateRange])
+    if (storeId || userRole === 'super_admin' || userRole === 'admin') {
+      fetchData()
+    }
+  }, [dateRange, storeId])
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -82,13 +89,29 @@ export default function SalesSummaryPage() {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, store_id')
       .eq('id', user.id)
       .single()
 
     if (!profile || !['super_admin', 'admin', 'manager'].includes(profile.role)) {
       router.push('/dashboard')
       return
+    }
+
+    setUserRole(profile.role)
+
+    // 매니저는 자신의 매장만 볼 수 있음
+    if (profile.role === 'manager' && profile.store_id) {
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('id', profile.store_id)
+        .single()
+
+      if (store) {
+        setStoreId(store.id)
+        setStoreName(store.name)
+      }
     }
   }
 
@@ -122,21 +145,34 @@ export default function SalesSummaryPage() {
     
     try {
       // 매출 요약 데이터
-      const summaryResult = await salesService.getSalesSummary({
+      const summaryParams: any = {
         start_date: dateRange.start,
         end_date: dateRange.end,
         group_by: period
-      })
+      }
+
+      // 특정 매장이 선택된 경우에만 store_id 추가
+      if (storeId) {
+        summaryParams.store_id = storeId
+      }
+
+      const summaryResult = await salesService.getSalesSummary(summaryParams)
 
       if (summaryResult.success && summaryResult.data) {
         setSummaryData(summaryResult.data)
       }
 
       // 인기 상품 데이터
-      const productsResult = await salesService.getPopularProducts({
+      const productsParams: any = {
         period: period === 'day' ? 'week' : 'month',
         limit: 10
-      })
+      }
+
+      if (storeId) {
+        productsParams.store_id = storeId
+      }
+
+      const productsResult = await salesService.getPopularProducts(productsParams)
 
       if (productsResult.success && productsResult.data) {
         setPopularProducts(productsResult.data)
@@ -178,7 +214,7 @@ export default function SalesSummaryPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     )
@@ -193,12 +229,19 @@ export default function SalesSummaryPage() {
     daily_average: 0
   }
 
+  const handleStoreChange = (newStoreId: string, newStoreName: string) => {
+    setStoreId(newStoreId)
+    setStoreName(newStoreName)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">매출 요약</h1>
-          <p className="text-gray-600 mt-2">매출 통계와 분석 데이터를 확인합니다.</p>
+          <h1 className="text-3xl font-bold text-black">매출 요약</h1>
+          <p className="text-black mt-2">
+            {storeName ? `${storeName} - ` : ''}매출 통계와 분석 데이터를 확인합니다.
+          </p>
         </div>
         <Button
           onClick={fetchData}
@@ -210,10 +253,28 @@ export default function SalesSummaryPage() {
         </Button>
       </div>
 
+      {/* 매장 선택 (관리자만) */}
+      {(userRole === 'super_admin' || userRole === 'admin') && (
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center gap-4">
+            <Building2 className="h-5 w-5 text-black" />
+            <span className="text-sm font-medium text-black">매장 선택:</span>
+            <div className="flex-1 max-w-md">
+              <StoreSelector
+                value={storeId || ''}
+                onChange={handleStoreChange}
+                showAll={true}
+                allLabel="전체 매장"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 기간 선택 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex items-center gap-4">
-          <Calendar className="h-5 w-5 text-gray-600" />
+          <Calendar className="h-5 w-5 text-black" />
           <div className="flex gap-2">
             {(['day', 'week', 'month'] as const).map((p) => (
               <button
@@ -222,14 +283,14 @@ export default function SalesSummaryPage() {
                 className={`px-4 py-2 rounded-md transition-colors ${
                   period === p
                     ? 'bg-bagel-yellow text-black'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 text-black hover:bg-gray-200'
                 }`}
               >
                 {p === 'day' ? '일별' : p === 'week' ? '주별' : '월별'}
               </button>
             ))}
           </div>
-          <div className="ml-auto text-sm text-gray-600">
+          <div className="ml-auto text-sm text-black">
             {dateRange.start} ~ {dateRange.end}
           </div>
         </div>

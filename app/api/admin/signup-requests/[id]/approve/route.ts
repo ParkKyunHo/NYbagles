@@ -13,7 +13,22 @@ export async function POST(
     const { role = 'employee' } = body
 
     const supabase = await createClient()
+    
+    // Check if service role key is available
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('SUPABASE_SERVICE_ROLE_KEY is not set in environment variables')
+      return NextResponse.json(
+        { 
+          error: '서버 설정 오류', 
+          details: 'Service role key가 설정되지 않았습니다. Vercel 환경 변수를 확인해주세요.',
+          helpUrl: 'https://vercel.com/docs/environment-variables'
+        },
+        { status: 500 }
+      )
+    }
+    
     const adminClient = createAdminClient()
+    console.log('Admin client created successfully')
 
     // Get signup request
     const { data: signupRequest, error: requestError } = await supabase
@@ -81,12 +96,32 @@ export async function POST(
       // 항상 임시 비밀번호 생성 (승인 후 이메일로 재설정 링크 전송)
       createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
 
+      console.log('Creating user with payload:', JSON.stringify({
+        ...createUserPayload,
+        password: '***hidden***'
+      }))
+      
       const { data: newUser, error: authError } = await adminClient.auth.admin.createUser(createUserPayload)
       
       if (authError) {
         console.error('Auth creation error:', authError)
+        console.error('Error code:', authError.code)
+        console.error('Error status:', authError.status)
+        
+        // 더 구체적인 에러 메시지 제공
+        let errorMessage = '사용자 생성 실패'
+        if (authError.message.includes('service_role')) {
+          errorMessage = 'Service role 키 권한 오류'
+        } else if (authError.message.includes('already registered')) {
+          errorMessage = '이미 등록된 이메일입니다'
+        }
+        
         return NextResponse.json(
-          { error: '사용자 생성 실패', details: authError.message },
+          { 
+            error: errorMessage, 
+            details: authError.message,
+            code: authError.code || 'unknown'
+          },
           { status: 500 }
         )
       }

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Building2, Edit2 } from 'lucide-react'
+import { Building2, Edit2, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 interface SignupRequest {
   id: string
@@ -205,15 +205,32 @@ export default function SignupRequestsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { text: '대기중', class: 'bg-yellow-100 text-yellow-800' },
-      approved: { text: '승인됨', class: 'bg-green-100 text-green-800' },
-      rejected: { text: '거절됨', class: 'bg-red-100 text-red-800' },
+      pending: { 
+        text: '대기중', 
+        class: 'bg-yellow-100 text-yellow-800',
+        icon: Clock,
+        iconClass: 'text-yellow-600'
+      },
+      approved: { 
+        text: '승인됨', 
+        class: 'bg-green-100 text-green-800',
+        icon: CheckCircle,
+        iconClass: 'text-green-600'
+      },
+      rejected: { 
+        text: '거절됨', 
+        class: 'bg-red-100 text-red-800',
+        icon: XCircle,
+        iconClass: 'text-red-600'
+      },
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+    const Icon = config.icon
 
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.class}`}>
+      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.class}`}>
+        <Icon className={`h-3 w-3 ${config.iconClass}`} />
         {config.text}
       </span>
     )
@@ -223,7 +240,7 @@ export default function SignupRequestsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">직원 가입 요청 관리</h1>
-        <p className="text-gray-900 mt-2">직원들의 가입 요청을 검토하고 승인하세요.</p>
+        <p className="text-black mt-2">직원들의 가입 요청을 검토하고 승인하세요.</p>
       </div>
 
       {/* 상태 필터 */}
@@ -253,11 +270,11 @@ export default function SignupRequestsPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-            <p className="mt-4 text-gray-900">로딩 중...</p>
+            <p className="mt-4 text-black">로딩 중...</p>
           </div>
         ) : requests.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-900">
+            <p className="text-black">
               {selectedStatus === 'pending' && '대기 중인 가입 요청이 없습니다.'}
               {selectedStatus === 'approved' && '승인된 가입 요청이 없습니다.'}
               {selectedStatus === 'rejected' && '거절된 가입 요청이 없습니다.'}
@@ -268,22 +285,22 @@ export default function SignupRequestsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     직원 정보
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     매장
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     전화번호
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     신청일
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     상태
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     작업
                   </th>
                 </tr>
@@ -293,10 +310,10 @@ export default function SignupRequestsPage() {
                   <tr key={request.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-black">
                           {request.full_name}
                         </div>
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-black">
                           {request.email}
                         </div>
                       </div>
@@ -304,10 +321,10 @@ export default function SignupRequestsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-black">
                             {request.stores?.name || '알 수 없음'}
                           </div>
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-black">
                             코드: {request.store_code}
                           </div>
                         </div>
@@ -322,11 +339,11 @@ export default function SignupRequestsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-black">
                         {request.phone || '전화번호 없음'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {formatDistanceToNow(new Date(request.created_at), {
                         addSuffix: true,
                         locale: ko,
@@ -371,15 +388,15 @@ export default function SignupRequestsPage() {
       {showStoreModal && selectedRequest && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-black mb-4">
               매장 변경
             </h2>
-            <p className="text-sm text-gray-900 mb-4">
+            <p className="text-sm text-black mb-4">
               {selectedRequest.full_name} 님의 소속 매장을 변경합니다.
             </p>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 변경할 매장
               </label>
               <div className="relative">
@@ -395,7 +412,7 @@ export default function SignupRequestsPage() {
                     </option>
                   ))}
                 </select>
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-900" />
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-black" />
               </div>
             </div>
 

@@ -103,13 +103,20 @@ export default function SimpleSalesPage() {
         console.error('Error fetching products:', error)
         alert('상품을 불러오는 중 오류가 발생했습니다.')
       } else {
-        setProducts(data?.map(p => ({
+        const formattedProducts = data?.map(p => ({
           id: p.id,
           name: p.name,
           price: p.base_price,
           stock_quantity: p.stock_quantity,
           category: p.category
-        })) || [])
+        })) || []
+        
+        console.log('Fetched products with stock:', formattedProducts.map(p => ({
+          name: p.name,
+          stock: p.stock_quantity
+        })))
+        
+        setProducts(formattedProducts)
       }
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -241,8 +248,11 @@ export default function SimpleSalesPage() {
 
       // Clear cart and refresh
       setCart([])
-      await fetchProducts(storeId)
-      await fetchTodaySales(storeId)
+      // 트리거가 재고를 업데이트하므로 약간의 지연 후 새로고침
+      setTimeout(async () => {
+        await fetchProducts(storeId)
+        await fetchTodaySales(storeId)
+      }, 500)
       alert('판매가 완료되었습니다!')
       
     } catch (error) {
@@ -299,8 +309,8 @@ export default function SimpleSalesPage() {
             {products.map(product => (
               <Card key={product.id} className="p-4">
                 <h3 className="font-semibold text-lg">{product.name}</h3>
-                <p className="text-gray-900">₩{product.price.toLocaleString()}</p>
-                <p className="text-sm text-gray-900 mb-3">재고: {product.stock_quantity}개</p>
+                <p className="text-black">₩{product.price.toLocaleString()}</p>
+                <p className="text-sm text-black mb-3">재고: {product.stock_quantity}개</p>
                 <Button
                   onClick={() => addToCart(product)}
                   disabled={product.stock_quantity <= 0}
@@ -319,7 +329,7 @@ export default function SimpleSalesPage() {
           <h2 className="text-lg font-semibold mb-4">주문 내역</h2>
           <Card className="p-4">
             {cart.length === 0 ? (
-              <p className="text-gray-900 text-center py-8">상품을 선택해주세요</p>
+              <p className="text-black text-center py-8">상품을 선택해주세요</p>
             ) : (
               <>
                 <div className="space-y-3 mb-4">
@@ -327,7 +337,7 @@ export default function SimpleSalesPage() {
                     <div key={item.product.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-900">
+                        <p className="text-sm text-black">
                           ₩{item.product.price.toLocaleString()} × {item.quantity}
                         </p>
                       </div>

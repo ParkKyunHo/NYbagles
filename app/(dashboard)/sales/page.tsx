@@ -239,7 +239,7 @@ export default function SalesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-black">로딩 중...</p>
         </div>
       </div>
     )
@@ -250,8 +250,8 @@ export default function SalesPage() {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">판매 관리</h1>
-            <p className="text-gray-900 mt-2">{store?.name} - 판매 입력</p>
+            <h1 className="text-3xl font-bold text-black">판매 관리</h1>
+            <p className="text-black mt-2">{store?.name} - 판매 입력</p>
           </div>
           <div className="flex gap-2">
             {/* 관리자/슈퍼관리자용 매장 선택 */}
@@ -268,7 +268,7 @@ export default function SalesPage() {
                     await fetchProducts(storeId)
                   }
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-black bg-white"
               >
                 {stores.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -305,7 +305,7 @@ export default function SalesPage() {
                   className={`px-4 py-2 rounded-md whitespace-nowrap transition-colors ${
                     !selectedCategory 
                       ? 'bg-bagel-yellow text-black' 
-                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      : 'bg-gray-100 text-black hover:bg-gray-200'
                   }`}
                 >
                   전체
@@ -317,7 +317,7 @@ export default function SalesPage() {
                     className={`px-4 py-2 rounded-md whitespace-nowrap transition-colors ${
                       selectedCategory === category.id
                         ? 'bg-bagel-yellow text-black' 
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                        : 'bg-gray-100 text-black hover:bg-gray-200'
                     }`}
                   >
                     {category.name}
@@ -335,7 +335,7 @@ export default function SalesPage() {
                     onClick={() => addToCart(product)}
                     className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 hover:border-bagel-yellow hover:bg-yellow-50 transition-all"
                   >
-                    <h3 className="font-medium text-gray-900 mb-2">
+                    <h3 className="font-medium text-black mb-2">
                       {product.name}
                     </h3>
                     <p className="text-bagel-yellow font-bold">
@@ -357,11 +357,11 @@ export default function SalesPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-6 sticky top-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <h2 className="text-xl font-bold text-black flex items-center">
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 장바구니
               </h2>
-              <span className="text-sm text-gray-900">
+              <span className="text-sm text-black">
                 {cart.length}개 상품
               </span>
             </div>
@@ -369,14 +369,14 @@ export default function SalesPage() {
             {/* 장바구니 아이템 */}
             <div className="space-y-3 mb-6 max-h-96 overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-900 py-8">
+                <p className="text-center text-black py-8">
                   상품을 선택해주세요
                 </p>
               ) : (
                 cart.map((item) => (
                   <div key={item.product_id} className="bg-gray-50 rounded-lg p-3">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-900 flex-1">
+                      <h4 className="font-medium text-black flex-1">
                         {item.product.name}
                       </h4>
                       <button
@@ -413,7 +413,7 @@ export default function SalesPage() {
 
             {/* 결제 방법 */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 결제 방법
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -428,8 +428,8 @@ export default function SalesPage() {
                     onClick={() => setPaymentMethod(value as PaymentMethod)}
                     className={`p-2 rounded-md border-2 transition-all flex items-center justify-center gap-1 ${
                       paymentMethod === value
-                        ? 'border-bagel-yellow bg-yellow-50 text-gray-900'
-                        : 'border-gray-200 hover:border-gray-300 text-gray-900'
+                        ? 'border-bagel-yellow bg-yellow-50 text-black'
+                        : 'border-gray-200 hover:border-gray-300 text-black'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -441,7 +441,7 @@ export default function SalesPage() {
 
             {/* 메모 */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 메모 (선택)
               </label>
               <textarea
@@ -456,7 +456,7 @@ export default function SalesPage() {
             {/* 합계 및 결제 버튼 */}
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-bold text-gray-900">합계</span>
+                <span className="text-lg font-bold text-black">합계</span>
                 <span className="text-2xl font-bold text-bagel-yellow">
                   ₩{calculateTotal().toLocaleString()}
                 </span>
