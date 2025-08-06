@@ -72,8 +72,8 @@ LEFT JOIN employees e ON au.id = e.user_id
 WHERE au.created_at > NOW() - INTERVAL '7 days'
 ORDER BY au.created_at DESC;
 
--- 7. 최근 오류 로그 확인 (있다면)
-SELECT 'Recent signup request updates...' as step;
+-- 7. 최근 가입 요청 확인
+SELECT 'Recent signup requests...' as step;
 SELECT 
   id,
   email,
@@ -81,8 +81,8 @@ SELECT
   status,
   approved,
   approved_at,
-  updated_at
+  created_at
 FROM employee_signup_requests
-WHERE updated_at > NOW() - INTERVAL '1 day'
-ORDER BY updated_at DESC
+WHERE created_at > NOW() - INTERVAL '7 days'
+ORDER BY created_at DESC
 LIMIT 10;
