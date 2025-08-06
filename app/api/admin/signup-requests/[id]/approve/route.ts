@@ -259,7 +259,7 @@ export async function POST(
           .insert({
             user_id: userId,
             store_id: signupRequest.store_id,
-            hourly_rate: 10500, // 최저시급
+            hourly_wage: 10500, // 최저시급
             is_active: true
           })
           

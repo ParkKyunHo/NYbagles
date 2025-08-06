@@ -94,15 +94,15 @@ export default function QuickSalePage() {
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="mb-6 bg-yellow-50 p-4 rounded-lg">
         <h1 className="text-2xl font-bold mb-2">🥯 빠른 판매</h1>
-        <p className="text-xl">오늘 매출: ₩{todaySales.toLocaleString()}</p>
+        <p className="text-xl text-black">오늘 매출: ₩{todaySales.toLocaleString()}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products.map((product) => (
           <div key={product.id} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">{product.name}</h3>
-            <p className="text-gray-600">₩{product.price.toLocaleString()}</p>
-            <p className="text-sm text-gray-700 mb-3">재고: {product.stock_quantity}개</p>
+            <h3 className="text-lg font-semibold text-black">{product.name}</h3>
+            <p className="text-black">₩{product.price.toLocaleString()}</p>
+            <p className="text-sm text-black mb-3">재고: {product.stock_quantity}개</p>
             <Button 
               onClick={() => handleSale(product)}
               disabled={product.stock_quantity <= 0}
@@ -116,7 +116,7 @@ export default function QuickSalePage() {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center py-8 text-gray-700">
+        <div className="text-center py-8 text-black">
           등록된 상품이 없습니다
         </div>
       )}

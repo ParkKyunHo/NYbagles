@@ -308,7 +308,7 @@ export default function SimpleSalesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {products.map(product => (
               <Card key={product.id} className="p-4">
-                <h3 className="font-semibold text-lg">{product.name}</h3>
+                <h3 className="font-semibold text-lg text-black">{product.name}</h3>
                 <p className="text-black">₩{product.price.toLocaleString()}</p>
                 <p className="text-sm text-black mb-3">재고: {product.stock_quantity}개</p>
                 <Button
@@ -336,7 +336,7 @@ export default function SimpleSalesPage() {
                   {cart.map(item => (
                     <div key={item.product.id} className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium">{item.product.name}</p>
+                        <p className="font-medium text-black">{item.product.name}</p>
                         <p className="text-sm text-black">
                           ₩{item.product.price.toLocaleString()} × {item.quantity}
                         </p>

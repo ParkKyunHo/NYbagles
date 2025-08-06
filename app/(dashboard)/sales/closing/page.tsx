@@ -301,7 +301,7 @@ export default function DailyClosingPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-black">오늘 매출</p>
-              <p className="text-2xl font-bold">₩{todayTotal.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-black">₩{todayTotal.toLocaleString()}</p>
             </div>
             <DollarSign className="w-8 h-8 text-black" />
           </div>
@@ -311,7 +311,7 @@ export default function DailyClosingPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-black">판매 수량</p>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-black">
                 {productSales.reduce((sum, p) => sum + p.quantity_sold, 0)}개
               </p>
             </div>
@@ -323,7 +323,7 @@ export default function DailyClosingPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-black">베스트셀러</p>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-black">
                 {productSales.length > 0 
                   ? productSales.sort((a, b) => b.quantity_sold - a.quantity_sold)[0].product_name
                   : '-'}
@@ -346,7 +346,7 @@ export default function DailyClosingPage() {
                   className="absolute left-0 top-0 h-full bg-bagel-yellow rounded-full transition-all duration-500"
                   style={{ width: `${(hour.revenue / getMaxRevenue()) * 100}%` }}
                 />
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-medium">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-medium text-black">
                   ₩{hour.revenue.toLocaleString()} ({hour.count}건)
                 </span>
               </div>
@@ -372,7 +372,7 @@ export default function DailyClosingPage() {
             <tbody>
               {productSales.map(product => (
                 <tr key={product.product_id} className="border-b">
-                  <td className="py-2">{product.product_name}</td>
+                  <td className="py-2 text-black">{product.product_name}</td>
                   <td className="text-right py-2">{product.opening_stock}개</td>
                   <td className="text-right py-2 font-semibold">{product.quantity_sold}개</td>
                   <td className="text-right py-2">{product.current_stock}개</td>

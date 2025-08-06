@@ -423,7 +423,7 @@ export default function ProductsV2Page() {
                       </div>
                     ) : (
                       <>
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                        <h3 className="font-semibold text-lg text-black">{product.name}</h3>
                         <p className="text-black">₩{product.base_price.toLocaleString()}</p>
                         <div className="flex items-center justify-between text-sm text-black mb-3">
                           <span>재고: {product.stock_quantity}개</span>
