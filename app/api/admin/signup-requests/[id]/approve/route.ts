@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireRole } from '@/lib/auth/permissions'
+import { decrypt } from '@/lib/crypto'
 
 export async function POST(
   request: NextRequest,
@@ -114,8 +115,20 @@ export async function POST(
         },
       }
 
-      // 항상 임시 비밀번호 생성 (승인 후 이메일로 재설정 링크 전송)
-      createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
+      // 회원가입 시 입력한 비밀번호 사용
+      if (signupRequest.password_hash) {
+        try {
+          // 암호화된 비밀번호를 복호화
+          createUserPayload.password = decrypt(signupRequest.password_hash)
+        } catch (decryptError) {
+          console.error('Password decryption error:', decryptError)
+          // 복호화 실패 시 임시 비밀번호 생성
+          createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
+        }
+      } else {
+        // 구버전 호환성을 위한 임시 비밀번호
+        createUserPayload.password = Math.random().toString(36).slice(-12) + 'A1!'
+      }
 
       console.log('Creating user with payload:', JSON.stringify({
         ...createUserPayload,
@@ -271,22 +284,7 @@ export async function POST(
       throw updateError
     }
 
-    // 항상 비밀번호 재설정 이메일 전송 (선택사항)
-    try {
-      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-        type: 'recovery',
-        email: signupRequest.email,
-      })
-      
-      if (linkError) {
-        console.error('Error generating recovery link:', linkError)
-        // 이메일 전송 실패해도 승인은 완료로 처리
-      } else {
-        console.log('Recovery link generated successfully')
-      }
-    } catch (e) {
-      console.error('Failed to generate recovery link:', e)
-    }
+    // 비밀번호 재설정 이메일 전송 제거 (사용자가 입력한 비밀번호 사용)
 
     return NextResponse.json({
       message: 'Employee approved successfully',

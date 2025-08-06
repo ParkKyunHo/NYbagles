@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { encrypt } from '@/lib/crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,10 @@ export async function POST(request: NextRequest) {
       storeCode
     })
 
-    // Create signup request with password
+    // Encrypt the password for later use
+    const encryptedPassword = encrypt(password)
+
+    // Create signup request with encrypted password
     const { data: signupRequest, error: signupError } = await supabase
       .from('employee_signup_requests')
       .insert({
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
         store_id: finalStoreId,
         store_code: storeCode || null,
         verification_code: Math.floor(100000 + Math.random() * 900000).toString(),
-        password_hash: password, // 임시로 평문 저장 (실제로는 해시해야 함)
+        password_hash: encryptedPassword, // 암호화된 비밀번호 저장
       })
       .select()
       .single()

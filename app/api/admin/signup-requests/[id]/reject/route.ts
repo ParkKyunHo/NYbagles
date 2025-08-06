@@ -24,7 +24,7 @@ export async function POST(
         rejection_reason: reason,
       })
       .eq('id', params.id)
-      .eq('status', 'verified')
+      .in('status', ['pending', 'verified']) // pending 또는 verified 상태에서 거절 가능
 
     if (updateError) {
       return NextResponse.json(

@@ -140,7 +140,7 @@ export default function SignupRequestsPage() {
         throw new Error(errorMessage)
       }
 
-      alert('직원 가입이 승인되었습니다.\n\n임시 비밀번호가 이메일로 전송됩니다.\n직원은 이메일의 링크를 통해 비밀번호를 재설정할 수 있습니다.')
+      alert('직원 가입이 승인되었습니다.\n\n직원은 회원가입 시 입력한 비밀번호로 로그인할 수 있습니다.')
       fetchRequests()
     } catch (error: any) {
       console.error('Error approving request:', error)
