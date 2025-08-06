@@ -130,6 +130,48 @@ export async function POST(
         console.error('Error status:', authError.status)
         console.error('Full error object:', JSON.stringify(authError, null, 2))
         
+        // Check if it's a database constraint error
+        if (authError.message && authError.message.includes('Database error')) {
+          console.log('Database error detected, attempting to diagnose...')
+          
+          // Check if email already exists in profiles
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .eq('email', signupRequest.email)
+            .single()
+          
+          if (existingProfile) {
+            return NextResponse.json(
+              { 
+                error: '이미 등록된 이메일입니다', 
+                details: '해당 이메일로 이미 프로필이 생성되어 있습니다.',
+                email: signupRequest.email,
+                profileId: existingProfile.id
+              },
+              { status: 400 }
+            )
+          }
+          
+          // Check store_id validity
+          const { data: store } = await supabase
+            .from('stores')
+            .select('id')
+            .eq('id', signupRequest.store_id)
+            .single()
+          
+          if (!store) {
+            return NextResponse.json(
+              { 
+                error: '유효하지 않은 매장 ID', 
+                details: '가입 요청의 매장 ID가 존재하지 않습니다.',
+                storeId: signupRequest.store_id
+              },
+              { status: 400 }
+            )
+          }
+        }
+        
         // 더 구체적인 에러 메시지 제공
         let errorMessage = '사용자 생성 실패'
         if (authError.message.includes('service_role')) {
@@ -141,23 +183,7 @@ export async function POST(
         } else if (authError.status === 401) {
           errorMessage = 'Service role 키 인증 실패. 올바른 키인지 확인해주세요.'
         } else if (authError.message.includes('Database error')) {
-          errorMessage = '데이터베이스 오류: 이메일이 이미 존재하거나 데이터베이스 제약조건 위반'
-          
-          // Try to clean up any partial data
-          try {
-            console.log('Attempting to clean up partial user data...')
-            const { data: partialUser } = await adminClient.auth.admin.listUsers({
-              page: 1,
-              perPage: 1000
-            })
-            const problemUser = partialUser?.users?.find(u => u.email === signupRequest.email)
-            if (problemUser && !problemUser.confirmed_at) {
-              console.log('Found unconfirmed user, attempting to delete...')
-              await adminClient.auth.admin.deleteUser(problemUser.id)
-            }
-          } catch (cleanupError) {
-            console.error('Cleanup failed:', cleanupError)
-          }
+          errorMessage = '데이터베이스 오류가 발생했습니다'
         }
         
         return NextResponse.json(
