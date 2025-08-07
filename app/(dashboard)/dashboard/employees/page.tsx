@@ -111,7 +111,7 @@ export default function EmployeesPage() {
         .from('employees')
         .select(`
           *,
-          profiles!inner (
+          profiles:user_id (
             id,
             full_name,
             email,
@@ -135,8 +135,11 @@ export default function EmployeesPage() {
 
       const { data, error } = await query
 
-      if (error) throw error
-      console.log('Fetched employees:', data?.length, 'records')
+      if (error) {
+        console.error('Query error:', error)
+        throw error
+      }
+      console.log('Fetched employees:', data?.length, 'records', data)
       setEmployees(data || [])
     } catch (error) {
       console.error('Error fetching employees:', error)
@@ -169,7 +172,7 @@ export default function EmployeesPage() {
       alert('상태 변경에 실패했습니다.')
       console.error(error)
     } else {
-      fetchEmployees()
+      fetchEmployees(userRole, userStoreId)
     }
   }
 
