@@ -53,13 +53,28 @@ export default function DailyClosingPage() {
       }
 
       // Get user role
-      const { data: profile } = await supabase
+      console.log('[일일마감] Fetching profile for user:', user.id)
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
 
-      if (profile) {
+      if (profileError) {
+        console.error('[일일마감] Profile fetch error:', profileError)
+        // API 라우트를 통해 role 가져오기 시도
+        try {
+          const response = await fetch('/api/auth/user-role')
+          if (response.ok) {
+            const data = await response.json()
+            console.log('[일일마감] Role from API:', data.role)
+            setUserRole(data.role)
+          }
+        } catch (apiError) {
+          console.error('[일일마감] API fetch error:', apiError)
+        }
+      } else if (profile) {
+        console.log('[일일마감] Profile fetched:', profile)
         setUserRole(profile.role)
       }
 

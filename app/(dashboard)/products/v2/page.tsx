@@ -58,13 +58,28 @@ export default function ProductsV2Page() {
       }
 
       // Get user role
-      const { data: profile } = await supabase
+      console.log('[간편상품관리] Fetching profile for user:', user.id)
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single()
 
-      if (profile) {
+      if (profileError) {
+        console.error('[간편상품관리] Profile fetch error:', profileError)
+        // API 라우트를 통해 role 가져오기 시도
+        try {
+          const response = await fetch('/api/auth/user-role')
+          if (response.ok) {
+            const data = await response.json()
+            console.log('[간편상품관리] Role from API:', data.role)
+            setUserRole(data.role)
+          }
+        } catch (apiError) {
+          console.error('[간편상품관리] API fetch error:', apiError)
+        }
+      } else if (profile) {
+        console.log('[간편상품관리] Profile fetched:', profile)
         setUserRole(profile.role)
       }
 
