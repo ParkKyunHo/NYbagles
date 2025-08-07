@@ -139,7 +139,7 @@ export default function EmployeesPage() {
         console.error('Query error:', error)
         throw error
       }
-      console.log('Fetched employees:', data?.length, 'records', data)
+      // console.log('Fetched employees:', data?.length, 'records', data)
       
       // RLS 정책이 수정되어 profiles가 제대로 조인되므로 필터링 제거
       setEmployees(data || [])

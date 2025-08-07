@@ -24,6 +24,7 @@ export function hasMinimumRole(userRole: UserRole | undefined, minimumRole: User
 export const PAGE_ACCESS = {
   // Everyone can access
   '/dashboard': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
+  '/dashboard/documents': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
   '/attendance': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
   '/attendance/scan': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
   '/schedule': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
@@ -31,16 +32,19 @@ export const PAGE_ACCESS = {
   '/dashboard/settings': ['super_admin', 'admin', 'manager', 'employee', 'part_time'],
   
   // Manager and above
+  '/dashboard/quick-sale': ['super_admin', 'admin', 'manager'],
+  '/sales': ['super_admin', 'admin', 'manager'],
   '/sales/simple': ['super_admin', 'admin', 'manager'],
-  '/products/v2': ['super_admin', 'admin', 'manager'],
   '/sales/closing': ['super_admin', 'admin', 'manager'],
   '/sales/history': ['super_admin', 'admin', 'manager'],
   '/sales/summary': ['super_admin', 'admin', 'manager'],
+  '/products': ['super_admin', 'admin', 'manager'],
+  '/products/v2': ['super_admin', 'admin', 'manager'],
   '/dashboard/analytics': ['super_admin', 'admin', 'manager'],
   '/dashboard/salary': ['super_admin', 'admin', 'manager'],
   
   // Admin and above
-  '/dashboard/employees': ['super_admin', 'admin'],
+  '/dashboard/employees': ['super_admin', 'admin', 'manager'],
   '/products/approvals': ['super_admin', 'admin'],
   '/admin/signup-requests': ['super_admin', 'admin'],
   '/admin/stores': ['super_admin', 'admin'],
