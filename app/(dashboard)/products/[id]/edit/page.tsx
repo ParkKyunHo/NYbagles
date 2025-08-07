@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -33,7 +33,7 @@ export default function EditProductPage() {
   })
   
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     fetchProduct()

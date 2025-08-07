@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Calendar, Package, DollarSign, TrendingUp } from 'lucide-react'
@@ -36,7 +36,7 @@ export default function DailyClosingPage() {
   const [userRole, setUserRole] = useState<string>('')
   
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     const today = new Date()

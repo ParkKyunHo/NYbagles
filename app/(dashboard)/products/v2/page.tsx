@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react'
@@ -43,7 +43,7 @@ export default function ProductsV2Page() {
   })
   
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     initializePage()

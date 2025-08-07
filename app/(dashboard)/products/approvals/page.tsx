@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Check, X, Eye, Clock, AlertCircle } from 'lucide-react'
@@ -46,7 +46,7 @@ export default function ProductApprovalsPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     initializePage()

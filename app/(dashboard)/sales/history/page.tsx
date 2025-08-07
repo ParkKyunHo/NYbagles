@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Calendar, Filter, X, ChevronDown, ChevronUp, AlertCircle, Building2 } from 'lucide-react'
@@ -61,7 +61,7 @@ export default function SalesHistoryPage() {
     canceled: 0
   })
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     checkAuthAndLoadData()

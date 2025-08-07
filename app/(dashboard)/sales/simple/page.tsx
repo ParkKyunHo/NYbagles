@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
@@ -29,7 +29,7 @@ export default function SimpleSalesPage() {
   const [todayTotal, setTodayTotal] = useState(0)
   const [userRole, setUserRole] = useState<string>('')
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     checkUserStore()
@@ -43,8 +43,7 @@ export default function SimpleSalesPage() {
         return
       }
 
-      // Get user role
-      console.log('[간편판매] Fetching profile for user:', user.id)
+      // Get user role from profiles
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -53,20 +52,16 @@ export default function SimpleSalesPage() {
 
       if (profileError) {
         console.error('[간편판매] Profile fetch error:', profileError)
-        // API 라우트를 통해 role 가져오기 시도
-        try {
-          const response = await fetch('/api/auth/user-role')
-          if (response.ok) {
-            const data = await response.json()
-            console.log('[간편판매] Role from API:', data.role)
-            setUserRole(data.role)
-          }
-        } catch (apiError) {
-          console.error('[간편판매] API fetch error:', apiError)
-        }
+        // 프로필을 가져올 수 없으면 기본값 설정
+        setUserRole('employee')
       } else if (profile) {
-        console.log('[간편판매] Profile fetched:', profile)
         setUserRole(profile.role)
+        
+        // 권한 체크 - manager 이상만 접근 가능
+        if (!['super_admin', 'admin', 'manager'].includes(profile.role)) {
+          router.push('/dashboard')
+          return
+        }
       }
 
       // Get user's store
@@ -126,10 +121,10 @@ export default function SimpleSalesPage() {
           category: p.category
         })) || []
         
-        console.log('Fetched products with stock:', formattedProducts.map(p => ({
-          name: p.name,
-          stock: p.stock_quantity
-        })))
+        // console.log('Fetched products with stock:', formattedProducts.map(p => ({
+        //   name: p.name,
+        //   stock: p.stock_quantity
+        // }))
         
         setProducts(formattedProducts)
       }

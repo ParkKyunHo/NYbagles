@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Store } from 'lucide-react'
 
 interface Region {
@@ -42,7 +42,7 @@ export function StoreSelector({
 }: StoreSelectorProps) {
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     const fetchStores = async () => {

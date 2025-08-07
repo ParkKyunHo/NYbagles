@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientWithAuth } from '@/lib/supabase/client-auth';
+import { createClient } from '@/lib/supabase/client';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
   const [userRole, setUserRole] = useState<string>('');
   
   const router = useRouter();
-  const supabase = createClientWithAuth();
+  const supabase = createClient();
 
   useEffect(() => {
     const checkAuth = async () => {

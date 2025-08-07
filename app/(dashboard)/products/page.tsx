@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientWithAuth } from '@/lib/supabase/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { Plus, Edit, Trash2, Search, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -44,7 +44,7 @@ export default function ProductsPage() {
   const [selectedStore, setSelectedStore] = useState<string>('')
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const router = useRouter()
-  const supabase = createClientWithAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     checkAuth()
