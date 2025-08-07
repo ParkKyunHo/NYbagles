@@ -69,22 +69,30 @@ export default function ProductsPage() {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, store_id')
+      .select('role')
       .eq('id', user.id)
       .single()
 
     if (profile && !profileError) {
       setUserRole(profile.role as string)
-      setUserStoreId(profile.store_id as string | null)
       
       // 일반 직원은 접근 불가
       if (!['super_admin', 'admin', 'manager'].includes(profile.role as string)) {
         router.push('/dashboard')
       }
       
-      // 매니저는 자신의 매장만 선택
-      if (profile.role === 'manager' && profile.store_id) {
-        setSelectedStore(profile.store_id as string)
+      // 매니저인 경우 employees 테이블에서 store_id 가져오기
+      if (profile.role === 'manager') {
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('store_id')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (employee && employee.store_id) {
+          setUserStoreId(employee.store_id)
+          setSelectedStore(employee.store_id)
+        }
       }
     }
   }

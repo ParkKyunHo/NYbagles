@@ -24,13 +24,18 @@ export default function QuickSalePage() {
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
-      .from('products')
-      .select('id, name, price, stock_quantity')
-      .eq('is_active', true)
+      .from('products_v3')
+      .select('id, name, base_price, stock_quantity')
+      .eq('status', 'active')
       .order('name')
 
     if (data && !error) {
-      setProducts(data)
+      setProducts(data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: p.base_price,
+        stock_quantity: p.stock_quantity
+      })))
     }
     setLoading(false)
   }
@@ -38,7 +43,7 @@ export default function QuickSalePage() {
   const fetchTodaySales = async () => {
     const today = new Date().toISOString().split('T')[0]
     const { data } = await supabase
-      .from('sales_records')
+      .from('sales_transactions')
       .select('total_amount')
       .gte('created_at', today)
     
@@ -56,19 +61,42 @@ export default function QuickSalePage() {
 
     try {
       // 1. 판매 기록 생성
-      const { error: saleError } = await supabase
-        .from('sales_records')
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('store_id')
+        .eq('user_id', user?.id)
+        .single()
+
+      const { data: transaction, error: saleError } = await supabase
+        .from('sales_transactions')
         .insert({
+          store_id: employee?.store_id,
           total_amount: product.price,
           payment_method: 'cash',
           status: 'completed'
         })
+        .select()
+        .single()
 
       if (saleError) throw saleError
 
-      // 2. 재고 차감
+      // 2. 판매 상세 기록
+      const { error: itemError } = await supabase
+        .from('sales_items')
+        .insert({
+          transaction_id: transaction.id,
+          product_id: product.id,
+          quantity: 1,
+          unit_price: product.price,
+          subtotal: product.price
+        })
+
+      if (itemError) throw itemError
+
+      // 3. 재고 차감 (트리거가 자동으로 처리하지만 명시적으로도 업데이트)
       const { error: stockError } = await supabase
-        .from('products')
+        .from('products_v3')
         .update({ 
           stock_quantity: product.stock_quantity - 1 
         })
