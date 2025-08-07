@@ -140,7 +140,10 @@ export default function EmployeesPage() {
         throw error
       }
       console.log('Fetched employees:', data?.length, 'records', data)
-      setEmployees(data || [])
+      
+      // profiles가 null인 경우 필터링
+      const validEmployees = (data || []).filter(employee => employee.profiles !== null)
+      setEmployees(validEmployees)
     } catch (error) {
       console.error('Error fetching employees:', error)
     } finally {
@@ -200,6 +203,9 @@ export default function EmployeesPage() {
 
   // 필터링
   const filteredEmployees = employees.filter(employee => {
+    // profiles가 없는 경우 제외
+    if (!employee.profiles) return false
+    
     const matchesSearch = !searchTerm || 
       employee.profiles.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.profiles.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -437,13 +443,13 @@ export default function EmployeesPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-700">매니저</h3>
           <p className="text-2xl font-bold text-blue-600 mt-1">
-            {employees.filter(e => e.profiles.role === 'manager').length}명
+            {employees.filter(e => e.profiles?.role === 'manager').length}명
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-700">파트타임</h3>
           <p className="text-2xl font-bold text-gray-600 mt-1">
-            {employees.filter(e => e.profiles.role === 'part_time').length}명
+            {employees.filter(e => e.profiles?.role === 'part_time').length}명
           </p>
         </div>
       </div>
