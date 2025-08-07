@@ -25,27 +25,28 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const navigation = [
+  // 모든 직원이 접근 가능
   { name: '대시보드', href: '/dashboard', icon: Home, roles: ['all'] },
   { name: 'QR 출퇴근', href: '/attendance', icon: QrCode, roles: ['all'] },
   { name: '스케줄 관리', href: '/schedule', icon: Calendar, roles: ['all'] },
-  { name: '⚡ 간편 판매', href: '/sales/simple', icon: ShoppingCart, roles: ['all'] },
-  { name: '⚡ 간편 상품관리', href: '/products/v2', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '⚡ 상품 승인', href: '/products/approvals', icon: UserCheck, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '⚡ 일일 마감', href: '/sales/closing', icon: Calendar, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '상품 관리', href: '/products', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '🥯 빠른 판매', href: '/dashboard/quick-sale', icon: ShoppingCart, roles: ['all'] },
-  { name: '판매 입력', href: '/sales', icon: ShoppingCart, roles: ['all'] },
-  { name: '판매 내역', href: '/sales/history', icon: FileText, roles: ['all'] },
-  { name: '매출 요약', href: '/sales/summary', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '직원 관리', href: '/dashboard/employees', icon: Users, roles: ['super_admin', 'admin', 'manager'] },
   { name: '근무 시간', href: '/dashboard/work-hours', icon: Clock, roles: ['all'] },
-  { name: '급여 관리', href: '/dashboard/salary', icon: DollarSign, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '매출 분석', href: '/dashboard/analytics', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '문서 관리', href: '/dashboard/documents', icon: FileText, roles: ['all'] },
-  { name: '관리자', href: '/admin', icon: Shield, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '가입 승인', href: '/admin/signup-requests', icon: UserCheck, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '매장 관리', href: '/admin/stores', icon: Store, roles: ['super_admin', 'admin'] },
   { name: '설정', href: '/dashboard/settings', icon: Settings, roles: ['all'] },
+  
+  // 매니저 이상만 접근 가능
+  { name: '⚡ 간편 판매', href: '/sales/simple', icon: ShoppingCart, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '⚡ 간편 상품관리', href: '/products/v2', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '⚡ 일일 마감', href: '/sales/closing', icon: Calendar, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '판매 내역', href: '/sales/history', icon: FileText, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '매출 요약', href: '/sales/summary', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '매출 분석', href: '/dashboard/analytics', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
+  { name: '급여 관리', href: '/dashboard/salary', icon: DollarSign, roles: ['super_admin', 'admin', 'manager'] },
+  
+  // 관리자 이상만 접근 가능  
+  { name: '직원 관리', href: '/dashboard/employees', icon: Users, roles: ['super_admin', 'admin'] },
+  { name: '⚡ 상품 승인', href: '/products/approvals', icon: UserCheck, roles: ['super_admin', 'admin'] },
+  { name: '가입 승인', href: '/admin/signup-requests', icon: UserCheck, roles: ['super_admin', 'admin'] },
+  { name: '매장 관리', href: '/admin/stores', icon: Store, roles: ['super_admin', 'admin'] },
+  { name: '관리자', href: '/admin', icon: Shield, roles: ['super_admin', 'admin'] },
 ]
 
 interface SidebarProps {
