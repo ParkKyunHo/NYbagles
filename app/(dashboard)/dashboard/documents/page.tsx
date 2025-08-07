@@ -60,7 +60,7 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();

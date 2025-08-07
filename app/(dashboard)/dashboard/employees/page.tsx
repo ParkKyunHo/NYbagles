@@ -73,7 +73,7 @@ export default function EmployeesPage() {
     if (!loading && (isAdmin || isManager || isSuperAdmin)) {
       loadData()
     }
-  }, [loading, isAdmin, isManager, isSuperAdmin])
+  }, [loading, isAdmin, isManager, isSuperAdmin]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     // 매니저인 경우 자신의 매장으로 필터 설정
@@ -98,13 +98,13 @@ export default function EmployeesPage() {
           store_id,
           is_active,
           created_at,
-          profiles!employees_user_id_fkey (
+          profiles:user_id (
             id,
             full_name,
             email,
             role
           ),
-          stores!employees_store_id_fkey (
+          stores:store_id (
             id,
             name,
             code
@@ -123,7 +123,12 @@ export default function EmployeesPage() {
       if (error) {
         console.error('Error fetching employees:', error)
       } else {
-        setEmployees(data || [])
+        const formattedData = (data || []).map((item: any) => ({
+          ...item,
+          profiles: item.profiles || { id: '', full_name: null, email: '', role: '' },
+          stores: item.stores || { id: '', name: '', code: '' }
+        }))
+        setEmployees(formattedData as Employee[])
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
@@ -161,7 +166,7 @@ export default function EmployeesPage() {
       console.error('Error updating role:', error)
       alert('역할 변경 중 오류가 발생했습니다.')
     } else {
-      await fetchEmployees(userRole === 'manager' ? userStoreId : undefined)
+      await fetchEmployees(userRole === 'manager' && userStoreId ? userStoreId : undefined)
       alert('역할이 변경되었습니다.')
     }
   }
@@ -178,7 +183,7 @@ export default function EmployeesPage() {
       console.error('Error deactivating employee:', error)
       alert('직원 비활성화 중 오류가 발생했습니다.')
     } else {
-      await fetchEmployees(userRole === 'manager' ? userStoreId : undefined)
+      await fetchEmployees(userRole === 'manager' && userStoreId ? userStoreId : undefined)
       alert('직원이 비활성화되었습니다.')
     }
   }

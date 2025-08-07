@@ -58,7 +58,7 @@ export default function EmployeeRequestsPage() {
 
   useEffect(() => {
     checkAuthAndLoadData()
-  }, [selectedStatus])
+  }, [selectedStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuthAndLoadData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
