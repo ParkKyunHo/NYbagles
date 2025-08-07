@@ -29,7 +29,7 @@ interface EmployeeDetail {
   created_at: string
   profiles: {
     id: string
-    name: string
+    full_name: string | null
     email: string
     role: string
   }
@@ -67,7 +67,7 @@ export default function EmployeeDetailPage() {
   const [editing, setEditing] = useState(false)
   const [userRole, setUserRole] = useState<string>('')
   const [editData, setEditData] = useState({
-    name: '',
+    full_name: '',
     role: '',
     store_id: '',
     is_active: true
@@ -142,7 +142,7 @@ export default function EmployeeDetailPage() {
 
     setEmployee(data)
     setEditData({
-      name: data.profiles.name || '',
+      full_name: data.profiles.full_name || '',
       role: data.profiles.role,
       store_id: data.store_id,
       is_active: data.is_active
@@ -191,7 +191,7 @@ export default function EmployeeDetailPage() {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
-        name: editData.name,
+        full_name: editData.full_name,
         role: editData.role
       })
       .eq('id', employee.user_id)
@@ -278,7 +278,7 @@ export default function EmployeeDetailPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">직원 상세 정보</h1>
             <p className="text-gray-600 mt-1">
-              {employee.profiles.name} ({employee.employee_number})
+              {employee.profiles.full_name || '이름 없음'} ({employee.employee_number})
             </p>
           </div>
         </div>
@@ -297,7 +297,7 @@ export default function EmployeeDetailPage() {
                   onClick={() => {
                     setEditing(false)
                     setEditData({
-                      name: employee.profiles.name || '',
+                      full_name: employee.profiles.full_name || '',
                       role: employee.profiles.role,
                       store_id: employee.store_id,
                       is_active: employee.is_active
@@ -337,12 +337,12 @@ export default function EmployeeDetailPage() {
                 {editing ? (
                   <input
                     type="text"
-                    value={editData.name}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    value={editData.full_name}
+                    onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow"
                   />
                 ) : (
-                  <p className="font-medium text-gray-900">{employee.profiles.name || '미등록'}</p>
+                  <p className="font-medium text-gray-900">{employee.profiles.full_name || '미등록'}</p>
                 )}
               </div>
 

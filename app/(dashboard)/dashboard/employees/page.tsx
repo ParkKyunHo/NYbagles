@@ -29,7 +29,7 @@ interface Employee {
   created_at: string
   profiles: {
     id: string
-    name: string
+    full_name: string | null
     email: string
     role: string
   }
@@ -111,7 +111,7 @@ export default function EmployeesPage() {
           *,
           profiles!inner (
             id,
-            name,
+            full_name,
             email,
             role
           ),
@@ -192,7 +192,7 @@ export default function EmployeesPage() {
   // 필터링
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = !searchTerm || 
-      employee.profiles.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.profiles.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.profiles.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.employee_number.includes(searchTerm)
 
@@ -336,7 +336,7 @@ export default function EmployeesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {employee.profiles.name || '이름 없음'}
+                        {employee.profiles.full_name || '이름 없음'}
                       </div>
                       <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
                         <Mail className="h-3 w-3" />

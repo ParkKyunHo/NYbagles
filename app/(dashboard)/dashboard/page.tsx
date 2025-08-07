@@ -208,7 +208,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 빠른 액션 버튼 */}
+      {/* 빠른 액션 버튼 - 역할별 표시 */}
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900 mb-4">빠른 실행</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -248,6 +248,76 @@ export default async function DashboardPage() {
             </div>
           </Link>
         </div>
+        
+        {/* 관리자/매니저만 접근 가능한 기능 */}
+        {profile?.role && ['super_admin', 'admin', 'manager'].includes(profile.role) && (
+          <>
+            <h2 className="text-lg font-medium text-gray-900 mb-4 mt-6">관리 기능</h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Link href="/dashboard/sales/simple" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-indigo-100 p-3 inline-block mb-3">
+                    <ShoppingBag className="h-8 w-8 text-indigo-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">간편 판매</h3>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/products/v2" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-pink-100 p-3 inline-block mb-3">
+                    <Package className="h-8 w-8 text-pink-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">상품 관리</h3>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/sales/closing" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-green-100 p-3 inline-block mb-3">
+                    <DollarSign className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">일일 마감</h3>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/analytics" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-purple-100 p-3 inline-block mb-3">
+                    <TrendingUp className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">매출 분석</h3>
+                </div>
+              </Link>
+            </div>
+          </>
+        )}
+        
+        {/* 관리자만 접근 가능한 기능 */}
+        {profile?.role && ['super_admin', 'admin'].includes(profile.role) && (
+          <>
+            <h2 className="text-lg font-medium text-gray-900 mb-4 mt-6">시스템 관리</h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <Link href="/dashboard/employees" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-teal-100 p-3 inline-block mb-3">
+                    <Users className="h-8 w-8 text-teal-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">직원 관리</h3>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/stores" className="relative rounded-lg p-6 bg-white shadow hover:shadow-md transition-shadow block">
+                <div className="text-center">
+                  <div className="rounded-md bg-cyan-100 p-3 inline-block mb-3">
+                    <Store className="h-8 w-8 text-cyan-600" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900">매장 관리</h3>
+                </div>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
       
       {/* 최근 출퇴근 기록 */}
@@ -312,4 +382,4 @@ export default async function DashboardPage() {
 }
 
 // 필요한 아이콘 import
-import { QrCode, Clock, Calendar, Settings } from 'lucide-react'
+import { QrCode, Clock, Calendar, Settings, ShoppingBag, Package, Store, Users, TrendingUp, DollarSign } from 'lucide-react'
