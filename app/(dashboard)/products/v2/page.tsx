@@ -5,8 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { StoreSelector } from '@/components/ui/store-selector'
+import { useAuthCheck } from '@/hooks/useAuthCheck'
 
 interface Product {
   id: string
@@ -21,12 +21,22 @@ interface Product {
 
 export default function ProductsV2Page() {
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  
+  const { 
+    loading, 
+    userRole, 
+    storeId: initialStoreId, 
+    storeName: initialStoreName,
+    isManager 
+  } = useAuthCheck({
+    requiredRoles: ['super_admin', 'admin', 'manager'],
+    redirectTo: '/dashboard'
+  })
+  
   const [storeId, setStoreId] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string>('')
-  const [userRole, setUserRole] = useState<string>('')
   
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -42,78 +52,15 @@ export default function ProductsV2Page() {
     category: ''
   })
   
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
-    initializePage()
-  }, [])
-
-  const initializePage = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      // Get user role
-      console.log('[간편상품관리] Fetching profile for user:', user.id)
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profileError) {
-        console.error('[간편상품관리] Profile fetch error:', profileError)
-        // API 라우트를 통해 role 가져오기 시도
-        try {
-          const response = await fetch('/api/auth/user-role')
-          if (response.ok) {
-            const data = await response.json()
-            console.log('[간편상품관리] Role from API:', data.role)
-            setUserRole(data.role)
-          }
-        } catch (apiError) {
-          console.error('[간편상품관리] API fetch error:', apiError)
-        }
-      } else if (profile) {
-        console.log('[간편상품관리] Profile fetched:', profile)
-        setUserRole(profile.role)
-      }
-
-      // Get user's store
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('store_id, stores(id, name)')
-        .eq('user_id', user.id)
-        .single()
-
-      if (employee?.store_id) {
-        setStoreId(employee.store_id)
-        setStoreName((employee as any).stores?.name || '')
-        await fetchProducts(employee.store_id)
-      } else if (profile?.role === 'super_admin' || profile?.role === 'admin') {
-        // For admin, get first store
-        const { data: firstStore } = await supabase
-          .from('stores')
-          .select('id, name')
-          .limit(1)
-          .single()
-
-        if (firstStore) {
-          setStoreId(firstStore.id)
-          setStoreName(firstStore.name)
-          await fetchProducts(firstStore.id)
-        }
-      }
-    } catch (error) {
-      console.error('Error initializing page:', error)
-    } finally {
-      setLoading(false)
+    if (!loading && initialStoreId && isManager) {
+      setStoreId(initialStoreId)
+      setStoreName(initialStoreName)
+      fetchProducts(initialStoreId)
     }
-  }
+  }, [loading, initialStoreId, initialStoreName, isManager])
 
   const fetchProducts = async (storeId: string) => {
     try {
@@ -290,7 +237,6 @@ export default function ProductsV2Page() {
   const handleStoreChange = async (newStoreId: string, newStoreName: string) => {
     setStoreId(newStoreId)
     setStoreName(newStoreName)
-    setLoading(true)
     setShowAddForm(false)
     setEditingId(null)
     
@@ -298,8 +244,6 @@ export default function ProductsV2Page() {
       await fetchProducts(newStoreId)
     } catch (error) {
       console.error('Error changing store:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -325,9 +269,9 @@ export default function ProductsV2Page() {
             <StoreSelector
               selectedStoreId={storeId}
               onStoreChange={handleStoreChange}
-              userRole={userRole}
+              userRole={userRole || 'employee'}
             />
-            {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
+            {isManager && (
               <Button onClick={() => setShowAddForm(!showAddForm)}>
                 <Plus className="w-4 h-4 mr-2" />
                 상품 추가
@@ -416,23 +360,31 @@ export default function ProductsV2Page() {
                           placeholder="재고"
                           className="px-3 py-2 border rounded-md w-full"
                         />
+                        <select
+                          value={editProduct.category}
+                          onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}
+                          className="px-3 py-2 border rounded-md w-full"
+                        >
+                          <option value="베이글">베이글</option>
+                          <option value="음료">음료</option>
+                          <option value="스프레드">스프레드</option>
+                          <option value="기타">기타</option>
+                        </select>
                         <div className="flex gap-2">
                           <Button 
-                            size="sm" 
                             onClick={() => handleUpdateProduct(product.id)}
+                            size="sm" 
                             className="flex-1"
                           >
-                            <Save className="w-4 h-4 mr-1" />
-                            저장
+                            <Save className="w-4 h-4" />
                           </Button>
                           <Button 
-                            size="sm" 
-                            variant="outline" 
                             onClick={() => setEditingId(null)}
+                            size="sm" 
+                            variant="outline"
                             className="flex-1"
                           >
-                            <X className="w-4 h-4 mr-1" />
-                            취소
+                            <X className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -440,42 +392,22 @@ export default function ProductsV2Page() {
                       <>
                         <h3 className="font-semibold text-lg text-black">{product.name}</h3>
                         <p className="text-black">₩{product.base_price.toLocaleString()}</p>
-                        <div className="flex items-center justify-between text-sm text-black mb-3">
-                          <span>재고: {product.stock_quantity}개</span>
-                          {userRole !== 'employee' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingId(product.id)
-                                setEditProduct({
-                                  name: product.name,
-                                  price: product.base_price.toString(),
-                                  stock_quantity: product.stock_quantity.toString(),
-                                  category: product.category
-                                })
-                              }}
-                              className="text-bagel-yellow hover:text-bagel-yellow-dark px-2 py-1"
-                            >
-                              재고 수정
-                            </Button>
-                          )}
-                        </div>
-                        {(userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager') && (
+                        <p className="text-sm text-black mb-3">재고: {product.stock_quantity}개</p>
+                        {isManager && (
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
+                            <Button 
+                              onClick={() => startEdit(product)} 
+                              size="sm" 
                               variant="outline"
-                              onClick={() => startEdit(product)}
                               className="flex-1"
                             >
                               <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button
-                              size="sm"
+                            <Button 
+                              onClick={() => handleDeleteProduct(product.id)} 
+                              size="sm" 
                               variant="outline"
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="flex-1 text-red-600 hover:text-red-700"
+                              className="flex-1"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -489,13 +421,6 @@ export default function ProductsV2Page() {
           </div>
         ))}
       </div>
-
-      {products.length === 0 && (
-        <div className="text-center py-12 text-black">
-          <p>등록된 상품이 없습니다.</p>
-          <p className="text-sm mt-2">상품을 추가해주세요.</p>
-        </div>
-      )}
     </div>
   )
 }

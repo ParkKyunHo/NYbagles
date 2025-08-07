@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useRouter } from 'next/navigation'
 import { StoreSelector } from '@/components/ui/store-selector'
+import { useAuthCheck } from '@/hooks/useAuthCheck'
 
 interface Product {
   id: string
@@ -23,80 +23,32 @@ interface SaleItem {
 export default function SimpleSalesPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [cart, setCart] = useState<SaleItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [todayTotal, setTodayTotal] = useState(0)
+  const supabase = createClient()
+  
+  // 권한 체크 훅 사용
+  const { 
+    loading, 
+    userRole, 
+    storeId: initialStoreId, 
+    storeName: initialStoreName,
+    isManager 
+  } = useAuthCheck({
+    requiredRoles: ['super_admin', 'admin', 'manager'],
+    redirectTo: '/dashboard'
+  })
+  
   const [storeId, setStoreId] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string>('')
-  const [todayTotal, setTodayTotal] = useState(0)
-  const [userRole, setUserRole] = useState<string>('')
-  const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    checkUserStore()
-  }, [])
-
-  const checkUserStore = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      // Get user role from profiles
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profileError) {
-        console.error('[간편판매] Profile fetch error:', profileError)
-        // 프로필을 가져올 수 없으면 기본값 설정
-        setUserRole('employee')
-      } else if (profile) {
-        setUserRole(profile.role)
-        
-        // 권한 체크 - manager 이상만 접근 가능
-        if (!['super_admin', 'admin', 'manager'].includes(profile.role)) {
-          router.push('/dashboard')
-          return
-        }
-      }
-
-      // Get user's store
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('store_id, stores(id, name)')
-        .eq('user_id', user.id)
-        .single()
-
-      if (employee?.store_id) {
-        setStoreId(employee.store_id)
-        setStoreName((employee as any).stores?.name || '')
-        await fetchProducts(employee.store_id)
-        await fetchTodaySales(employee.store_id)
-      } else {
-        // For admin, get first store
-        const { data: firstStore } = await supabase
-          .from('stores')
-          .select('id, name')
-          .limit(1)
-          .single()
-
-        if (firstStore) {
-          setStoreId(firstStore.id)
-          setStoreName(firstStore.name)
-          await fetchProducts(firstStore.id)
-          await fetchTodaySales(firstStore.id)
-        }
-      }
-    } catch (error) {
-      console.error('Error checking user store:', error)
-    } finally {
-      setLoading(false)
+    if (!loading && initialStoreId && isManager) {
+      setStoreId(initialStoreId)
+      setStoreName(initialStoreName)
+      fetchProducts(initialStoreId)
+      fetchTodaySales(initialStoreId)
     }
-  }
+  }, [loading, initialStoreId, initialStoreName, isManager])
 
   const fetchProducts = async (storeId: string) => {
     try {
@@ -274,7 +226,6 @@ export default function SimpleSalesPage() {
   const handleStoreChange = async (newStoreId: string, newStoreName: string) => {
     setStoreId(newStoreId)
     setStoreName(newStoreName)
-    setLoading(true)
     setCart([]) // Clear cart when changing stores
     
     try {
@@ -282,8 +233,6 @@ export default function SimpleSalesPage() {
       await fetchTodaySales(newStoreId)
     } catch (error) {
       console.error('Error changing store:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -306,7 +255,7 @@ export default function SimpleSalesPage() {
           <StoreSelector
             selectedStoreId={storeId}
             onStoreChange={handleStoreChange}
-            userRole={userRole}
+            userRole={userRole || 'employee'}
           />
         </div>
       </div>
