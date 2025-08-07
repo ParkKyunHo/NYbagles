@@ -85,6 +85,7 @@ export default function EmployeesPage() {
     setUserRole(profile.role)
 
     // 매니저인 경우 자신의 매장 ID 가져오기
+    let managerStoreId = ''
     if (profile.role === 'manager') {
       const { data: employee } = await supabase
         .from('employees')
@@ -95,13 +96,14 @@ export default function EmployeesPage() {
       if (employee) {
         setUserStoreId(employee.store_id)
         setSelectedStore(employee.store_id)
+        managerStoreId = employee.store_id
       }
     }
 
-    await Promise.all([fetchEmployees(), fetchStores()])
+    await Promise.all([fetchEmployees(profile.role, managerStoreId), fetchStores()])
   }
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (role?: string, storeId?: string) => {
     setLoading(true)
     
     try {
@@ -124,13 +126,17 @@ export default function EmployeesPage() {
         .order('created_at', { ascending: false })
 
       // 매니저는 자기 매장 직원만 조회
-      if (userRole === 'manager' && userStoreId) {
-        query = query.eq('store_id', userStoreId)
+      const currentRole = role || userRole
+      const currentStoreId = storeId || userStoreId
+      
+      if (currentRole === 'manager' && currentStoreId) {
+        query = query.eq('store_id', currentStoreId)
       }
 
       const { data, error } = await query
 
       if (error) throw error
+      console.log('Fetched employees:', data?.length, 'records')
       setEmployees(data || [])
     } catch (error) {
       console.error('Error fetching employees:', error)
