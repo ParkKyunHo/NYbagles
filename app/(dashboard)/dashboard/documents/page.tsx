@@ -94,9 +94,9 @@ export default function DocumentsPage() {
         .from('employees')
         .select(`
           *,
-          profiles!inner(*)
+          profiles:user_id(*)
         `)
-        .order('profiles(full_name)');
+        .order('created_at', { ascending: false });
 
       // 매니저는 자기 매장 직원만
       if (userProfile.role === 'manager') {

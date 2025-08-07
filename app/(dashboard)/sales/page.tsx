@@ -49,7 +49,7 @@ export default function SalesPage() {
     // 사용자 프로필 조회
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, store_id')
+      .select('role')
       .eq('id', user.id)
       .single()
 
@@ -60,6 +60,13 @@ export default function SalesPage() {
     }
 
     setUserRole(profile.role)
+    
+    // 직원 정보에서 store_id 가져오기
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('store_id')
+      .eq('user_id', user.id)
+      .single()
 
     // 관리자/슈퍼관리자인 경우 모든 매장 목록 조회
     if (profile.role === 'super_admin' || profile.role === 'admin') {
@@ -80,42 +87,25 @@ export default function SalesPage() {
       }
     } else {
       // 일반 직원/매니저는 자신의 매장 정보만 조회
-      const { data: employeeRecord } = await supabase
-        .from('employees')
-        .select('store_id')
-        .eq('user_id', user.id)
+      if (!employee || !employee.store_id) {
+        alert('매장 정보를 찾을 수 없습니다.')
+        router.push('/dashboard')
+        return
+      }
+
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('id, name, code')
+        .eq('id', employee.store_id)
         .single()
 
-      if (!employeeRecord || !employeeRecord.store_id) {
-        // profiles에서 store_id 확인
-        if (profile.store_id) {
-          const { data: storeData } = await supabase
-            .from('stores')
-            .select('id, name, code')
-            .eq('id', profile.store_id)
-            .single()
-
-          if (storeData) {
-            setStore(storeData)
-            setSelectedStoreId(storeData.id)
-            await fetchProducts(storeData.id)
-          }
-        } else {
-          alert('매장이 할당되지 않았습니다. 관리자에게 문의하세요.')
-          router.push('/dashboard')
-        }
+      if (storeData) {
+        setStore(storeData)
+        setSelectedStoreId(storeData.id)
+        await fetchProducts(storeData.id)
       } else {
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('id, name, code')
-          .eq('id', employeeRecord.store_id)
-          .single()
-
-        if (storeData) {
-          setStore(storeData)
-          setSelectedStoreId(storeData.id)
-          await fetchProducts(storeData.id)
-        }
+        alert('매장이 할당되지 않았습니다. 관리자에게 문의하세요.')
+        router.push('/dashboard')
       }
     }
   }

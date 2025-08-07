@@ -82,7 +82,6 @@ export function Sidebar({ initialRole }: SidebarProps) {
         
         if (response.ok) {
           const data = await response.json()
-          console.log('[Sidebar] User role from API:', data.role)
           setUserRole(data.role)
         } else {
           // 폴백: 직접 Supabase에서 가져오기

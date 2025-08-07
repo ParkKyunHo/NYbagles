@@ -28,7 +28,6 @@ export default async function DashboardLayout({
       .single()
     
     userRole = profile?.role || 'employee'
-    console.log('[Layout] User role:', userRole)
   } catch (error) {
     console.error('[Layout] Error fetching role:', error)
     // 폴백: 일반 클라이언트로 시도
