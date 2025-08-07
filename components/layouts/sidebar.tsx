@@ -77,23 +77,33 @@ export function Sidebar({ initialRole }: SidebarProps) {
     
     const getUserRole = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        // API 라우트를 통해 role 가져오기 (RLS 우회)
+        const response = await fetch('/api/auth/user-role')
         
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single()
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[Sidebar] User role from API:', data.role)
+          setUserRole(data.role)
+        } else {
+          // 폴백: 직접 Supabase에서 가져오기
+          const { data: { user } } = await supabase.auth.getUser()
           
-          if (profile) {
-            setUserRole(profile.role)
-          } else {
-            setUserRole('employee')
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', user.id)
+              .single()
+            
+            if (profile) {
+              setUserRole(profile.role)
+            } else {
+              setUserRole('employee')
+            }
           }
         }
       } catch (error) {
-        console.error('Error fetching user role:', error)
+        console.error('[Sidebar] Error fetching role:', error)
         setUserRole('employee')
       } finally {
         setLoading(false)
