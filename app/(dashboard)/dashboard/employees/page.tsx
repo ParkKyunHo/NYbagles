@@ -141,9 +141,8 @@ export default function EmployeesPage() {
       }
       console.log('Fetched employees:', data?.length, 'records', data)
       
-      // profiles가 null인 경우 필터링
-      const validEmployees = (data || []).filter(employee => employee.profiles !== null)
-      setEmployees(validEmployees)
+      // RLS 정책이 수정되어 profiles가 제대로 조인되므로 필터링 제거
+      setEmployees(data || [])
     } catch (error) {
       console.error('Error fetching employees:', error)
     } finally {
@@ -351,11 +350,11 @@ export default function EmployeesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {employee.profiles.full_name || '이름 없음'}
+                        {employee.profiles?.full_name || '이름 없음'}
                       </div>
                       <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
                         <Mail className="h-3 w-3" />
-                        {employee.profiles.email}
+                        {employee.profiles?.email || 'N/A'}
                       </div>
                       <div className="text-xs text-gray-600 mt-1">
                         사번: {employee.employee_number}
@@ -371,8 +370,8 @@ export default function EmployeesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(employee.profiles.role)}`}>
-                      {getRoleLabel(employee.profiles.role)}
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(employee.profiles?.role || 'employee')}`}>
+                      {getRoleLabel(employee.profiles?.role || 'employee')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">

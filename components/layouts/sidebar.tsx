@@ -93,7 +93,8 @@ export function Sidebar({ initialRole }: SidebarProps) {
           }
         }
       } catch (error) {
-        // Error handled silently
+        console.error('Error fetching user role:', error)
+        setUserRole('employee')
       } finally {
         setLoading(false)
       }
