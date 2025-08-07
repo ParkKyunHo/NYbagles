@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -19,6 +18,8 @@ import {
   UserPlus
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuthCheck } from '@/hooks/useAuthCheck'
+import { useRouter } from 'next/navigation'
 
 interface Employee {
   id: string
@@ -49,409 +50,316 @@ interface Store {
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [stores, setStores] = useState<Store[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStore, setSelectedStore] = useState('')
   const [selectedRole, setSelectedRole] = useState('')
-  const [userRole, setUserRole] = useState<string>('')
-  const [userStoreId, setUserStoreId] = useState<string>('')
   const router = useRouter()
   const supabase = createClient()
+  
+  // 권한 체크 훅 사용
+  const { 
+    loading, 
+    userRole, 
+    storeId: userStoreId,
+    isManager,
+    isAdmin,
+    isSuperAdmin
+  } = useAuthCheck({
+    requiredRoles: ['super_admin', 'admin', 'manager'],
+    redirectTo: '/dashboard'
+  })
 
   useEffect(() => {
-    checkAuthAndLoadData()
-  }, [])
+    if (!loading && (isAdmin || isManager || isSuperAdmin)) {
+      loadData()
+    }
+  }, [loading, isAdmin, isManager, isSuperAdmin])
 
-  const checkAuthAndLoadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+  const loadData = async () => {
+    // 매니저인 경우 자신의 매장으로 필터 설정
+    if (userRole === 'manager' && userStoreId) {
+      setSelectedStore(userStoreId)
+    }
     
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    // 사용자 정보 및 권한 확인
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || !['super_admin', 'admin', 'manager'].includes(profile.role)) {
-      router.push('/dashboard')
-      return
-    }
-
-    setUserRole(profile.role)
-
-    // 매니저인 경우 자신의 매장 ID 가져오기
-    let managerStoreId = ''
-    if (profile.role === 'manager') {
-      const { data: employee } = await supabase
-        .from('employees')
-        .select('store_id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (employee) {
-        setUserStoreId(employee.store_id)
-        setSelectedStore(employee.store_id)
-        managerStoreId = employee.store_id
-      }
-    }
-
-    await Promise.all([fetchEmployees(profile.role, managerStoreId), fetchStores()])
+    await Promise.all([
+      fetchEmployees(userRole === 'manager' && userStoreId ? userStoreId : undefined),
+      fetchStores()
+    ])
   }
 
-  const fetchEmployees = async (role?: string, storeId?: string) => {
-    setLoading(true)
-    
+  const fetchEmployees = async (storeFilter?: string) => {
     try {
       let query = supabase
         .from('employees')
         .select(`
-          *,
-          profiles:user_id (
+          id,
+          employee_number,
+          user_id,
+          store_id,
+          is_active,
+          created_at,
+          profiles!employees_user_id_fkey (
             id,
             full_name,
             email,
             role
           ),
-          stores (
+          stores!employees_store_id_fkey (
             id,
             name,
             code
           )
         `)
-        .order('created_at', { ascending: false })
+        .eq('is_active', true)
 
-      // 매니저는 자기 매장 직원만 조회
-      const currentRole = role || userRole
-      const currentStoreId = storeId || userStoreId
-      
-      if (currentRole === 'manager' && currentStoreId) {
-        query = query.eq('store_id', currentStoreId)
+      // 매니저는 자신의 매장 직원만 조회
+      if (storeFilter) {
+        query = query.eq('store_id', storeFilter)
       }
 
       const { data, error } = await query
+        .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Query error:', error)
-        throw error
+        console.error('Error fetching employees:', error)
+      } else {
+        setEmployees(data || [])
       }
-      // console.log('Fetched employees:', data?.length, 'records', data)
-      
-      // RLS 정책이 수정되어 profiles가 제대로 조인되므로 필터링 제거
-      setEmployees(data || [])
     } catch (error) {
       console.error('Error fetching employees:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
   const fetchStores = async () => {
-    const { data } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id, name, code')
+        .eq('is_active', true)
+        .order('name')
 
-    setStores(data || [])
+      if (error) {
+        console.error('Error fetching stores:', error)
+      } else {
+        setStores(data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching stores:', error)
+    }
   }
 
-  const handleStatusToggle = async (employeeId: string, currentStatus: boolean) => {
-    if (!confirm(`정말로 이 직원을 ${currentStatus ? '비활성화' : '활성화'}하시겠습니까?`)) {
-      return
+  const handleRoleChange = async (employeeId: string, newRole: string) => {
+    const employee = employees.find(e => e.id === employeeId)
+    if (!employee) return
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', employee.user_id)
+
+    if (error) {
+      console.error('Error updating role:', error)
+      alert('역할 변경 중 오류가 발생했습니다.')
+    } else {
+      await fetchEmployees(userRole === 'manager' ? userStoreId : undefined)
+      alert('역할이 변경되었습니다.')
     }
+  }
+
+  const handleDeactivate = async (employeeId: string) => {
+    if (!confirm('정말로 이 직원을 비활성화하시겠습니까?')) return
 
     const { error } = await supabase
       .from('employees')
-      .update({ is_active: !currentStatus })
+      .update({ is_active: false })
       .eq('id', employeeId)
 
     if (error) {
-      alert('상태 변경에 실패했습니다.')
-      console.error(error)
+      console.error('Error deactivating employee:', error)
+      alert('직원 비활성화 중 오류가 발생했습니다.')
     } else {
-      fetchEmployees(userRole, userStoreId)
+      await fetchEmployees(userRole === 'manager' ? userStoreId : undefined)
+      alert('직원이 비활성화되었습니다.')
     }
   }
 
-  const getRoleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      super_admin: '최고관리자',
-      admin: '관리자',
-      manager: '매니저',
-      employee: '정직원',
-      part_time: '파트타임'
-    }
-    return labels[role] || role
-  }
-
-  const getRoleColor = (role: string) => {
-    const colors: Record<string, string> = {
-      super_admin: 'bg-purple-100 text-purple-800',
-      admin: 'bg-red-100 text-red-800',
-      manager: 'bg-blue-100 text-blue-800',
-      employee: 'bg-green-100 text-green-800',
-      part_time: 'bg-gray-100 text-gray-800'
-    }
-    return colors[role] || 'bg-gray-100 text-gray-800'
-  }
-
-  // 필터링
   const filteredEmployees = employees.filter(employee => {
-    // profiles가 없는 경우 제외
-    if (!employee.profiles) return false
-    
     const matchesSearch = !searchTerm || 
-      employee.profiles.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.profiles.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.employee_number.includes(searchTerm)
-
+    
     const matchesStore = !selectedStore || employee.store_id === selectedStore
-    const matchesRole = !selectedRole || employee.profiles.role === selectedRole
-
+    const matchesRole = !selectedRole || employee.profiles?.role === selectedRole
+    
     return matchesSearch && matchesStore && matchesRole
   })
 
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'bg-purple-100 text-purple-800'
+      case 'admin': return 'bg-red-100 text-red-800'
+      case 'manager': return 'bg-blue-100 text-blue-800'
+      case 'employee': return 'bg-green-100 text-green-800'
+      case 'part_time': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'super_admin': return '시스템 관리자'
+      case 'admin': return '관리자'
+      case 'manager': return '매니저'
+      case 'employee': return '정직원'
+      case 'part_time': return '파트타임'
+      default: return role
+    }
+  }
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-bagel-yellow"></div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <Users className="h-8 w-8 mr-3" />
-            직원 관리
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {userRole === 'manager' ? '매장 직원' : '전체 직원'} 목록을 관리합니다.
+          <h1 className="text-2xl font-semibold text-gray-900">직원 관리</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            전체 {filteredEmployees.length}명의 직원
           </p>
         </div>
-        {userRole !== 'manager' && (
-          <Button
-            onClick={() => router.push('/admin/signup-requests')}
-            className="bg-bagel-yellow hover:bg-yellow-600 text-black flex items-center gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
-            가입 승인
+        <div className="mt-4 sm:mt-0">
+          <Button onClick={() => router.push('/dashboard/employee-requests')}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            가입 요청 관리
           </Button>
-        )}
+        </div>
       </div>
 
-      {/* 필터 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-5 w-5 text-gray-700" />
-          <h2 className="text-lg font-semibold text-gray-900">필터</h2>
+      {/* 필터 섹션 */}
+      <div className="mt-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="이름, 이메일, 사번으로 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-bagel-yellow"
+            />
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              검색
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="이름, 이메일, 사번 검색"
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow"
-              />
-            </div>
-          </div>
-
-          {userRole !== 'manager' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                매장
-              </label>
-              <select
-                value={selectedStore}
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
-              >
-                <option value="">전체 매장</option>
-                {stores.map((store) => (
-                  <option key={store.id} value={store.id}>
-                    {store.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              직급
-            </label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bagel-yellow text-gray-900 bg-white"
-            >
-              <option value="">전체 직급</option>
-              <option value="manager">매니저</option>
-              <option value="employee">정직원</option>
-              <option value="part_time">파트타임</option>
-              {userRole === 'super_admin' && (
-                <>
-                  <option value="admin">관리자</option>
-                  <option value="super_admin">최고관리자</option>
-                </>
-              )}
-            </select>
-          </div>
-        </div>
+        {/* 매니저가 아닌 경우에만 매장 필터 표시 */}
+        {userRole !== 'manager' && (
+          <select
+            value={selectedStore}
+            onChange={(e) => setSelectedStore(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-bagel-yellow"
+          >
+            <option value="">모든 매장</option>
+            {stores.map(store => (
+              <option key={store.id} value={store.id}>
+                {store.name}
+              </option>
+            ))}
+          </select>
+        )}
+        
+        <select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-bagel-yellow"
+        >
+          <option value="">모든 역할</option>
+          <option value="manager">매니저</option>
+          <option value="employee">정직원</option>
+          <option value="part_time">파트타임</option>
+        </select>
       </div>
 
       {/* 직원 목록 */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  직원 정보
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  매장
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  직급
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  입사일
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  상태
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  작업
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEmployees.map((employee) => (
-                <tr key={employee.id} className={!employee.is_active ? 'bg-gray-50' : ''}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {employee.profiles?.full_name || '이름 없음'}
-                      </div>
-                      <div className="text-sm text-gray-700 flex items-center gap-1 mt-1">
-                        <Mail className="h-3 w-3" />
-                        {employee.profiles?.email || 'N/A'}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        사번: {employee.employee_number}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 text-gray-600 mr-2" />
-                      <span className="text-sm text-gray-900">
-                        {employee.stores?.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(employee.profiles?.role || 'employee')}`}>
-                      {getRoleLabel(employee.profiles?.role || 'employee')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-gray-600 mr-2" />
-                      {format(new Date(employee.created_at), 'yyyy-MM-dd', { locale: ko })}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {employee.is_active ? (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        활성
-                      </span>
-                    ) : (
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        비활성
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => router.push(`/dashboard/employees/${employee.id}`)}
-                        className="text-bagel-yellow hover:text-yellow-600"
-                        title="상세 보기"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      {(userRole === 'super_admin' || userRole === 'admin') && (
-                        <button
-                          onClick={() => handleStatusToggle(employee.id, employee.is_active)}
-                          className={employee.is_active ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
-                          title={employee.is_active ? '비활성화' : '활성화'}
-                        >
-                          <Shield className="h-5 w-5" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredEmployees.map((employee) => (
+          <div key={employee.id} className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {employee.profiles?.full_name || '이름 없음'}
+                </h3>
+                <p className="text-sm text-gray-500">#{employee.employee_number}</p>
+              </div>
+              <div className="relative">
+                <button className="p-1 rounded-full hover:bg-gray-100">
+                  <MoreVertical className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
 
-        {filteredEmployees.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-700">직원이 없습니다.</p>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center text-sm">
+                <Shield className="w-4 h-4 mr-2 text-gray-400" />
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(employee.profiles?.role || '')}`}>
+                  {getRoleDisplayName(employee.profiles?.role || '')}
+                </span>
+              </div>
+              
+              <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                {employee.stores?.name}
+              </div>
+              
+              <div className="flex items-center text-sm text-gray-600">
+                <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                {employee.profiles?.email}
+              </div>
+              
+              <div className="flex items-center text-sm text-gray-600">
+                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                {format(new Date(employee.created_at), 'yyyy년 MM월 dd일', { locale: ko })}
+              </div>
+            </div>
+
+            {(isSuperAdmin || isAdmin) && (
+              <div className="mt-4 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => router.push(`/dashboard/employees/${employee.id}`)}
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  상세
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDeactivate(employee.id)}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  비활성화
+                </Button>
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </div>
 
-      {/* 통계 */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-700">전체 직원</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            {employees.length}명
+      {filteredEmployees.length === 0 && (
+        <div className="mt-8 text-center py-12">
+          <Users className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">직원이 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            검색 조건에 맞는 직원이 없습니다.
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-700">활성 직원</h3>
-          <p className="text-2xl font-bold text-green-600 mt-1">
-            {employees.filter(e => e.is_active).length}명
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-700">매니저</h3>
-          <p className="text-2xl font-bold text-blue-600 mt-1">
-            {employees.filter(e => e.profiles?.role === 'manager').length}명
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-sm font-medium text-gray-700">파트타임</h3>
-          <p className="text-2xl font-bold text-gray-600 mt-1">
-            {employees.filter(e => e.profiles?.role === 'part_time').length}명
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
