@@ -3,7 +3,6 @@ import { createMiddlewareClient, refreshSession } from '@/lib/supabase/auth-help
 import { rateLimiters } from '@/lib/security/rateLimiter'
 import { applySecurityHeaders } from '@/lib/security/headers'
 import { corsMiddleware } from '@/lib/security/cors'
-import { PAGE_ACCESS, type UserRole } from '@/lib/auth/role-check'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -52,11 +51,11 @@ export async function middleware(request: NextRequest) {
   const protectedPaths = ['/dashboard', '/admin', '/attendance', '/products', '/sales', '/schedule']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
   
-  // Handle authentication for protected paths
+  // Handle authentication for protected paths (simplified)
   if (isProtectedPath && !pathname.startsWith('/api/')) {
     const supabase = createMiddlewareClient(request, response)
     
-    // Get user session
+    // Only check if user is authenticated
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
@@ -64,34 +63,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     
-    // Check role-based access for specific paths
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    
-    if (profile) {
-      const userRole = profile.role as UserRole
-      
-      // Find matching access rule
-      const pathKey = Object.keys(PAGE_ACCESS).find(path => 
-        pathname.startsWith(path)
-      ) as keyof typeof PAGE_ACCESS
-      
-      if (pathKey) {
-        const allowedRoles = PAGE_ACCESS[pathKey] as readonly UserRole[]
-        if (!allowedRoles.includes(userRole)) {
-          // Redirect to dashboard instead of returning 403
-          // This prevents the page from showing empty or broken content
-          console.warn(`Access denied: User role ${userRole} tried to access ${pathname}`)
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-        }
-      }
-    }
-    
     // Refresh session to maintain authentication
     response = await refreshSession(request, response)
+    
+    // Note: Role-based access control is now handled in the layout and pages
+    // This prevents the double-checking issue and makes the system more maintainable
   }
   
   // Redirect authenticated users away from login page
