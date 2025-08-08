@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before fixing and making new code, Find existing code first
 - Fix a code, step by step
 
-## Repository Status - 2025년 7월 31일 9차 업데이트 (RLS 정책 수정 및 코드 정리)
+## Repository Status - 2025년 8월 7일 최신 업데이트
 
 베이글샵 통합 관리 시스템이 프로덕션에 배포되었습니다.
 
@@ -22,169 +22,90 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **GitHub**: https://github.com/ParkKyunHo/NYbagles.git
 - **자동 배포**: main 브랜치 푸시 시 자동 배포
 
-### 현재 구현된 기능
-1. **QR 로그인 시스템**
-   - 매장별 고유 QR 코드 (30초마다 자동 갱신)
-   - TOTP 기반 보안 토큰
-   - 직원 회원가입 승인 프로세스
-   - 계층적 권한 관리 (super_admin → admin → manager → employee)
-   - QR 스캐너 페이지 구현 완료
+### 📊 시스템 아키텍처
 
-2. **인프라 시스템**
-   - 중앙집중식 에러 핸들링
-   - Rate Limiting 미들웨어
-   - CORS 및 보안 헤더
-   - 구조화된 로깅 시스템
-   - Seed 스크립트 (초기 데이터)
+#### 메인 시스템 테이블
+- **products_v3**: 메인 상품 관리 시스템 (핵심!)
+- **sales_transactions / sales_items**: 판매 트랜잭션 관리
+- **product_changes**: 상품 변경 승인 워크플로우
+- **inventory_movements**: 재고 이동 추적
 
-3. **데이터베이스 구조**
-   - 지역(regions) → 매장 카테고리(store_categories) → 매장(stores) 계층 구조
-   - QR 토큰 관리 및 검증 시스템
-   - 직원 회원가입 요청 관리
-   - 문서 스토리지 지원 (문서 만료 알림 시스템)
+#### 권한 시스템
+- super_admin: 전체 시스템 관리
+- admin: 전체 매장 관리
+- manager: 단일 매장 관리
+- employee: 판매 및 기본 업무
+- part_time: 파트타임 직원
 
-4. **급여 관리 시스템** (7/29 구현)
-   - 간소화된 시급 × 시간 계산
-   - 직원별 시급 설정
-   - 자동 근무시간 집계
-   - 월별 급여 조회 (/dashboard/salary)
+### 🔧 최근 해결된 이슈 (2025년 8월 7일)
 
-5. **페이지 구현 완료**
-   - 회원가입 선택 페이지 (/signup)
-   - 출퇴근 메인 페이지 (/dashboard/attendance)
-   - QR 스캔 페이지 (/dashboard/attendance/scan)
-   - 직원 대시보드 개선 (출퇴근 상태 표시)
-   - 급여 관리 페이지 (/dashboard/salary)
-   - 판매 관리 시스템 (/dashboard/sales)
-   - 직원 관리 시스템 (/dashboard/employees)
+1. **직원 관리 페이지 문제 해결**
+   - profiles RLS 정책 수정 (infinite recursion 오류 해결)
+   - 관리자/매니저가 소속 직원 프로필 조회 가능하도록 수정
+   - 중앙집중식 인증 훅 (useAuthCheck) 구현
 
-6. **브랜딩 및 디자인**
-   - 뉴욕러브 베이글 브랜드 컬러 적용 (노란색 #FDB813)
-   - 반응형 디자인 최적화
-   - 모바일 우선 UI/UX
+2. **대시보드 접근 문제 해결**
+   - 88개 파일의 분산된 인증 로직을 통합
+   - 일관된 권한 체크 시스템 구현
+   - 각 페이지별 역할 기반 접근 제어
 
-7. **초기 데이터 생성 완료**
-   - 지역 데이터: 전국 17개 시/도
-   - 매장 카테고리: 전국 229개 구/군/시
-   - 샘플 매장: NY베이글 강남역점, NY베이글 삼성점
-   - 초기화 스크립트: 
-     - `npx tsx scripts/initializeTestData.ts` - 기본 데이터
-     - `npx tsx scripts/addSeoulDistricts.ts` - 서울 25개 구
-     - `npx tsx scripts/addNationwideLocations.ts` - 전국 지역 데이터
+3. **배포 이슈 해결**
+   - useEffect 의존성 배열 경고 수정
+   - TypeScript 타입 오류 해결
+   - 빌드 성공 및 Vercel 배포 완료
 
-8. **최근 업데이트 (7/30 8차)**
-   - QR 출퇴근 대시보드 404 에러 수정
-   - 상품 관리 카테고리 모달 추가
-   - WCAG 접근성 개선 (폰트 대비)
-   - 매장 관리 UI 개선 (시/도, 구/군 레이블)
-   - 전국 지역 데이터 추가 (17개 시/도, 229개 구/군/시)
-   - 직원 회원가입 매장 선택 UI 개선
-   - **데이터베이스 수정**: store_id NULL 문제 해결, 프로필 동기화
-   - **코드 품질 개선**: ESLint 설정 추가, TypeScript 엄격 모드
-   - **수정 스크립트 추가**: `npm run fix:all` 명령어로 일괄 수정
+### 📁 핵심 파일 위치
 
-9. **상품 관리 시스템 개선 (7/30 8차 업데이트)**
-   - **RLS 정책 정리**: products, product_categories 테이블의 중복된 정책 제거
-   - **데이터 무결성**: NULL category_id 문제 해결, 기본 카테고리 할당
-   - **UI 개선**: 카테고리 관리 모달 폰트 색상 개선 (가독성 향상)
-   - **빌드 안정성**: ESLint 설정 간소화, QRScanner TypeScript 오류 수정
-   - **배포 완료**: GitHub 푸시 후 Vercel 자동 배포
+#### 인증 및 권한
+- `/hooks/useAuthCheck.ts` - 중앙집중식 인증 훅
+- `/lib/supabase/client.ts` - Supabase 클라이언트
 
-10. **RLS 정책 수정 및 코드 정리 (7/31 9차 업데이트)**
-   - **RLS 정책 전면 재구성**: 
-     - products, product_categories, store_products 테이블의 모든 중복 정책 제거
-     - 'authenticated' 역할로 통일된 정책 재생성
-     - store_products 자동 생성 트리거 추가
-   - **코드 정리 작업**:
-     - 중복 컴포넌트 제거 (EmployeeSignupFormFixed.tsx)
-     - 프로덕션 코드에서 console.log 12개 제거
-     - 오래된 마이그레이션 스크립트 5개 아카이브
-     - package.json의 사용하지 않는 스크립트 제거
-   - **진행중인 이슈**:
-     - 상품 로딩 오류 지속 ("상품을 불러오는 중 오류가 발생")
-     - 시스템 관리자 매장 선택 제한 문제
-     - 회원가입 시 비밀번호 입력란 누락
+#### 주요 페이지
+- `/app/(dashboard)/dashboard/employees/page.tsx` - 직원 관리
+- `/app/(dashboard)/sales/simple/page.tsx` - 간편 판매
+- `/app/(dashboard)/products/v2/page.tsx` - 상품 관리
+- `/app/(dashboard)/products/approvals/page.tsx` - 상품 승인
 
-11. **상품 관리 시스템 전면 재설계 (7/31 10차 업데이트)**
-   - **문제 인식**: 복잡한 상품 관리 시스템으로 인한 지속적인 오류
-   - **새로운 간소화 시스템 구현**:
-     - ⚡ 간편 판매 (/sales/simple): 클릭 한 번으로 판매 처리
-     - ⚡ 간편 상품관리 (/products/v2): 직관적인 상품 추가/수정
-     - ⚡ 일일 마감 (/sales/closing): 매일 판매 현황과 재고 확인
-   - **데이터베이스 재설계**:
-     - products_v2: 간소화된 상품 테이블 (매장별 직접 관리)
-     - sales: 판매 기록 (자동 재고 차감)
-     - daily_closing: 일일 마감 데이터
-   - **마이그레이션 파일**: 
-     - /supabase/migrations/20250131_redesign_product_system.sql
-     - 기존 시스템과 병행 운영 가능 (안전한 전환)
-   - **적용 방법**:
-     - Supabase SQL 에디터에서 마이그레이션 SQL 직접 실행
-     - 새 시스템 테스트 후 점진적 전환
+#### 데이터베이스
+- `/supabase/migrations/` - 모든 마이그레이션 파일
+- 최신 RLS 정책: 20250807_fix_profiles_rls.sql
 
-12. **시스템 중복 문제 분석 및 해결 (7/31 11차 업데이트)**
-   - **문제 발견**: 
-     - 기존 시스템(products + store_products)과 새 시스템(products_v2) 동시 작동
-     - "duplicate key constraint" 오류 발생
-     - 대시보드가 기존 시스템 참조로 업데이트 안됨
-   - **원인 분석**:
-     - products/v2 페이지의 자동 마이그레이션 로직이 충돌 유발
-     - 페이지별로 다른 시스템 참조하여 혼란 발생
-   - **해결 방향**:
-     - 단기: 자동 마이그레이션 제거, 시스템 명확히 분리
-     - 장기: 완전한 마이그레이션 후 기존 시스템 제거
-   - **진행 상태**: 문제 분석 완료, 해결책 수립
+### 🛠️ 개발 가이드
 
-13. **상품 승인 워크플로우 시스템 구현 (7/31 12차 업데이트)**
-   - **개선된 시스템 설계**:
-     - products_v3: 상태 관리 포함 (draft → pending_approval → approved → active)
-     - product_changes: 변경 이력 및 승인 워크플로우
-     - sales_transactions/sales_items: 판매 트랜잭션 관리
-     - inventory_movements: 재고 이동 추적
-   - **주요 기능**:
-     - 상품 변경 시 승인 요청 필수
-     - 관리자/매니저 승인 후 반영
-     - 완전한 감사 추적 (audit log)
-     - 자동 재고 관리 트리거
-   - **products/v2 페이지 수정**:
-     - 자동 마이그레이션 로직 제거 (duplicate key 오류 해결)
-     - products_v3 테이블 사용으로 변경
-     - 승인 워크플로우 통합
-   - **승인 페이지 구현 완료**:
-     - /products/approvals 페이지 추가
-     - 대기중/승인/거절 상태별 필터링
-     - 상세 정보 모달 및 승인/거절 기능
-     - RLS 정책 수정 (product_changes 조인 허용)
-   - **판매 시스템 업데이트 완료**:
-     - 간편 판매 페이지: sales_transactions/sales_items 사용
-     - 일일 마감 페이지: 새 시스템 데이터 조회
-     - 자동 재고 업데이트 (트리거 활용)
-   - **완료된 페이지**:
-     - products/v2: 자동 마이그레이션 제거, products_v3 사용
-     - products/approvals: 승인 워크플로우 관리
-     - sales/simple: sales_transactions/sales_items 사용
-     - sales/closing: 새 시스템 데이터 조회
-     - dashboard/analytics: 실시간 데이터 분석 (Excel 업로드 제거)
+#### 로컬 개발
+```bash
+npm install
+npm run dev
+```
 
-### 프로젝트 현황
-- **Phase 1 완료**: 시스템 안정화, 급여 시스템, 배포
-- **Phase 2 진행중**: 알림 시스템, 백업/복구, 문서 관리 UI
-- **상세 현황**: `/PROJECT_STATUS.md` 참조
+#### 빌드 테스트
+```bash
+npm run build
+npm run lint
+```
 
-### 관련 문서
-- 프로젝트 현황: `/PROJECT_STATUS.md`
-- 다음 작업 목록: `/NEXT_TASKS.md`
-- 코드 수정 가이드: `/UPDATE_GUIDE.md` ✨
-- 배포 가이드: `/VERCEL_DEPLOYMENT_GUIDE.md` ✨
-- 관리자 설정: `/ADMIN_SETUP_GUIDE.md`
-- 테스트 결과: `/TEST_RESULTS.md`
-- **수정 사항 요약**: `/FIX_SUMMARY.md` ✨ NEW!
+#### 배포
+```bash
+git add -A
+git commit -m "fix: 설명"
+git push origin main
+# Vercel 자동 배포
+```
 
+### ⚠️ 주의사항
 
-## MCP
-- Brave search : Search for 'React useEffect dependency array best practices' using brave search
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+1. **상품 시스템**: products_v3가 메인 시스템입니다
+2. **RLS 정책**: profiles 테이블 정책 수정 시 순환 참조 주의
+3. **인증**: useAuthCheck 훅 사용 권장
+4. **타입 안전성**: TypeScript strict mode 활성화됨
+
+### 📝 TODO
+
+- [ ] useEffect 의존성 경고 완전 제거
+- [ ] 알림 시스템 구현
+- [ ] 백업/복구 시스템 구현
+- [ ] 성능 최적화
+
+### 🔗 관련 문서
+- README.md - 프로젝트 개요 및 설치 가이드
+- PROJECT_STATUS.md - 상세 프로젝트 현황

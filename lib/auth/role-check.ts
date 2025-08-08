@@ -40,8 +40,11 @@ export const PAGE_ACCESS = {
   '/sales/summary': ['super_admin', 'admin', 'manager'],
   '/products': ['super_admin', 'admin', 'manager'],
   '/products/v2': ['super_admin', 'admin', 'manager'],
+  '/products/store': ['super_admin', 'admin', 'manager'],
   '/dashboard/analytics': ['super_admin', 'admin', 'manager'],
-  '/dashboard/salary': ['super_admin', 'admin', 'manager'],
+  
+  // Employee and above (no part_time for salary)
+  '/dashboard/salary': ['super_admin', 'admin', 'manager', 'employee'],
   
   // Admin and above
   '/dashboard/employees': ['super_admin', 'admin', 'manager'],
@@ -49,4 +52,9 @@ export const PAGE_ACCESS = {
   '/admin/signup-requests': ['super_admin', 'admin'],
   '/admin/stores': ['super_admin', 'admin'],
   '/admin': ['super_admin', 'admin'],
+  
+  // System admin only
+  '/admin/system-settings': ['super_admin'],
+  '/admin/permissions': ['super_admin'],
+  '/admin/backup': ['super_admin'],
 } as const
