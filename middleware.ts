@@ -82,12 +82,10 @@ export async function middleware(request: NextRequest) {
       if (pathKey) {
         const allowedRoles = PAGE_ACCESS[pathKey] as readonly UserRole[]
         if (!allowedRoles.includes(userRole)) {
-          // Return 403 Forbidden instead of redirecting
-          const errorResponse = NextResponse.json(
-            { error: '접근 권한이 없습니다.' },
-            { status: 403 }
-          )
-          return applySecurityHeaders(errorResponse)
+          // Redirect to dashboard instead of returning 403
+          // This prevents the page from showing empty or broken content
+          console.warn(`Access denied: User role ${userRole} tried to access ${pathname}`)
+          return NextResponse.redirect(new URL('/dashboard', request.url))
         }
       }
     }

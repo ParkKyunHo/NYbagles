@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useAuthCheck } from '@/hooks/useAuthCheck'
 
 interface Product {
   id: string
@@ -16,11 +17,18 @@ export default function QuickSalePage() {
   const [loading, setLoading] = useState(true)
   const [todaySales, setTodaySales] = useState(0)
   const supabase = createClient()
+  
+  // Add authentication check
+  const { loading: authLoading, storeId, storeName } = useAuthCheck({
+    requiredRoles: ['super_admin', 'admin', 'manager'] as const
+  })
 
   useEffect(() => {
-    fetchProducts()
-    fetchTodaySales()
-  }, [])
+    if (!authLoading && storeId) {
+      fetchProducts()
+      fetchTodaySales()
+    }
+  }, [authLoading, storeId])
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
@@ -114,7 +122,7 @@ export default function QuickSalePage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return <div className="p-8 text-center">로딩 중...</div>
   }
 
@@ -123,6 +131,7 @@ export default function QuickSalePage() {
       <div className="mb-6 bg-yellow-50 p-4 rounded-lg">
         <h1 className="text-2xl font-bold mb-2">🥯 빠른 판매</h1>
         <p className="text-xl text-black">오늘 매출: ₩{todaySales.toLocaleString()}</p>
+        {storeName && <p className="text-sm text-gray-600 mt-1">매장: {storeName}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
