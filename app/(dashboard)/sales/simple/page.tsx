@@ -52,9 +52,9 @@ export default function SimpleSalesPage() {
 
   const fetchProducts = async (storeId: string) => {
     try {
-      // Use products_v3 with active status
+      // Use products with active status
       const { data, error } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('store_id', storeId)
         .eq('status', 'active')
@@ -179,7 +179,7 @@ export default function SimpleSalesPage() {
       for (const item of cart) {
         // Get current stock
         const { data: product } = await supabase
-          .from('products_v3')
+          .from('products')
           .select('stock_quantity')
           .eq('id', item.product.id)
           .single()

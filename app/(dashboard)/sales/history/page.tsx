@@ -117,7 +117,7 @@ export default function SalesHistoryPage() {
           *,
           sales_items (
             *,
-            product:products_v3 (
+            product:products (
               id,
               name
             )

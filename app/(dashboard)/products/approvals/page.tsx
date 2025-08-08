@@ -119,7 +119,7 @@ export default function ProductApprovalsPage() {
         .from('product_changes')
         .select(`
           *,
-          product:products_v3!inner(
+          product:products!inner(
             id,
             sku,
             name,
@@ -197,7 +197,7 @@ export default function ProductApprovalsPage() {
         // 승인 후 product가 업데이트되었는지 확인
         if (data) {
           const { data: product, error: productError } = await supabase
-            .from('products_v3')
+            .from('products')
             .select('status')
             .eq('id', data.product_id)
             .single()
@@ -208,7 +208,7 @@ export default function ProductApprovalsPage() {
             console.warn('Product status not updated after approval, applying manual update')
             // 트리거가 실패한 경우 수동으로 업데이트
             await supabase
-              .from('products_v3')
+              .from('products')
               .update({ status: 'active' })
               .eq('id', data.product_id)
           }

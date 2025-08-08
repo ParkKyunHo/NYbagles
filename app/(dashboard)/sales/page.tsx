@@ -114,9 +114,9 @@ export default function SalesPage() {
     setLoading(true)
     
     try {
-      // 매장의 판매 가능한 상품 조회 (products_v3 사용)
+      // 매장의 판매 가능한 상품 조회 (products 사용)
       const { data, error } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('store_id', storeId)
         .eq('status', 'active')
@@ -125,7 +125,7 @@ export default function SalesPage() {
 
       if (error) throw error
 
-      // products_v3 형식으로 데이터 변환
+      // products 형식으로 데이터 변환
       const productsWithPrice = data?.map(product => ({
         ...product,
         price: product.base_price,

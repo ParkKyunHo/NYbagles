@@ -140,7 +140,7 @@ export default function DailyClosingPage() {
           *,
           sales_items(
             *,
-            product:products_v3(
+            product:products(
               id,
               name,
               stock_quantity
@@ -184,7 +184,7 @@ export default function DailyClosingPage() {
 
       // Get all products to include those with no sales
       const { data: allProducts } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('store_id', storeId)
         .eq('status', 'active')

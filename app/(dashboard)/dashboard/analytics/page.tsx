@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
               *,
               sales_items(
                 *,
-                product:products_v3(
+                product:products(
                   name,
                   category
                 )

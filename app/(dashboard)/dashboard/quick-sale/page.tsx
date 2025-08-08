@@ -24,7 +24,7 @@ export default function QuickSalePage() {
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
-      .from('products_v3')
+      .from('products')
       .select('id, name, base_price, stock_quantity')
       .eq('status', 'active')
       .order('name')
@@ -96,7 +96,7 @@ export default function QuickSalePage() {
 
       // 3. 재고 차감 (트리거가 자동으로 처리하지만 명시적으로도 업데이트)
       const { error: stockError } = await supabase
-        .from('products_v3')
+        .from('products')
         .update({ 
           stock_quantity: product.stock_quantity - 1 
         })

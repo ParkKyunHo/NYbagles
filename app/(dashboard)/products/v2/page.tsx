@@ -64,9 +64,9 @@ export default function ProductsV2Page() {
 
   const fetchProducts = async (storeId: string) => {
     try {
-      // Fetch from products_v3 (new system)
+      // Fetch from products (new system)
       const { data, error } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('store_id', storeId)
         .eq('status', 'active')
@@ -92,9 +92,9 @@ export default function ProductsV2Page() {
     }
 
     try {
-      // 1. 먼저 products_v3에 상품 생성 (draft 상태)
+      // 1. 먼저 products에 상품 생성 (draft 상태)
       const { data: product, error: productError } = await supabase
-        .from('products_v3')
+        .from('products')
         .insert({
           store_id: storeId,
           sku: 'SKU-' + Date.now(),
@@ -130,7 +130,7 @@ export default function ProductsV2Page() {
 
       if (changeError) {
         // 실패 시 상품도 삭제
-        await supabase.from('products_v3').delete().eq('id', product.id)
+        await supabase.from('products').delete().eq('id', product.id)
         throw changeError
       }
 
@@ -153,7 +153,7 @@ export default function ProductsV2Page() {
     try {
       // 현재 상품 정보 가져오기
       const { data: currentProduct } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('id', id)
         .single()

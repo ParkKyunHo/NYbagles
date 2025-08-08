@@ -135,7 +135,7 @@ export default function ProductsPage() {
     
     try {
       let query = supabase
-        .from('products_v3')
+        .from('products')
         .select(`
           *,
           stores (
@@ -183,7 +183,7 @@ export default function ProductsPage() {
 
     try {
       const { error } = await supabase
-        .from('products_v3')
+        .from('products')
         .update({ status: 'inactive' })
         .eq('id', productId as any)
 

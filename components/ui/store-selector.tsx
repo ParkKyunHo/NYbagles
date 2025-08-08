@@ -78,6 +78,7 @@ export function StoreSelector({
   }, [supabase])
 
   // Only show selector for admin and super_admin
+  // Managers can see their own store, so don't need selector
   if (!['super_admin', 'admin'].includes(userRole)) {
     return null
   }

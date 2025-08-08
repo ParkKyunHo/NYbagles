@@ -42,7 +42,7 @@ export default function EditProductPage() {
   const fetchProduct = async () => {
     try {
       const { data, error } = await supabase
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('id', productId)
         .single()

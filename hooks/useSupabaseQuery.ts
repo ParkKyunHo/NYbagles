@@ -74,7 +74,7 @@ export function useSupabaseQuery<T = any>(
 // const { data: products, loading, error, refetch } = useSupabaseQuery(
 //   async (supabase) => {
 //     const { data, error } = await supabase
-//       .from('products_v3')
+//       .from('products')
 //       .select('*')
 //       .eq('store_id', storeId)
 //     

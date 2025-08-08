@@ -99,10 +99,10 @@ export default function CreateProductPage() {
         throw new Error('올바른 가격을 입력해주세요.')
       }
 
-      // 상품 생성 (products_v3 사용)
+      // 상품 생성 (products 사용)
       const { data: { user } } = await supabase.auth.getUser()
       const { error: insertError } = await supabase
-        .from('products_v3')
+        .from('products')
         .insert({
           name: formData.name.trim(),
           description: formData.description.trim() || null,
