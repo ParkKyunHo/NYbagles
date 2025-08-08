@@ -26,11 +26,19 @@ export function useAuthCheck(options: UseAuthCheckOptions = {}) {
 
   const checkAuth = async () => {
     try {
-      // 1. 사용자 인증 확인
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      // 1. 사용자 인증 확인 - 세션 복구 시도
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (authError || !user) {
-        console.error('Auth error:', authError)
+      if (sessionError || !session) {
+        // 세션이 없으면 로그인 페이지로
+        console.log('No session found, redirecting to login')
+        router.push('/login')
+        return
+      }
+      
+      const user = session.user
+      if (!user) {
+        console.log('No user in session, redirecting to login')
         router.push('/login')
         return
       }
