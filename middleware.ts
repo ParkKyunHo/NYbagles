@@ -1,19 +1,24 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { createMiddlewareClient, refreshSession } from '@/lib/supabase/auth-helpers'
 import { rateLimiters } from '@/lib/security/rateLimiter'
 import { applySecurityHeaders } from '@/lib/security/headers'
 import { corsMiddleware } from '@/lib/security/cors'
-import { createClient } from '@/lib/supabase/middleware'
-import { PAGE_ACCESS, UserRole } from '@/lib/auth/role-check'
+import { PAGE_ACCESS, type UserRole } from '@/lib/auth/role-check'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  
+  // Create response object early
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
   // Apply rate limiting based on path
-  let rateLimiter = rateLimiters.api // default rate limiter
+  let rateLimiter = rateLimiters.api
   
   if (pathname.startsWith('/api/auth/')) {
-    // 회원가입 엔드포인트는 일반 API rate limit 사용
     if (pathname.includes('/signup')) {
       rateLimiter = rateLimiters.api
     } else {
@@ -27,34 +32,39 @@ export async function middleware(request: NextRequest) {
   const { allowed, remaining, resetTime } = await rateLimiter.checkLimit(request)
   
   if (!allowed) {
-    const response = NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Too many requests. Please try again later.' },
       { status: 429 }
     )
-    response.headers.set('X-RateLimit-Limit', rateLimiter['config'].maxRequests.toString())
-    response.headers.set('X-RateLimit-Remaining', '0')
-    response.headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString())
-    response.headers.set('Retry-After', Math.ceil((resetTime - Date.now()) / 1000).toString())
+    errorResponse.headers.set('X-RateLimit-Limit', rateLimiter['config'].maxRequests.toString())
+    errorResponse.headers.set('X-RateLimit-Remaining', '0')
+    errorResponse.headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString())
+    errorResponse.headers.set('Retry-After', Math.ceil((resetTime - Date.now()) / 1000).toString())
     
-    return applySecurityHeaders(response)
+    return applySecurityHeaders(errorResponse)
   }
 
-  // Update Supabase session
-  let response = await updateSession(request)
+  // Public paths that don't require authentication
+  const publicPaths = ['/', '/login', '/signup', '/api/auth', '/forgot-password']
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
   
-  // Role-based access control for protected paths
+  // Protected paths that require authentication
   const protectedPaths = ['/dashboard', '/admin', '/attendance', '/products', '/sales', '/schedule']
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
   
+  // Handle authentication for protected paths
   if (isProtectedPath && !pathname.startsWith('/api/')) {
-    const supabase = createClient(request, response)
-    const { data: { user } } = await supabase.auth.getUser()
+    const supabase = createMiddlewareClient(request, response)
     
-    if (!user) {
+    // Get user session
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error || !user) {
+      // Redirect to login if not authenticated
       return NextResponse.redirect(new URL('/login', request.url))
     }
     
-    // Check role-based access
+    // Check role-based access for specific paths
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -63,6 +73,8 @@ export async function middleware(request: NextRequest) {
     
     if (profile) {
       const userRole = profile.role as UserRole
+      
+      // Find matching access rule
       const pathKey = Object.keys(PAGE_ACCESS).find(path => 
         pathname.startsWith(path)
       ) as keyof typeof PAGE_ACCESS
@@ -70,9 +82,23 @@ export async function middleware(request: NextRequest) {
       if (pathKey) {
         const allowedRoles = PAGE_ACCESS[pathKey] as readonly UserRole[]
         if (!allowedRoles.includes(userRole)) {
+          // Redirect to dashboard if user doesn't have access
           return NextResponse.redirect(new URL('/dashboard', request.url))
         }
       }
+    }
+    
+    // Refresh session to maintain authentication
+    response = await refreshSession(request, response)
+  }
+  
+  // Redirect authenticated users away from login page
+  if (pathname === '/login' && !pathname.startsWith('/api/')) {
+    const supabase = createMiddlewareClient(request, response)
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 
@@ -95,11 +121,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - public files (images, etc)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

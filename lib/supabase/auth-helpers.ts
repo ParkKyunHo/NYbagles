@@ -1,11 +1,14 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
- * @deprecated Use createMiddlewareClient from auth-helpers.ts instead
- * This function is kept for backward compatibility
+ * Create a Supabase client for server-side operations with proper cookie handling
+ * This ensures session persistence across requests
  */
-export function createClient(request: NextRequest, response: NextResponse) {
+export function createMiddlewareClient(
+  request: NextRequest,
+  response: NextResponse
+) {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,6 +18,7 @@ export function createClient(request: NextRequest, response: NextResponse) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Set cookie on both request and response to maintain consistency
           request.cookies.set({
             name,
             value,
@@ -27,6 +31,7 @@ export function createClient(request: NextRequest, response: NextResponse) {
           })
         },
         remove(name: string, options: CookieOptions) {
+          // Remove cookie from both request and response
           request.cookies.set({
             name,
             value: '',
@@ -44,20 +49,17 @@ export function createClient(request: NextRequest, response: NextResponse) {
 }
 
 /**
- * @deprecated Use refreshSession from auth-helpers.ts instead
- * This function is kept for backward compatibility
+ * Refresh the session and return updated response
+ * This prevents session expiry and maintains authentication state
  */
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  const supabase = createClient(request, response)
+export async function refreshSession(
+  request: NextRequest,
+  response: NextResponse
+) {
+  const supabase = createMiddlewareClient(request, response)
   
-  // Refresh the session
+  // This will refresh the session if needed and update cookies
   await supabase.auth.getSession()
-
+  
   return response
 }
