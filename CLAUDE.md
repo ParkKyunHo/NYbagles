@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status - 2025년 8월 9일 최신 업데이트
 
-베이글샵 통합 관리 시스템 - **인증 시스템 재설계 및 서버 컴포넌트 마이그레이션 진행 중**
+베이글샵 통합 관리 시스템 - **서버 컴포넌트 마이그레이션 완료 및 최적화 진행 중**
 
 ### 🚀 배포 정보
 - **프로덕션 사이트**: https://nybagles.vercel.app
@@ -35,16 +35,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `/contexts/AuthContext.tsx` - 클라이언트 상태 관리
   - 미들웨어 단순화 (인증만 체크, 권한은 페이지에서)
 
-#### 2. 서버 컴포넌트 마이그레이션 (진행 중)
-- **완료**: 
-  - `/app/(dashboard)/dashboard/quick-sale/page.tsx` - 서버 컴포넌트로 전환
-  - `/app/(dashboard)/dashboard/quick-sale/QuickSaleClient.tsx` - 클라이언트 인터랙션 분리
-  - `/app/api/sales/quick/route.ts` - Server Action 구현
+#### 2. 서버 컴포넌트 마이그레이션 ✅
+- **완료된 페이지**: 
+  - `/app/(dashboard)/dashboard/quick-sale/` - 간편 판매
+  - `/app/(dashboard)/sales/summary/` - 매출 요약 (캐싱 적용)
+  - `/app/(dashboard)/sales/history/` - 판매 내역
+  - `/app/(dashboard)/products/` - 상품 관리
+  - `/app/(dashboard)/dashboard/employees/` - 직원 관리 (2025년 8월 9일 완료)
+
+- **구현된 기능**:
+  - `/lib/data/sales.data.ts` - 판매 데이터 레이어 (캐싱)
+  - `/lib/data/products.data.ts` - 상품 데이터 레이어 (캐싱)
+  - `/lib/data/employees.data.ts` - 직원 데이터 레이어 (캐싱)
+  - `/lib/actions/sales.actions.ts` - 판매 Server Actions
+  - `/lib/actions/products.actions.ts` - 상품 Server Actions
+  - `/lib/actions/employees.actions.ts` - 직원 Server Actions
+  - 에러 바운더리 및 로딩 상태 구현
 
 - **대기 중**:
-  - 판매 관련 페이지들 (/sales/*)
-  - 상품 관리 페이지들 (/products/*)
-  - 직원 관리 페이지들 (/dashboard/employees/*)
+  - 직원 상세 페이지 (/dashboard/employees/[id])
+  - 급여 관리 페이지 (/dashboard/salary)
+  - 기타 클라이언트 컴포넌트 페이지들
 
 ### 📊 개선된 시스템 아키텍처
 
@@ -108,6 +119,86 @@ app/
 - `/app/(dashboard)/products/v2/page.tsx` - 상품 관리
 - `/app/(dashboard)/products/approvals/page.tsx` - 상품 승인
 
+### 📋 직원 관리 시스템 구현 (2025년 8월 9일)
+
+#### 구현된 기능
+1. **서버 컴포넌트 전환**
+   - 직원 목록 페이지를 서버 컴포넌트로 전환
+   - 클라이언트 인터랙션 부분만 분리
+
+2. **데이터 레이어 (`/lib/data/employees.data.ts`)**
+   - `getEmployees`: 직원 목록 조회 (5분 캐싱)
+   - `getEmployeeStats`: 직원 통계 (10분 캐싱)
+   - `getAttendanceRecords`: 출근 기록 (1분 캐싱 - 실시간성)
+   - `getSalaryCalculations`: 급여 계산 내역 (5분 캐싱)
+   - `getMonthlyWorkSummary`: 월간 근무 요약 (5분 캐싱)
+   - `getDepartments`: 부서 목록 (1시간 캐싱)
+
+3. **Server Actions (`/lib/actions/employees.actions.ts`)**
+   - `createEmployee`: 트랜잭션 기반 직원 생성 (Auth + Profile + Employee)
+   - `updateEmployee`: 직원 정보 수정
+   - `deactivateEmployee`: 직원 비활성화 및 로그인 차단
+   - `activateEmployee`: 직원 재활성화
+   - `checkIn/checkOut`: 출퇴근 체크
+   - `calculateSalary`: 급여 계산
+
+4. **권한 관리**
+   - super_admin/admin: 모든 직원 관리
+   - manager: 자기 매장 직원만 관리
+   - 역할별 기능 제한 적용
+
+### 🔧 자주 발생하는 오류 및 해결 가이드
+
+#### 1. Supabase RLS 정책 오류
+**문제**: `new row violates row-level security policy` 
+**원인**: profiles 테이블 RLS 정책과 employees 테이블 간 순환 참조
+**해결책**:
+```sql
+-- Admin 클라이언트 사용하여 RLS 우회
+const adminClient = createAdminClient()
+```
+
+#### 2. 트랜잭션 롤백 처리
+**문제**: 직원 생성 중 일부 단계 실패
+**해결책**:
+```typescript
+// Auth 사용자 생성 실패 시 자동 롤백
+if (profileError) {
+  await adminClient.auth.admin.deleteUser(authData.user.id)
+  throw profileError
+}
+```
+
+#### 3. 캐시 무효화 누락
+**문제**: 데이터 변경 후 UI 업데이트 안됨
+**해결책**:
+```typescript
+revalidateTag('employees')  // 태그 기반 무효화
+revalidateTag('stats')      // 관련 통계도 함께
+revalidatePath('/dashboard/employees')  // 경로 무효화
+```
+
+#### 4. 병렬 페칭 최적화
+**문제**: 순차적 데이터 페칭으로 느린 로딩
+**해결책**:
+```typescript
+const [employees, stats, stores, departments] = await Promise.all([
+  getEmployees(filters),
+  getEmployeeStats(storeId),
+  getStores(),
+  getDepartments()
+])
+```
+
+#### 5. 권한 체크 누락
+**문제**: 매니저가 다른 매장 직원 수정 가능
+**해결책**:
+```typescript
+if (user.role === 'manager' && existingEmployee.store_id !== user.storeId) {
+  throw new Error('다른 매장의 직원 정보를 수정할 수 없습니다')
+}
+```
+
 ### 🛠️ 개발 가이드
 
 #### 새 페이지 작성 시 (서버 컴포넌트)
@@ -143,28 +234,34 @@ export default function ClientComponent({ data, user }) {
 
 ### 📝 TODO (우선순위 순)
 
-#### 즉시 처리
+#### 완료된 작업 ✅
 - [x] 대시보드 리다이렉션 문제 해결
 - [x] Supabase 세션 관리 개선
 - [x] 인증 시스템 통합
-
-#### 진행 중
-- [ ] 서버 컴포넌트 마이그레이션
+- [x] 서버 컴포넌트 마이그레이션 (주요 페이지)
   - [x] 간편판매 페이지
-  - [ ] 판매 관련 페이지들
-  - [ ] 상품 관리 페이지들
-  - [ ] 직원 관리 페이지들
+  - [x] 매출 요약 페이지
+  - [x] 판매 내역 페이지
+  - [x] 상품 관리 페이지
+  - [x] 직원 관리 페이지 (2025년 8월 9일)
+- [x] Server Actions 구현 (판매/상품/직원)
+- [x] 캐싱 전략 구현 (unstable_cache)
+- [x] 에러 바운더리 및 로딩 상태 개선
+
+#### 진행 예정
+- [ ] 성능 최적화
+  - [ ] 이미지 최적화 (next/image)
+  - [ ] 번들 사이즈 감소
+  - [ ] 데이터베이스 쿼리 최적화
+- [ ] 프로덕션 배포 준비
+  - [ ] 환경 변수 검증
+  - [ ] 에러 모니터링 설정
+  - [ ] 백업 전략 수립
 
 #### 추후 작업
-- [ ] 성능 최적화
-  - [ ] Next.js 캐싱 전략
-  - [ ] 이미지 최적화
-  - [ ] 번들 사이즈 감소
-- [ ] 에러 처리 개선
-  - [ ] Error boundaries 구현
-  - [ ] 404/500 페이지 개선
-  - [ ] 사용자 친화적 메시지
 - [ ] 알림 시스템 구현
+- [ ] PWA 기능 강화
+- [ ] 실시간 데이터 업데이트 (Supabase Realtime)
 - [ ] 백업/복구 시스템 구현
 
 ### 🔗 관련 문서
