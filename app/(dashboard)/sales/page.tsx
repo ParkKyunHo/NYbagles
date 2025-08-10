@@ -157,6 +157,7 @@ export default function SalesPage() {
         product_id: product.id,
         quantity: 1,
         unit_price: product.price,
+        subtotal: product.price,
         discount_amount: 0,
         product
       }])
@@ -195,8 +196,11 @@ export default function SalesPage() {
     setSubmitting(true)
 
     try {
+      const totalAmount = cart.reduce((sum, item) => sum + item.subtotal - (item.discount_amount || 0), 0)
       const saleData = {
+        store_id: selectedStoreId || store?.id || '',
         items: cart.map(({ product, ...item }) => item),
+        total_amount: totalAmount,
         payment_method: paymentMethod,
         notes
       }

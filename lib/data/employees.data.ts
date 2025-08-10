@@ -238,8 +238,9 @@ export const getEmployeeStats = unstable_cache(
     
     // 역할별 집계
     employees.forEach(emp => {
-      const role = emp.profiles?.role || 'unknown'
-      stats.byRole[role] = (stats.byRole[role] || 0) + 1
+      // profiles is a single object, not an array
+      const profileRole = (emp.profiles as any)?.role || 'unknown'
+      stats.byRole[profileRole] = (stats.byRole[profileRole] || 0) + 1
       
       if (emp.department) {
         stats.byDepartment[emp.department] = (stats.byDepartment[emp.department] || 0) + 1

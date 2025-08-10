@@ -9,10 +9,13 @@ export interface SaleRecord {
   sale_date: string
   sale_time: string
   payment_method: PaymentMethod
+  status?: 'completed' | 'cancelled' | 'pending'
   notes?: string | null
   is_canceled: boolean
   canceled_at?: string | null
   canceled_by?: string | null
+  cancelled_at?: string | null
+  cancellation_reason?: string | null
   created_at: string
   
   // Relations
@@ -98,8 +101,13 @@ export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'mobile' | 'other'
 export type UserRole = 'super_admin' | 'admin' | 'manager' | 'employee' | 'part_time'
 
 export interface CreateSaleRequest {
+  store_id: string
   items: CreateSaleItem[]
+  total_amount: number
+  tax_amount?: number
+  discount_amount?: number
   payment_method: PaymentMethod
+  customer_phone?: string
   notes?: string
 }
 
@@ -107,6 +115,7 @@ export interface CreateSaleItem {
   product_id: string
   quantity: number
   unit_price: number
+  subtotal: number
   discount_amount?: number
 }
 
@@ -128,23 +137,19 @@ export interface DailySalesSummary {
 }
 
 export interface SalesSummaryResponse {
-  summaries: DailySalesSummary[] | AggregatedSummary[]
-  total_stats: {
-    total_sales: number
-    cash_sales: number
-    card_sales: number
-    other_sales: number
-    transaction_count: number
-    canceled_count: number
-    days: number
-    daily_average: number
-    transaction_average: number
+  totalRevenue: number
+  totalTransactions: number
+  averageTransaction: number
+  dailySales: any[]
+  popularProducts: PopularProduct[]
+  paymentMethodBreakdown: {
+    cash: number
+    card: number
+    transfer: number
+    mobile: number
+    other: number
   }
-  period: {
-    start_date: string
-    end_date: string
-    group_by: 'day' | 'week' | 'month'
-  }
+  degraded?: boolean
 }
 
 export interface AggregatedSummary {
