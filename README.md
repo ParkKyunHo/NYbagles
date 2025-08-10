@@ -6,7 +6,7 @@ Next.js 14와 Supabase를 활용한 베이글샵 통합 관리 시스템입니�
 
 ## 주요 기능
 
-- 🔐 **인증 시스템**: Supabase Auth를 통한 안전한 로그인
+- 🔐 **통합 인증 시스템**: 엔터프라이즈급 통합 인증 (`/lib/auth/unified-auth`)
 - 📱 **QR 출퇴근**: QR코드 기반 출퇴근 관리
   - 매장별 고유 QR 코드 (30초마다 자동 갱신)
   - 직원 QR 코드 스캔을 통한 출퇴근 기록
@@ -109,6 +109,22 @@ Vercel 대시보드에서 다음 환경 변수를 설정하세요:
 
 자세한 배포 가이드는 [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md)를 참조하세요.
 
+## 개발 가이드
+
+### 🚨 필수 인증 시스템 사용 규칙
+
+새로운 페이지나 기능을 개발할 때 **반드시** 통합 인증 시스템을 사용하세요:
+
+```typescript
+// ✅ 올바른 사용
+import { requireAuth, requireRole } from '@/lib/auth/unified-auth'
+
+// ❌ 잘못된 사용 (레거시 시스템 사용 금지!)
+import { getAuthUser } from '@/lib/auth/server-auth'  // 사용 금지!
+```
+
+자세한 개발 가이드는 [CLAUDE.md](./CLAUDE.md)의 **개발 가이드** 섹션을 참조하세요.
+
 ## 코드 수정 및 업데이트
 
 코드 수정 후 자동 배포 프로세스는 [UPDATE_GUIDE.md](./UPDATE_GUIDE.md)를 참조하세요.
@@ -129,7 +145,17 @@ MIT
 2. `cd /home/albra/NYbalges/bagel-shop`
 3. `npm run dev`
 
-## 최근 업데이트 (2025-08-04)
+## 최근 업데이트 (2025-08-10)
+- 🔐 **통합 인증 시스템 구현** (`/lib/auth/unified-auth`)
+  - 모든 대시보드 접근 문제 해결
+  - 중복 인증 코드 제거 및 성능 최적화
+  - 엔터프라이즈급 보안 강화
+- 📝 **코드 규칙 문서화** 
+  - 인증 시스템 사용 가이드
+  - 데이터베이스 컬럼명 확인 규칙
+  - 개발 체크리스트 추가
+
+## 이전 업데이트 (2025-08-04)
 - 상품 관리 시스템 개선
 - 매장별 상품 표시 기능 추가
 - UI/UX 개선 (텍스트 가독성 향상)

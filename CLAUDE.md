@@ -221,6 +221,25 @@ app/
 
 ### 🔧 자주 발생하는 오류 및 해결 가이드
 
+#### 0. 대시보드 접근 시 홈으로 리다이렉트되는 문제
+**증상**: 로그인 성공 후 대시보드 클릭 시 홈으로 돌아감
+**원인**: 
+- 서버 컴포넌트에서 잘못된 인증 시스템 사용
+- 데이터베이스 컬럼명 불일치 (user_id vs profile_id)
+- 중복 인증 체크로 인한 세션 충돌
+
+**해결책**:
+```typescript
+// 1. 통합 인증 시스템 사용
+import { requireAuth } from '@/lib/auth/unified-auth'
+
+// 2. 올바른 컬럼명 사용
+.eq('user_id', user.id)  // employees 테이블
+
+// 3. 중복 인증 제거
+// 미들웨어는 인증만, 권한은 페이지에서
+```
+
 #### 1. Supabase RLS 정책 오류
 **문제**: `new row violates row-level security policy` 
 **원인**: profiles 테이블 RLS 정책과 employees 테이블 간 순환 참조
@@ -273,10 +292,83 @@ if (user.role === 'manager' && existingEmployee.store_id !== user.storeId) {
 
 ### 🛠️ 개발 가이드
 
+#### 🚨 필수 코드 규칙 (재발 방지)
+
+##### 1. 인증 시스템 사용 규칙
+```typescript
+// ✅ 올바른 사용 - 통합 인증 시스템 사용
+import { requireAuth, requireRole, checkPageAccess } from '@/lib/auth/unified-auth'
+
+// ❌ 잘못된 사용 - 레거시 인증 시스템 사용 금지
+import { getAuthUser } from '@/lib/auth/server-auth' // 사용 금지!
+import { useAuthCheck } from '@/hooks/useAuthCheck' // 레거시, 사용 금지!
+```
+
+##### 2. 데이터베이스 컬럼명 확인
+```typescript
+// ✅ 올바른 컬럼명 사용
+.eq('user_id', user.id)  // employees 테이블은 user_id 사용
+.eq('id', user.id)       // profiles 테이블은 id 사용
+
+// ❌ 잘못된 컬럼명 - 실제 스키마와 불일치
+.eq('profile_id', user.id)  // employees 테이블에 profile_id 컬럼 없음!
+```
+
+##### 3. 서버 컴포넌트 인증 패턴
+```typescript
+// ✅ 올바른 서버 컴포넌트 패턴
+export default async function PageName() {
+  // 1. 인증 먼저 체크
+  const user = await requireAuth() // 또는 requireRole(['admin'])
+  
+  // 2. Admin 클라이언트로 데이터 페칭 (RLS 우회)
+  const adminClient = createAdminClient()
+  const data = await adminClient.from('table').select('*')
+  
+  // 3. 클라이언트 컴포넌트에 전달
+  return <ClientComponent data={data} user={user} />
+}
+
+// ❌ 잘못된 패턴 - 중복 인증 체크
+export default async function PageName() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser() // 중복!
+  if (!user) redirect('/login') // 중복!
+  // ... 이미 unified-auth가 처리함
+}
+```
+
+##### 4. 권한 체크 위치
+```typescript
+// ✅ 올바른 위치 - 페이지 컴포넌트에서 체크
+// app/(dashboard)/admin/page.tsx
+export default async function AdminPage() {
+  const user = await requireRole(['super_admin', 'admin'])
+  // ...
+}
+
+// ❌ 잘못된 위치 - 미들웨어에서 권한 체크
+// middleware.ts
+if (user.role !== 'admin') { // 미들웨어는 인증만, 권한은 페이지에서!
+  redirect('/dashboard')
+}
+```
+
+##### 5. 데이터 페칭 전략
+```typescript
+// ✅ 올바른 전략 - Admin 클라이언트 사용
+const adminClient = createAdminClient() // RLS 우회
+const { data } = await adminClient.from('employees').select('*')
+
+// ❌ 잘못된 전략 - 일반 클라이언트로 RLS 제한 받음
+const supabase = await createClient()
+const { data } = await supabase.from('employees').select('*') // RLS 제한!
+```
+
 #### 새 페이지 작성 시 (서버 컴포넌트)
 ```typescript
 // page.tsx (서버 컴포넌트)
-import { requireRole } from '@/lib/auth/server-auth'
+import { requireRole } from '@/lib/auth/unified-auth' // 통합 인증 사용!
 
 export default async function PageName() {
   const user = await requireRole(['admin', 'manager'])
@@ -299,10 +391,38 @@ export default function ClientComponent({ data, user }) {
 ### ⚠️ 주의사항
 
 1. **테이블 이름**: `products` 테이블 사용 (products_v3 아님)
-2. **인증 시스템**: 새 페이지는 `/lib/auth/server-auth.ts` 사용
+2. **인증 시스템**: 새 페이지는 `/lib/auth/unified-auth` 사용 (server-auth 아님!)
 3. **미들웨어**: 권한 체크 하지 않음 (인증만)
 4. **서버 컴포넌트**: 가능한 모든 페이지를 서버 컴포넌트로
 5. **RLS 정책**: profiles 테이블 정책 수정 시 순환 참조 주의
+
+### ✅ 개발 체크리스트 (새 기능 추가 시)
+
+#### 인증 관련 체크리스트
+- [ ] `/lib/auth/unified-auth` 임포트 사용했는가?
+- [ ] 레거시 인증 시스템 (`server-auth.ts`, `useAuthCheck`) 사용하지 않았는가?
+- [ ] 서버 컴포넌트에서 `requireAuth()` 또는 `requireRole()` 호출했는가?
+- [ ] 중복 인증 체크 없는가? (미들웨어와 페이지 둘 다 체크 X)
+- [ ] 권한 체크는 페이지 컴포넌트에서만 하는가? (미들웨어 X)
+
+#### 데이터베이스 체크리스트
+- [ ] 실제 테이블 스키마 확인했는가? (추측 금지)
+- [ ] employees 테이블은 `user_id` 컬럼 사용하는가?
+- [ ] profiles 테이블은 `id` 컬럼 사용하는가?
+- [ ] RLS 우회 필요시 `createAdminClient()` 사용했는가?
+- [ ] 일반 클라이언트로 제한된 데이터 접근 시도하지 않았는가?
+
+#### 성능 체크리스트
+- [ ] React `cache` 또는 `unstable_cache` 활용했는가?
+- [ ] 병렬 데이터 페칭 (`Promise.all`) 사용했는가?
+- [ ] 불필요한 중복 쿼리 없는가?
+- [ ] 클라이언트 컴포넌트 최소화했는가?
+
+#### 에러 처리 체크리스트
+- [ ] 비활성 사용자 체크했는가?
+- [ ] 비활성 매장 체크했는가?
+- [ ] 적절한 에러 메시지 제공하는가?
+- [ ] 에러 시 적절한 리다이렉트 처리했는가?
 
 ### 🎯 모듈화 시스템 특징 (2025년 8월 10일)
 
