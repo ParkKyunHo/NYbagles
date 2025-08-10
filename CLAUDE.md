@@ -15,27 +15,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status - 2025년 8월 10일 최신 업데이트
 
-베이글샵 통합 관리 시스템 - **서버 컴포넌트 마이그레이션 완료 및 최적화 진행 중**
+베이글샵 통합 관리 시스템
 
 ### 🚀 배포 정보
 - **프로덕션 사이트**: https://nybagles.vercel.app
 - **GitHub**: https://github.com/ParkKyunHo/NYbagles.git
 - **자동 배포**: main 브랜치 푸시 시 자동 배포
 
-### 🏗️ 최근 시스템 재설계 (2025년 8월 10일)
+### 🛡️ Supabase RLS 정책 문제 해결 가이드 (2025년 8월 10일) ⚠️
 
-#### 🎯 통합 인증 시스템 구현 완료 (2025년 8월 10일) ✅
+#### RLS 무한 재귀 오류 해결 방법
+**증상**: `infinite recursion detected in policy for relation "employees"` 또는 500 에러
 
-#### 문제점 해결
-- **원인**: employees 테이블이 user_id 컬럼 사용 (profile_id 아님)
-- **해결**: 데이터베이스 스키마 확인 후 올바른 컬럼 사용
-- **구현**: `/lib/auth/unified-auth.ts` - 엔터프라이즈급 통합 인증 시스템
+**원인**: 
+- profiles ↔ employees 테이블 간 순환 참조
+- 복잡한 조인 체인으로 인한 무한 루프
 
-#### 통합 인증 시스템 특징
-- **캐싱**: React cache 함수로 요청당 한 번만 인증 체크
-- **중복 제거**: 모든 인증 로직을 단일 모듈로 통합
-- **엔터프라이즈급**: 비활성 사용자/매장 체크, 역할 기반 접근 제어
-- **성능 최적화**: Admin 클라이언트로 RLS 우회, 병렬 데이터 페칭
+**해결책**:
+```sql
+-- 모든 RLS 정책을 단순화
+-- profiles, employees, stores 테이블을 모든 인증된 사용자가 읽기 가능하도록 설정
+-- 민감한 데이터는 애플리케이션 레벨에서 필터링
+```
+
+**주의사항**:
+- RLS 정책 수정 시 EXISTS 절과 LIMIT 사용으로 순환 참조 방지
+- 복잡한 조인 대신 단순 서브쿼리 사용
+- 테이블 간 직접 참조 최소화
 
 #### 인증 API
 ```typescript
@@ -55,29 +61,7 @@ const user = await checkStoreAccess(storeId)
 const user = await getAuthUserForAPI()
 ```
 
-### 🆕 SaaS급 모듈화 시스템 구현 ✅
-- **문제점**:
-  - 모듈 간 의존성 높음
-  - 한 모듈의 오류가 다른 모듈에 영향
-  - 재시도 및 복구 메커니즘 부재
-  - 테스트 자동화 미비
 
-- **해결책**:
-  - `/lib/core/` - 의존성 주입 컨테이너 구현
-  - `/lib/resilience/` - Circuit Breaker, Retry, Fallback 패턴
-  - `/lib/modules/` - 독립적인 서비스 모듈 (Sales, Products)
-  - E2E 테스트 자동화 (Playwright, 1초 딜레이)
-
-#### 1. 인증 시스템 통합 ✅
-- **문제점**: 
-  - 서버 컴포넌트, 클라이언트 컴포넌트, 미들웨어에서 각각 다른 인증 처리
-  - 대시보드 클릭 시 리다이렉션 문제 발생
-  - Supabase 데이터 로딩 실패
-
-- **해결책**:
-  - `/lib/auth/server-auth.ts` - 서버 사이드 인증 통합
-  - `/contexts/AuthContext.tsx` - 클라이언트 상태 관리
-  - 미들웨어 단순화 (인증만 체크, 권한은 페이지에서)
 
 #### 2. 서버 컴포넌트 마이그레이션 ✅
 - **완료된 페이지**: 
