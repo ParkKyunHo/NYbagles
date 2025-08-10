@@ -1,4 +1,4 @@
-import { requireRole } from '@/lib/auth/server-auth'
+import { requireRole } from '@/lib/auth/unified-auth'
 import { createClient } from '@/lib/supabase/server'
 import QuickSaleClient from './QuickSaleClient'
 

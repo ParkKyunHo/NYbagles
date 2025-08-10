@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { requireRole } from '@/lib/auth/server-auth'
+import { requireRole } from '@/lib/auth/unified-auth'
 import { getProducts, getCategories, getStores } from '@/lib/data/products.data'
 import ProductsClient from './ProductsClient'
 

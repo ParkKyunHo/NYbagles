@@ -24,7 +24,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 🏗️ 최근 시스템 재설계 (2025년 8월 10일)
 
-#### 🆕 SaaS급 모듈화 시스템 구현 ✅
+#### 🎯 통합 인증 시스템 구현 완료 (2025년 8월 10일) ✅
+
+#### 문제점 해결
+- **원인**: employees 테이블이 user_id 컬럼 사용 (profile_id 아님)
+- **해결**: 데이터베이스 스키마 확인 후 올바른 컬럼 사용
+- **구현**: `/lib/auth/unified-auth.ts` - 엔터프라이즈급 통합 인증 시스템
+
+#### 통합 인증 시스템 특징
+- **캐싱**: React cache 함수로 요청당 한 번만 인증 체크
+- **중복 제거**: 모든 인증 로직을 단일 모듈로 통합
+- **엔터프라이즈급**: 비활성 사용자/매장 체크, 역할 기반 접근 제어
+- **성능 최적화**: Admin 클라이언트로 RLS 우회, 병렬 데이터 페칭
+
+#### 인증 API
+```typescript
+// 기본 인증 (캐시됨)
+const user = await requireAuth()
+
+// 역할 기반 인증
+const user = await requireRole(['admin', 'manager'])
+
+// 페이지별 접근 권한
+const user = await checkPageAccess('/admin/stores')
+
+// 매장별 접근 권한
+const user = await checkStoreAccess(storeId)
+
+// API 라우트용 (리다이렉트 없음)
+const user = await getAuthUserForAPI()
+```
+
+### 🆕 SaaS급 모듈화 시스템 구현 ✅
 - **문제점**:
   - 모듈 간 의존성 높음
   - 한 모듈의 오류가 다른 모듈에 영향

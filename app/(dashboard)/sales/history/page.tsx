@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { requireRole } from '@/lib/auth/server-auth'
+import { requireRole } from '@/lib/auth/unified-auth'
 import { getSalesHistory } from '@/lib/data/sales.data'
 import SalesHistoryClient from './SalesHistoryClient'
 import { format } from 'date-fns'

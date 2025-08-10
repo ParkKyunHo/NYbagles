@@ -1,43 +1,18 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { requireAuth } from '@/lib/auth/unified-auth'
+import { createAdminClient } from '@/lib/supabase/server-admin'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  // 통합 인증 시스템 사용
+  const user = await requireAuth()
+  const adminClient = createAdminClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
-  
-  // 사용자 프로필 정보 가져오기
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user?.id)
-    .single()
-    
-  // 직원 정보 가져오기 (직원인 경우)
-  const { data: employee } = await supabase
-    .from('employees')
-    .select(`
-      *,
-      stores (
-        id,
-        name,
-        store_code
-      )
-    `)
-    .eq('user_id', user?.id)
-    .single()
-    
   // 오늘의 출퇴근 기록
   const today = new Date().toISOString().split('T')[0]
-  const { data: todayAttendance } = employee ? await supabase
+  const { data: todayAttendance } = user.employeeId ? await adminClient
     .from('attendance_records')
     .select('*')
-    .eq('employee_id', employee.id)
+    .eq('employee_id', user.employeeId)
     .eq('work_date', today)
     .single() : { data: null }
     
@@ -46,10 +21,10 @@ export default async function DashboardPage() {
   weekStart.setDate(weekStart.getDate() - weekStart.getDay())
   weekStart.setHours(0, 0, 0, 0)
   
-  const { data: weekRecords } = employee ? await supabase
+  const { data: weekRecords } = user.employeeId ? await adminClient
     .from('attendance_records')
     .select('*')
-    .eq('employee_id', employee.id)
+    .eq('employee_id', user.employeeId)
     .gte('work_date', weekStart.toISOString().split('T')[0]) : { data: null }
     
   // 이번 달 근무 시간 계산
@@ -57,10 +32,10 @@ export default async function DashboardPage() {
   monthStart.setDate(1)
   monthStart.setHours(0, 0, 0, 0)
   
-  const { data: monthRecords } = employee ? await supabase
+  const { data: monthRecords } = user.employeeId ? await adminClient
     .from('attendance_records')
     .select('*')
-    .eq('employee_id', employee.id)
+    .eq('employee_id', user.employeeId)
     .gte('work_date', monthStart.toISOString().split('T')[0]) : { data: null }
   
   // 총 근무 시간 계산
@@ -148,28 +123,28 @@ export default async function DashboardPage() {
     }
   }
 
-  const quickLinks = getQuickLinks(profile?.role || 'employee')
+  const quickLinks = getQuickLinks(user.role)
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
         <p className="mt-1 text-sm text-gray-700">
-          환영합니다, {profile?.full_name || user?.email}님
+          환영합니다, {user.fullName || user.email}님
         </p>
-        {employee?.stores && (
+        {user.storeName && (
           <p className="mt-1 text-sm text-gray-700">
-            소속: {employee.stores.name} ({employee.stores.store_code})
+            소속: {user.storeName}
           </p>
         )}
-        {profile?.role && (
+        {user.role && (
           <p className="mt-1 text-sm text-gray-700">
             권한: {
-              profile.role === 'super_admin' ? '시스템 관리자' :
-              profile.role === 'admin' ? '관리자' :
-              profile.role === 'manager' ? '매니저' :
-              profile.role === 'employee' ? '직원' :
-              profile.role === 'part_time' ? '파트타임' : profile.role
+              user.role === 'super_admin' ? '시스템 관리자' :
+              user.role === 'admin' ? '관리자' :
+              user.role === 'manager' ? '매니저' :
+              user.role === 'employee' ? '직원' :
+              user.role === 'part_time' ? '파트타임' : user.role
             }
           </p>
         )}
@@ -312,7 +287,7 @@ export default async function DashboardPage() {
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">오늘의 할 일</h2>
           <div className="space-y-3">
-            {profile?.role === 'manager' && (
+            {user.role === 'manager' && (
               <>
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded">
                   <span className="text-sm font-medium">오전 재고 확인</span>
@@ -328,7 +303,7 @@ export default async function DashboardPage() {
                 </div>
               </>
             )}
-            {(profile?.role === 'employee' || profile?.role === 'part_time') && (
+            {(user.role === 'employee' || user.role === 'part_time') && (
               <>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
                   <span className="text-sm font-medium">출근 체크</span>
@@ -344,7 +319,7 @@ export default async function DashboardPage() {
                 </div>
               </>
             )}
-            {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
+            {(user.role === 'admin' || user.role === 'super_admin') && (
               <>
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded">
                   <span className="text-sm font-medium">가입 승인 확인</span>

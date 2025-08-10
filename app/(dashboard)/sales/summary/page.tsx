@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { requireRole } from '@/lib/auth/server-auth'
+import { requireRole } from '@/lib/auth/unified-auth'
 import { getSalesSummary, compareSalesPeriods } from '@/lib/data/sales.data'
 import SalesSummaryClient from './SalesSummaryClient'
 import { format, subDays } from 'date-fns'
