@@ -11,22 +11,10 @@ export function createClient() {
     )
   }
 
-  // Create client with proper auth configuration
+  // Create client with default settings for browser
+  // The @supabase/ssr package handles cookie management automatically
   return createBrowserClient<Database>(
     supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        detectSessionInUrl: true,
-        autoRefreshToken: true,
-        flowType: 'pkce'
-      },
-      global: {
-        headers: {
-          'x-application-name': 'bagel-shop'
-        }
-      }
-    }
+    supabaseAnonKey
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -12,6 +12,20 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<string>('')
+
+  useEffect(() => {
+    // 환경변수 확인
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!url || !key) {
+      setError('Supabase 환경변수가 설정되지 않았습니다.')
+      setDebugInfo(`URL: ${url ? '설정됨' : '누락'}, Key: ${key ? '설정됨' : '누락'}`)
+    } else {
+      setDebugInfo(`URL: ${url.substring(0, 30)}..., Key: ${key.substring(0, 20)}...`)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,39 +35,69 @@ export default function LoginPage() {
     try {
       const supabase = createClient()
       
+      console.log('로그인 시도:', email)
+      
       // 로그인 시도
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: password,
       })
 
-      if (error) {
-        console.error('Login error:', error)
+      if (signInError) {
+        console.error('로그인 오류:', signInError)
         
-        // 에러 메시지 처리
-        if (error.message.includes('Invalid login credentials')) {
+        // 에러 메시지를 더 구체적으로 처리
+        if (signInError.message.includes('Invalid login credentials')) {
           setError('이메일 또는 비밀번호가 올바르지 않습니다.')
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('이메일 인증이 완료되지 않았습니다.')
-        } else if (error.message.includes('Too many requests')) {
+          setDebugInfo(`입력한 이메일: ${email}`)
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.')
+        } else if (signInError.message.includes('Too many requests')) {
           setError('너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.')
         } else {
-          setError(error.message)
+          setError(signInError.message)
         }
-      } else if (data?.user) {
-        // 로그인 성공
-        console.log('Login successful:', data.user.email)
+        return
+      }
+
+      if (data?.user) {
+        console.log('로그인 성공:', data.user.email)
         
-        // 대시보드로 이동
-        router.push('/dashboard')
-        router.refresh()
+        // 세션 확인
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('세션 오류:', sessionError)
+          setError('세션 생성에 실패했습니다.')
+          return
+        }
+        
+        if (!sessionData?.session) {
+          console.error('세션이 없습니다')
+          setError('세션이 생성되지 않았습니다.')
+          return
+        }
+        
+        console.log('세션 확인 완료:', sessionData.session.user.email)
+        
+        // 대시보드로 리다이렉트
+        window.location.href = '/dashboard'
+      } else {
+        setError('로그인에 실패했습니다.')
       }
     } catch (err) {
-      console.error('Unexpected error:', err)
-      setError('로그인 중 예상치 못한 오류가 발생했습니다.')
+      console.error('예상치 못한 오류:', err)
+      setError('로그인 중 오류가 발생했습니다.')
+      setDebugInfo(err instanceof Error ? err.message : '알 수 없는 오류')
     } finally {
       setLoading(false)
     }
+  }
+
+  // 테스트 로그인 함수
+  const handleTestLogin = () => {
+    setEmail('admin@nylovebagel.com')
+    setPassword('admin123456')
   }
 
   return (
@@ -77,6 +121,9 @@ export default function LoginPage() {
           {error && (
             <div className="rounded-md bg-red-50 p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-red-800">{error}</p>
+              {debugInfo && (
+                <p className="text-xs text-red-600 mt-1">디버그: {debugInfo}</p>
+              )}
             </div>
           )}
           
@@ -146,6 +193,19 @@ export default function LoginPage() {
               {loading ? '로그인 중...' : '로그인'}
             </button>
           </div>
+
+          {/* 개발 환경에서만 표시되는 테스트 버튼 */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={handleTestLogin}
+                className="w-full text-xs text-gray-500 hover:text-gray-700"
+              >
+                테스트 계정으로 자동 입력 (admin@nylovebagel.com)
+              </button>
+            </div>
+          )}
 
           <div className="text-center">
             <span className="text-xs sm:text-sm text-gray-600">
