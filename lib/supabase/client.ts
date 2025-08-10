@@ -2,66 +2,30 @@ import { createBrowserClient } from '@supabase/ssr'
 import { Database } from '@/types/supabase'
 
 export function createClient() {
-  // Create new client each time to ensure fresh session
-  // Singleton pattern was causing session issues
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+    )
+  }
+
+  // Create client with proper auth configuration
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
-      cookies: {
-        get(name: string) {
-          if (typeof document !== 'undefined') {
-            const cookies = document.cookie.split('; ')
-            const cookie = cookies.find(c => c.startsWith(`${name}=`))
-            return cookie ? decodeURIComponent(cookie.split('=')[1]) : undefined
-          }
-          return undefined
-        },
-        set(name: string, value: string, options?: any) {
-          if (typeof document !== 'undefined') {
-            let cookieString = `${name}=${encodeURIComponent(value)}`
-            
-            if (options?.maxAge) {
-              cookieString += `; Max-Age=${options.maxAge}`
-            }
-            if (options?.path) {
-              cookieString += `; Path=${options.path || '/'}`
-            }
-            if (options?.domain) {
-              cookieString += `; Domain=${options.domain}`
-            }
-            if (options?.sameSite) {
-              cookieString += `; SameSite=${options.sameSite}`
-            }
-            if (options?.secure) {
-              cookieString += `; Secure`
-            }
-            
-            document.cookie = cookieString
-          }
-        },
-        remove(name: string, options?: any) {
-          if (typeof document !== 'undefined') {
-            let cookieString = `${name}=; Max-Age=0`
-            
-            if (options?.path) {
-              cookieString += `; Path=${options.path || '/'}`
-            }
-            if (options?.domain) {
-              cookieString += `; Domain=${options.domain}`
-            }
-            
-            document.cookie = cookieString
-          }
-        },
-      },
       auth: {
         persistSession: true,
-        storageKey: 'supabase.auth.token',
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         detectSessionInUrl: true,
         autoRefreshToken: true,
         flowType: 'pkce'
+      },
+      global: {
+        headers: {
+          'x-application-name': 'bagel-shop'
+        }
       }
     }
   )
