@@ -69,69 +69,107 @@ export const getCachedAuthUser = cache(async (): Promise<AuthUser | null> => {
     // 3. 사용자 설정 및 현재 조직 가져오기
     console.log('[Auth] Fetching user settings and organization for user:', user.id)
     
-    const { data: userSettings } = await adminClient
-      .from('user_settings')
-      .select('active_org_id')
-      .eq('user_id', user.id)
-      .single()
-    
-    const activeOrgId = userSettings?.active_org_id
+    let activeOrgId = null
+    try {
+      const { data: userSettings, error: settingsError } = await adminClient
+        .from('user_settings')
+        .select('active_org_id')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (settingsError) {
+        console.warn('[Auth] Failed to fetch user settings:', settingsError.message)
+      } else {
+        activeOrgId = userSettings?.active_org_id
+      }
+    } catch (error) {
+      console.warn('[Auth] Error fetching user settings:', error)
+    }
     
     // 4. 멤버십 정보 가져오기 (프로필 포함)
-    let membershipQuery = adminClient
-      .from('memberships')
-      .select(`
-        org_id,
-        role,
-        approved_at,
-        organizations (
-          id,
-          name,
-          legacy_store_id
-        ),
-        profiles:user_id (
-          id,
-          email,
-          full_name
-        )
-      `)
-      .eq('user_id', user.id)
+    let activeMembership = null
+    let profile = null
+    let organization = null
     
-    // 활성 조직이 있으면 해당 조직의 멤버십만 가져오기
-    if (activeOrgId) {
-      membershipQuery = membershipQuery.eq('org_id', activeOrgId)
+    try {
+      let membershipQuery = adminClient
+        .from('memberships')
+        .select(`
+          org_id,
+          role,
+          approved_at,
+          organizations (
+            id,
+            name,
+            legacy_store_id
+          ),
+          profiles:user_id (
+            id,
+            email,
+            full_name
+          )
+        `)
+        .eq('user_id', user.id)
+      
+      // 활성 조직이 있으면 해당 조직의 멤버십만 가져오기
+      if (activeOrgId) {
+        membershipQuery = membershipQuery.eq('org_id', activeOrgId)
+      }
+      
+      const { data: memberships, error: membershipError } = await membershipQuery
+      
+      if (membershipError) {
+        console.error('[Auth] Membership fetch error:', {
+          error: membershipError,
+          userId: user.id,
+          errorCode: membershipError.code,
+          errorMessage: membershipError.message,
+          details: membershipError.details
+        })
+        // 멤버십 오류는 치명적이지 않음 - 계속 진행
+      } else if (memberships && memberships.length > 0) {
+        // 승인된 멤버십 찾기
+        activeMembership = memberships.find(m => m.approved_at !== null)
+        
+        if (activeMembership) {
+          // 프로필 정보 추출
+          profile = (activeMembership as any).profiles
+          organization = (activeMembership as any).organizations
+          
+          console.log('[Auth] Membership fetched successfully:', {
+            userId: user.id,
+            role: activeMembership.role,
+            organizationId: organization?.id,
+            isApproved: !!activeMembership.approved_at
+          })
+        } else {
+          console.log('[Auth] No approved membership found for user:', user.id)
+        }
+      }
+    } catch (error) {
+      console.error('[Auth] Error processing memberships:', error)
+      // 멤버십 처리 실패는 치명적이지 않음 - 계속 진행
     }
     
-    const { data: memberships, error: membershipError } = await membershipQuery
-    
-    if (membershipError) {
-      console.error('[Auth] Membership fetch error:', {
-        error: membershipError,
-        userId: user.id,
-        errorCode: membershipError.code,
-        errorMessage: membershipError.message
-      })
-      return null
+    // 4-1. 멤버십이 없거나 프로필이 없는 경우 직접 프로필 가져오기
+    if (!profile) {
+      try {
+        const { data: directProfile, error: profileError } = await adminClient
+          .from('profiles')
+          .select('id, email, full_name, role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profileError) {
+          console.warn('[Auth] Failed to fetch profile directly:', profileError.message)
+        } else if (directProfile) {
+          profile = directProfile
+          console.log('[Auth] Profile fetched directly for user:', user.id)
+        }
+      } catch (error) {
+        console.error('[Auth] Error fetching profile directly:', error)
+      }
     }
-    
-    // 승인된 멤버십 찾기
-    const activeMembership = memberships?.find(m => m.approved_at !== null)
-    
-    if (!activeMembership) {
-      console.log('[Auth] No approved membership found for user:', user.id)
-      return null
-    }
-    
-    // 프로필 정보 추출
-    const profile = (activeMembership as any).profiles
-    const organization = (activeMembership as any).organizations
-    
-    console.log('[Auth] Membership fetched successfully:', {
-      userId: user.id,
-      role: activeMembership.role,
-      organizationId: organization?.id,
-      isApproved: !!activeMembership.approved_at
-    })
     
     // 5. Legacy support: 직원 정보 가져오기 (기존 시스템 호환성)
     let employeeInfo = {
@@ -144,62 +182,88 @@ export const getCachedAuthUser = cache(async (): Promise<AuthUser | null> => {
     
     // Legacy store 정보가 있으면 추가 정보 가져오기
     if (organization?.legacy_store_id) {
-      const { data: employee } = await adminClient
-        .from('employees')
-        .select(`
-          id,
-          store_id,
-          position,
-          is_active,
-          stores (
+      try {
+        const { data: employee, error: employeeError } = await adminClient
+          .from('employees')
+          .select(`
             id,
-            name,
-            is_active
-          )
-        `)
-        .eq('user_id', user.id)
-        .single()
-      
-      if (employee) {
-        console.log('[Auth] Legacy employee record found:', {
-          employeeId: employee.id,
-          storeId: employee.store_id,
-          isActive: employee.is_active
-        })
+            store_id,
+            position,
+            is_active,
+            stores (
+              id,
+              name,
+              is_active
+            )
+          `)
+          .eq('user_id', user.id)
+          .single()
         
-        employeeInfo = {
-          employeeId: employee.id,
-          storeId: employee.store_id,
-          storeName: (employee as any)?.stores?.name,
-          position: employee.position,
-          isActive: employee.is_active
+        if (employeeError) {
+          console.warn('[Auth] Failed to fetch legacy employee data:', employeeError.message)
+        } else if (employee) {
+          console.log('[Auth] Legacy employee record found:', {
+            employeeId: employee.id,
+            storeId: employee.store_id,
+            isActive: employee.is_active
+          })
+          
+          employeeInfo = {
+            employeeId: employee.id,
+            storeId: employee.store_id,
+            storeName: (employee as any)?.stores?.name,
+            position: employee.position,
+            isActive: employee.is_active
+          }
+          
+          // 직원이 비활성화된 경우
+          if (!employee.is_active) {
+            console.warn('[Auth] Inactive employee tried to access:', user.email)
+            // 비활성 직원은 계속 진행하되 isActive 플래그로 표시
+            employeeInfo.isActive = false
+          }
+          
+          // 매장이 비활성화된 경우
+          if ((employee as any)?.stores && !(employee as any).stores.is_active) {
+            console.warn('[Auth] Employee from inactive store tried to access:', user.email)
+            // 비활성 매장도 계속 진행
+          }
         }
-        
-        // 직원이 비활성화된 경우
-        if (!employee.is_active) {
-          console.warn('[Auth] Inactive employee tried to access:', user.email)
-          return null
-        }
-        
-        // 매장이 비활성화된 경우
-        if ((employee as any)?.stores && !(employee as any).stores.is_active) {
-          console.warn('[Auth] Employee from inactive store tried to access:', user.email)
-          return null
-        }
+      } catch (error) {
+        console.error('[Auth] Error fetching legacy employee data:', error)
+        // Legacy 시스템 오류는 치명적이지 않음
       }
     }
     
     // 6. 통합된 사용자 정보 반환
-    return {
+    // 멤버십이 없어도 기본 사용자 정보는 반환
+    const authUser: AuthUser = {
       id: user.id,
       email: profile?.email || user.email || '',
-      role: activeMembership.role as UserRole,
+      role: (activeMembership?.role || profile?.role || 'employee') as UserRole,
       fullName: profile?.full_name,
       organizationId: organization?.id,
       organizationName: organization?.name,
-      isApproved: !!activeMembership.approved_at,
+      isApproved: !!activeMembership?.approved_at,
       ...employeeInfo
     }
+    
+    // 최소한의 유효성 검사
+    if (!authUser.email) {
+      console.error('[Auth] User has no email:', user.id)
+      return null
+    }
+    
+    console.log('[Auth] Returning auth user:', {
+      id: authUser.id,
+      email: authUser.email,
+      role: authUser.role,
+      organizationId: authUser.organizationId,
+      isApproved: authUser.isApproved,
+      isActive: authUser.isActive
+    })
+    
+    return authUser
   } catch (error) {
     console.error('[Auth] Unexpected error in getCachedAuthUser:', {
       error,
