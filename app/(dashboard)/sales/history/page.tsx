@@ -32,7 +32,7 @@ interface PageProps {
 export default async function SalesHistoryPage({ searchParams }: PageProps) {
   try {
     // 권한 체크 및 사용자 정보 가져오기
-    const user = await requireRole(['super_admin', 'admin', 'manager', 'employee', 'staff', 'parttimer'])
+    const user = await requireRole(['super_admin', 'admin', 'manager', 'employee', 'part_time'])
     
     // 사용자가 승인되지 않은 경우
     if (!user.isApproved) {
@@ -93,7 +93,11 @@ export default async function SalesHistoryPage({ searchParams }: PageProps) {
     
     // 데이터 직렬화 (서버 → 클라이언트 전달용)
     const serializedTransactions = serializeRows(transactions)
-    const serializedStats = serializeObject(stats)
+    const serializedStats = serializeObject(stats) || {
+      count: 0,
+      totalAmount: 0,
+      cancelledCount: 0
+    }
     
     return (
       <Suspense fallback={<SalesHistoryLoading />}>

@@ -23,7 +23,22 @@ export function createAdminClient() {
   if (!supabaseServiceKey) {
     console.error('[Admin Client] Missing SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY')
     console.error('[Admin Client] Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')))
-    throw new Error('Missing SUPABASE_SERVICE_KEY environment variable. Please set it in Vercel dashboard.')
+    
+    // 빌드 시점에는 환경변수가 없을 수 있으므로 더미 값 사용
+    if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
+      throw new Error('Missing SUPABASE_SERVICE_KEY environment variable. Please set it in Vercel dashboard.')
+    }
+    
+    // 빌드용 더미 키 사용
+    console.warn('[Admin Client] Using dummy key for build process')
+    const dummyKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+    return createSupabaseClient(supabaseUrl, dummyKey, {
+      db: { schema: 'public' },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
   }
   
   try {

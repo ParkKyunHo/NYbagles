@@ -33,6 +33,7 @@ interface EmployeesClientProps {
   stats: {
     total: number
     active: number
+    inactive?: number
     byRole: Record<string, number>
     byDepartment: Record<string, number>
     newThisMonth: number
@@ -44,6 +45,8 @@ interface EmployeesClientProps {
     role: string
     storeId: string | null
     storeName: string
+    organizationId: string | null
+    organizationName: string
   }
   permissions: {
     canManageEmployees: boolean

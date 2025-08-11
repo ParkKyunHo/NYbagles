@@ -117,7 +117,7 @@ export default async function EmployeesPage({ searchParams }: PageProps) {
     // 데이터 직렬화 (서버 → 클라이언트 전달용)
     const serializedEmployees = serializeRows(employees)
     const serializedStores = serializeRows(stores)
-    const serializedStats = serializeObject(stats)
+    const serializedStats = serializeObject(stats) || { total: 0, active: 0, inactive: 0, byRole: {}, byDepartment: {}, newThisMonth: 0 }
     
     return (
       <Suspense fallback={<EmployeesLoading />}>

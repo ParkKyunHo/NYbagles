@@ -22,6 +22,8 @@ interface SalesHistoryClientProps {
     role: string
     storeId: string | null
     storeName: string
+    organizationId: string | null
+    organizationName: string
     canCancelSale: boolean
   }
   filters: {

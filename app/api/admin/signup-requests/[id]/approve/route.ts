@@ -15,9 +15,12 @@ export async function POST(
 
     const supabase = await createClient()
     
-    // Check if service role key is available
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('SUPABASE_SERVICE_ROLE_KEY is not set in environment variables')
+    // Create admin client (환경변수 체크는 createAdminClient 내부에서 처리)
+    let adminClient
+    try {
+      adminClient = createAdminClient()
+    } catch (error) {
+      console.error('Failed to create admin client:', error)
       return NextResponse.json(
         { 
           error: '서버 설정 오류', 
@@ -27,8 +30,6 @@ export async function POST(
         { status: 500 }
       )
     }
-    
-    const adminClient = createAdminClient()
     console.log('Admin client created successfully')
 
     // Get signup request
