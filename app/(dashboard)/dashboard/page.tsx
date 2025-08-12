@@ -82,8 +82,7 @@ export default async function DashboardPage() {
           { href: '/admin/signup-requests', label: '가입 승인', icon: '👥' },
           { href: '/products/approvals', label: '상품 승인', icon: '✅' },
           { href: '/dashboard/analytics', label: '데이터 분석', icon: '📊' },
-          { href: '/admin/permissions', label: '권한 관리', icon: '🔐' },
-          { href: '/admin/backup', label: '백업/복구', icon: '💾' }
+          { href: '/admin/permissions', label: '권한 관리', icon: '🔐' }
         ]
       case 'admin':
         return [

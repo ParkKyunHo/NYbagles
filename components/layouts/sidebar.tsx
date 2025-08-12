@@ -25,7 +25,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const navigation = [
-  { name: '대시보드', href: '/dashboard', icon: Home, roles: ['all'] },
+  { name: '홈', href: '/dashboard', icon: Home, roles: ['all'] },
   { name: 'QR 출퇴근', href: '/attendance', icon: QrCode, roles: ['all'] },
   { name: '스케줄 관리', href: '/schedule', icon: Calendar, roles: ['all'] },
   { name: '⚡ 간편 판매', href: '/sales/simple', icon: ShoppingCart, roles: ['super_admin', 'admin', 'manager'] },
