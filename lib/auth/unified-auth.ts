@@ -180,8 +180,47 @@ export const getCachedAuthUser = cache(async (): Promise<AuthUser | null> => {
       isActive: true
     }
     
+    // Legacy employee 체크 (조직 상관없이)
+    let hasLegacyEmployee = false
+    try {
+      const { data: legacyEmployee, error: legacyError } = await adminClient
+        .from('employees')
+        .select(`
+          id,
+          store_id,
+          position,
+          is_active,
+          stores (
+            id,
+            name,
+            is_active
+          )
+        `)
+        .eq('user_id', user.id)
+        .single()
+      
+      if (!legacyError && legacyEmployee) {
+        hasLegacyEmployee = true
+        employeeInfo = {
+          employeeId: legacyEmployee.id,
+          storeId: legacyEmployee.store_id,
+          storeName: (legacyEmployee as any)?.stores?.name,
+          position: legacyEmployee.position,
+          isActive: legacyEmployee.is_active
+        }
+        
+        console.log('[Auth] Legacy employee found:', {
+          employeeId: legacyEmployee.id,
+          storeId: legacyEmployee.store_id,
+          isActive: legacyEmployee.is_active
+        })
+      }
+    } catch (error) {
+      console.error('[Auth] Error checking legacy employee:', error)
+    }
+    
     // Legacy store 정보가 있으면 추가 정보 가져오기
-    if (organization?.legacy_store_id) {
+    if (organization?.legacy_store_id && !hasLegacyEmployee) {
       try {
         const { data: employee, error: employeeError } = await adminClient
           .from('employees')
@@ -242,9 +281,10 @@ export const getCachedAuthUser = cache(async (): Promise<AuthUser | null> => {
       email: profile?.email || user.email || '',
       role: (activeMembership?.role || profile?.role || 'employee') as UserRole,
       fullName: profile?.full_name,
-      organizationId: organization?.id,
-      organizationName: organization?.name,
-      isApproved: !!activeMembership?.approved_at,
+      organizationId: organization?.id || employeeInfo.storeId,
+      organizationName: organization?.name || employeeInfo.storeName,
+      // Legacy employee가 있거나 멤버십이 승인된 경우 true
+      isApproved: hasLegacyEmployee || !!activeMembership?.approved_at,
       ...employeeInfo
     }
     

@@ -40,9 +40,9 @@ export default async function SalesHistoryPage({ searchParams }: PageProps) {
       redirect('/pending-approval')
     }
     
-    // 조직이 설정되지 않은 경우
-    if (!user.organizationId) {
-      console.log('[Sales History Page] No organization set for user:', user.email)
+    // 조직이나 매장이 설정되지 않은 경우
+    if (!user.organizationId && !user.storeId) {
+      console.log('[Sales History Page] No organization or store set for user:', user.email)
       redirect('/select-organization')
     }
   
