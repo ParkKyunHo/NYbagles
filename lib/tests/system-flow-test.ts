@@ -99,7 +99,7 @@ export class SystemFlowTester {
       
       if (saleError) {
         // 정리: 생성한 상품 삭제
-        await this.adminClient.from('products_v3').delete().eq('id', product.id)
+        await this.adminClient.from('products').delete().eq('id', product.id)
         
         return {
           testName,
@@ -123,12 +123,12 @@ export class SystemFlowTester {
         .from('daily_sales_summary')
         .select('*')
         .eq('store_id', testProduct.store_id)
-        .eq('sale_date', saleData.sale_date)
+        .eq('sale_date', new Date().toISOString().split('T')[0])
         .single()
       
       // 5. 정리: 테스트 데이터 삭제
-      await this.adminClient.from('sales_records').delete().eq('id', sale.id)
-      await this.adminClient.from('products_v3').delete().eq('id', product.id)
+      await this.adminClient.from('sales_transactions').delete().eq('id', sale.id)
+      await this.adminClient.from('products').delete().eq('id', product.id)
       
       return {
         testName,
@@ -303,7 +303,7 @@ export class SystemFlowTester {
         .single()
       
       if (fetchError) {
-        await this.adminClient.from('products_v3').delete().eq('id', created.id)
+        await this.adminClient.from('products').delete().eq('id', created.id)
         return {
           testName,
           passed: false,
@@ -319,7 +319,7 @@ export class SystemFlowTester {
         .eq('id', created.id)
       
       if (updateError) {
-        await this.adminClient.from('products_v3').delete().eq('id', created.id)
+        await this.adminClient.from('products').delete().eq('id', created.id)
         return {
           testName,
           passed: false,
@@ -421,4 +421,35 @@ export class SystemFlowTester {
 export async function runSystemFlowTests() {
   const tester = new SystemFlowTester()
   return await tester.runAllTests()
+}
+
+// 직접 실행 시 테스트 수행
+if (require.main === module) {
+  runSystemFlowTests().then(result => {
+    console.log('\n📊 테스트 결과 요약:')
+    console.log('==================')
+    console.log(`총 테스트: ${result.summary.total}`)
+    console.log(`성공: ${result.summary.passed}`)
+    console.log(`실패: ${result.summary.failed}`)
+    console.log(`성공률: ${result.summary.successRate}`)
+    
+    console.log('\n📝 상세 결과:')
+    result.results.forEach(test => {
+      console.log(`${test.passed ? '✅' : '❌'} ${test.testName}`)
+      if (!test.passed && test.error) {
+        console.log(`   오류: ${test.error}`)
+      }
+      if (test.details) {
+        console.log(`   상세: ${JSON.stringify(test.details, null, 2)}`)
+      }
+    })
+    
+    console.log('\n💡 권장사항:')
+    result.recommendations.forEach(rec => console.log(rec))
+    
+    process.exit(result.summary.failed > 0 ? 1 : 0)
+  }).catch(error => {
+    console.error('테스트 실행 중 오류:', error)
+    process.exit(1)
+  })
 }

@@ -17,17 +17,17 @@ export interface Employee {
   employee_number: string
   user_id: string
   store_id: string
-  full_name: string
-  qr_code: string
-  hourly_wage: number | null
-  employment_type: string | null
-  department: string | null
-  hire_date: string
-  bank_account: any
-  emergency_contact: any
-  is_active: boolean
+  full_name?: string // full_name comes from profiles join, make it optional
+  qr_code?: string // Make optional as it might not exist
+  hourly_wage?: number | null
+  employment_type?: string | null
+  department?: string | null
+  hire_date?: string
+  bank_account?: any
+  emergency_contact?: any
+  is_active?: boolean
   created_at: string
-  updated_at: string
+  updated_at?: string
   profiles?: {
     id: string
     full_name: string
@@ -88,8 +88,21 @@ export const getEmployees = unstable_cache(
     let query = adminClient
       .from('employees')
       .select(`
-        *,
-        profiles!inner (
+        id,
+        employee_number,
+        user_id,
+        store_id,
+        created_at,
+        qr_code,
+        hourly_wage,
+        employment_type,
+        department,
+        hire_date,
+        bank_account,
+        emergency_contact,
+        is_active,
+        updated_at,
+        profiles:profiles!employees_user_id_fkey!inner (
           id,
           full_name,
           email,
@@ -145,7 +158,31 @@ export const getEmployees = unstable_cache(
       throw error
     }
     
-    return data || []
+    // Transform data to match Employee interface
+    const employees = (data || []).map(emp => {
+      // Ensure profiles and stores are not arrays (Supabase returns single object for many-to-one)
+      const profiles = Array.isArray(emp.profiles) ? emp.profiles[0] : emp.profiles
+      const stores = Array.isArray(emp.stores) ? emp.stores[0] : emp.stores
+      
+      return {
+        ...emp,
+        full_name: profiles?.full_name || 'Unknown',
+        profiles: profiles || undefined, // Make sure it's an object, not array
+        stores: stores || undefined, // Make sure it's an object, not array
+        // Fields are now directly selected from the query
+        qr_code: emp.qr_code || '',
+        hourly_wage: emp.hourly_wage || null,
+        employment_type: emp.employment_type || null,
+        department: emp.department || null,
+        hire_date: emp.hire_date || emp.created_at,
+        bank_account: emp.bank_account || null,
+        emergency_contact: emp.emergency_contact || null,
+        is_active: emp.is_active !== undefined ? emp.is_active : true,
+        updated_at: emp.updated_at || emp.created_at
+      }
+    })
+    
+    return employees
   },
   ['employees'],
   {
@@ -164,8 +201,21 @@ export const getEmployee = unstable_cache(
     const { data, error } = await adminClient
       .from('employees')
       .select(`
-        *,
-        profiles!inner (
+        id,
+        employee_number,
+        user_id,
+        store_id,
+        created_at,
+        qr_code,
+        hourly_wage,
+        employment_type,
+        department,
+        hire_date,
+        bank_account,
+        emergency_contact,
+        is_active,
+        updated_at,
+        profiles:profiles!employees_user_id_fkey!inner (
           id,
           full_name,
           email,
@@ -186,7 +236,29 @@ export const getEmployee = unstable_cache(
       return null
     }
     
-    return data
+    if (!data) return null
+    
+    // Transform data to match Employee interface
+    // Ensure profiles is not an array (Supabase returns single object for many-to-one)
+    const profiles = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles
+    const stores = Array.isArray(data.stores) ? data.stores[0] : data.stores
+    
+    return {
+      ...data,
+      full_name: profiles?.full_name || 'Unknown',
+      profiles: profiles || undefined, // Make sure it's an object, not array
+      stores: stores || undefined, // Make sure it's an object, not array
+      // Fields are now directly selected from the query
+      qr_code: data.qr_code || '',
+      hourly_wage: data.hourly_wage || null,
+      employment_type: data.employment_type || null,
+      department: data.department || null,
+      hire_date: data.hire_date || data.created_at,
+      bank_account: data.bank_account || null,
+      emergency_contact: data.emergency_contact || null,
+      is_active: data.is_active !== undefined ? data.is_active : true,
+      updated_at: data.updated_at || data.created_at
+    }
   },
   ['employee'],
   {
@@ -215,7 +287,7 @@ export const getEmployeeStats = unstable_cache(
         is_active,
         department,
         created_at,
-        profiles!inner (
+        profiles:profiles!employees_user_id_fkey!inner (
           role
         )
       `)
