@@ -28,10 +28,10 @@ export class SystemFlowTester {
         name: `TEST_PRODUCT_${Date.now()}`,
         sku: `SKU_${Date.now()}`,
         category: '베이글',
-        base_price: 5000, // price -> base_price로 변경
+        base_price: 5000,
         stock_quantity: 10,
         store_id: null as string | null,
-        approval_status: 'approved', // 승인 상태 추가
+        status: 'active', // approval_status -> status로 변경
         is_active: true
       }
       
@@ -52,9 +52,9 @@ export class SystemFlowTester {
       
       testProduct.store_id = stores.id
       
-      // 상품 생성 (products_v3 테이블 사용)
+      // 상품 생성
       const { data: product, error: productError } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .insert(testProduct)
         .select()
         .single()
@@ -113,7 +113,7 @@ export class SystemFlowTester {
       
       // 3. 재고 확인
       const { data: updatedProduct } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .select('stock_quantity')
         .eq('id', product.id)
         .single()
@@ -190,8 +190,26 @@ export class SystemFlowTester {
         .limit(1)
         .single()
       
-      // adminUser가 없으면 시스템 사용자 생성
-      const approverUserId = adminUser?.id || '00000000-0000-0000-0000-000000000000'
+      // adminUser가 없으면 첫 번째 profiles 사용
+      let approverUserId = adminUser?.id
+      
+      if (!approverUserId) {
+        const { data: anyUser } = await this.adminClient
+          .from('profiles')
+          .select('id')
+          .limit(1)
+          .single()
+        
+        if (!anyUser) {
+          // profiles가 없으면 테스트 건너뛰기
+          return {
+            testName,
+            passed: false,
+            error: 'profiles 테이블에 사용자가 없습니다'
+          }
+        }
+        approverUserId = anyUser.id
+      }
       
       const { error: approvalError } = await this.adminClient
         .from('employee_signup_requests')
@@ -260,13 +278,13 @@ export class SystemFlowTester {
         name: `SYNC_TEST_${Date.now()}`,
         sku: `SYNC_SKU_${Date.now()}`,
         category: '테스트',
-        base_price: 1000, // price -> base_price로 변경
-        approval_status: 'approved',
+        base_price: 1000,
+        status: 'active', // approval_status -> status로 변경
         is_active: true
       }
       
       const { data: created, error: createError } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .insert(testData)
         .select()
         .single()
@@ -281,7 +299,7 @@ export class SystemFlowTester {
       
       // 2. 데이터 조회
       const { data: fetched, error: fetchError } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .select('*')
         .eq('id', created.id)
         .single()
@@ -298,7 +316,7 @@ export class SystemFlowTester {
       // 3. 데이터 업데이트
       const updatedPrice = 2000
       const { error: updateError } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .update({ base_price: updatedPrice })
         .eq('id', created.id)
       
@@ -313,7 +331,7 @@ export class SystemFlowTester {
       
       // 4. 업데이트 확인
       const { data: updated } = await this.adminClient
-        .from('products_v3')
+        .from('products')
         .select('base_price')
         .eq('id', created.id)
         .single()
