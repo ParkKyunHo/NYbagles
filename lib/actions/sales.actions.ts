@@ -43,15 +43,21 @@ export async function createSale(input: CreateSaleInput) {
       throw new Error('직원 정보를 찾을 수 없습니다')
     }
     
-    // 1. 판매 기록 생성
+    // 1. 판매 기록 생성 (sales_transactions 테이블 사용)
     const { data: saleRecord, error: saleError } = await adminClient
-      .from('sales_records')
+      .from('sales_transactions')
       .insert({
+        transaction_number: `TXN_${Date.now()}`,
         store_id: employee.store_id,
-        employee_id: employee.id,
+        transaction_type: 'sale',
+        subtotal: input.unitPrice * input.quantity,
+        tax_amount: 0,
+        discount_amount: 0,
         total_amount: input.unitPrice * input.quantity,
         payment_method: input.paymentMethod,
-        status: 'completed'
+        payment_status: 'completed',
+        sold_by: user.id,
+        sold_at: new Date().toISOString()
       })
       .select()
       .single()
@@ -62,7 +68,7 @@ export async function createSale(input: CreateSaleInput) {
     const { error: itemError } = await adminClient
       .from('sales_items')
       .insert({
-        transaction_id: saleRecord.id,
+        sale_id: saleRecord.id,  // transaction_id가 아니라 sale_id 사용
         product_id: input.productId,
         quantity: input.quantity,
         unit_price: input.unitPrice,
@@ -131,7 +137,7 @@ export async function cancelSale(transactionId: string) {
       throw new Error('거래를 찾을 수 없습니다')
     }
     
-    if (transaction.status === 'cancelled') {
+    if (transaction.payment_status === 'cancelled') {
       throw new Error('이미 취소된 거래입니다')
     }
     
@@ -139,9 +145,8 @@ export async function cancelSale(transactionId: string) {
     const { error: updateError } = await adminClient
       .from('sales_transactions')
       .update({ 
-        status: 'cancelled',
-        cancelled_at: new Date().toISOString(),
-        cancelled_by: user.id
+        payment_status: 'cancelled',
+        transaction_type: 'refund'
       })
       .eq('id', transactionId)
     
@@ -149,15 +154,24 @@ export async function cancelSale(transactionId: string) {
     
     // 2. 재고 복구
     for (const item of transaction.sales_items) {
-      const { error: stockError } = await adminClient.rpc(
-        'increment_stock',
-        { 
-          p_product_id: item.product_id,
-          p_quantity: item.quantity 
-        }
-      )
+      // 현재 재고 조회
+      const { data: product } = await adminClient
+        .from('products')
+        .select('stock_quantity')
+        .eq('id', item.product_id)
+        .single()
       
-      if (stockError) throw stockError
+      if (product) {
+        // 재고 업데이트
+        const { error: stockError } = await adminClient
+          .from('products')
+          .update({
+            stock_quantity: product.stock_quantity + item.quantity
+          })
+          .eq('id', item.product_id)
+        
+        if (stockError) throw stockError
+      }
     }
     
     // 캐시 무효화
@@ -191,15 +205,34 @@ export async function closeDailySales(date: string) {
   }
   
   try {
-    // 마감 데이터 생성
-    const { data: summary } = await adminClient.rpc(
-      'create_daily_closing',
-      {
-        p_store_id: user.storeId,
-        p_closing_date: date,
-        p_created_by: user.id
-      }
-    )
+    // 해당 날짜의 판매 데이터 조회
+    const startDate = `${date}T00:00:00`
+    const endDate = `${date}T23:59:59`
+    
+    const { data: sales } = await adminClient
+      .from('sales_transactions')
+      .select('total_amount')
+      .eq('store_id', user.storeId!)
+      .gte('sold_at', startDate)
+      .lte('sold_at', endDate)
+      .eq('payment_status', 'completed')
+    
+    const totalSales = sales?.reduce((sum, sale) => sum + Number(sale.total_amount), 0) || 0
+    
+    // 일일 판매 요약 데이터 생성 또는 업데이트
+    const { data: summary, error: summaryError } = await adminClient
+      .from('daily_sales_summary')
+      .upsert({
+        store_id: user.storeId!,
+        sale_date: date,
+        total_sales: totalSales,
+        transaction_count: sales?.length || 0,
+        created_by: user.id
+      })
+      .select()
+      .single()
+    
+    if (summaryError) throw summaryError
     
     // 캐시 무효화
     revalidateTag('sales')
