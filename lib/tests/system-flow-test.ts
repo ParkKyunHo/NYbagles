@@ -86,8 +86,8 @@ export class SystemFlowTester {
         product_id: product.id,
         store_id: testProduct.store_id,
         quantity: 2,
-        unit_price: testProduct.price,
-        total_amount: testProduct.price * 2,
+        unit_price: testProduct.base_price,
+        total_amount: testProduct.base_price * 2,
         recorded_by: profiles.id,
         sale_date: new Date().toISOString().split('T')[0],
         sale_time: new Date().toTimeString().split(' ')[0]
