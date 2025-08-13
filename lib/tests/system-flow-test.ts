@@ -26,10 +26,13 @@ export class SystemFlowTester {
       // 1. 테스트용 상품 생성
       const testProduct = {
         name: `TEST_PRODUCT_${Date.now()}`,
+        sku: `SKU_${Date.now()}`,
         category: '베이글',
-        price: 5000,
+        base_price: 5000, // price -> base_price로 변경
         stock_quantity: 10,
-        store_id: null as string | null
+        store_id: null as string | null,
+        approval_status: 'approved', // 승인 상태 추가
+        is_active: true
       }
       
       // 매장 ID 조회
@@ -49,9 +52,9 @@ export class SystemFlowTester {
       
       testProduct.store_id = stores.id
       
-      // 상품 생성
+      // 상품 생성 (products_v3 테이블 사용)
       const { data: product, error: productError } = await this.adminClient
-        .from('products')
+        .from('products_v3')
         .insert(testProduct)
         .select()
         .single()
@@ -98,7 +101,7 @@ export class SystemFlowTester {
       
       if (saleError) {
         // 정리: 생성한 상품 삭제
-        await this.adminClient.from('products').delete().eq('id', product.id)
+        await this.adminClient.from('products_v3').delete().eq('id', product.id)
         
         return {
           testName,
@@ -110,7 +113,7 @@ export class SystemFlowTester {
       
       // 3. 재고 확인
       const { data: updatedProduct } = await this.adminClient
-        .from('products')
+        .from('products_v3')
         .select('stock_quantity')
         .eq('id', product.id)
         .single()
@@ -127,7 +130,7 @@ export class SystemFlowTester {
       
       // 5. 정리: 테스트 데이터 삭제
       await this.adminClient.from('sales_records').delete().eq('id', sale.id)
-      await this.adminClient.from('products').delete().eq('id', product.id)
+      await this.adminClient.from('products_v3').delete().eq('id', product.id)
       
       return {
         testName,
@@ -187,12 +190,15 @@ export class SystemFlowTester {
         .limit(1)
         .single()
       
+      // adminUser가 없으면 시스템 사용자 생성
+      const approverUserId = adminUser?.id || '00000000-0000-0000-0000-000000000000'
+      
       const { error: approvalError } = await this.adminClient
         .from('employee_signup_requests')
         .update({
           status: 'approved',
           approved: true,
-          approved_by: adminUser?.id || null,
+          approved_by: approverUserId,
           approved_at: new Date().toISOString()
         })
         .eq('id', request.id)
@@ -252,13 +258,15 @@ export class SystemFlowTester {
       // 1. 백엔드에서 데이터 생성
       const testData = {
         name: `SYNC_TEST_${Date.now()}`,
+        sku: `SYNC_SKU_${Date.now()}`,
         category: '테스트',
-        price: 1000,
+        base_price: 1000, // price -> base_price로 변경
+        approval_status: 'approved',
         is_active: true
       }
       
       const { data: created, error: createError } = await this.adminClient
-        .from('products')
+        .from('products_v3')
         .insert(testData)
         .select()
         .single()
@@ -273,13 +281,13 @@ export class SystemFlowTester {
       
       // 2. 데이터 조회
       const { data: fetched, error: fetchError } = await this.adminClient
-        .from('products')
+        .from('products_v3')
         .select('*')
         .eq('id', created.id)
         .single()
       
       if (fetchError) {
-        await this.adminClient.from('products').delete().eq('id', created.id)
+        await this.adminClient.from('products_v3').delete().eq('id', created.id)
         return {
           testName,
           passed: false,
@@ -290,12 +298,12 @@ export class SystemFlowTester {
       // 3. 데이터 업데이트
       const updatedPrice = 2000
       const { error: updateError } = await this.adminClient
-        .from('products')
-        .update({ price: updatedPrice })
+        .from('products_v3')
+        .update({ base_price: updatedPrice })
         .eq('id', created.id)
       
       if (updateError) {
-        await this.adminClient.from('products').delete().eq('id', created.id)
+        await this.adminClient.from('products_v3').delete().eq('id', created.id)
         return {
           testName,
           passed: false,
@@ -305,8 +313,8 @@ export class SystemFlowTester {
       
       // 4. 업데이트 확인
       const { data: updated } = await this.adminClient
-        .from('products')
-        .select('price')
+        .from('products_v3')
+        .select('base_price')
         .eq('id', created.id)
         .single()
       
@@ -315,12 +323,12 @@ export class SystemFlowTester {
       
       return {
         testName,
-        passed: updated?.price === updatedPrice,
+        passed: updated?.base_price === updatedPrice,
         details: {
           created: created.id,
-          originalPrice: testData.price,
-          updatedPrice: updated?.price,
-          syncSuccess: updated?.price === updatedPrice
+          originalPrice: testData.base_price,
+          updatedPrice: updated?.base_price,
+          syncSuccess: updated?.base_price === updatedPrice
         }
       }
     } catch (error) {
