@@ -17,7 +17,6 @@ export interface Employee {
   employee_number: string
   user_id: string
   store_id: string
-  org_id: string
   full_name: string
   qr_code: string
   hourly_wage: number | null
@@ -105,9 +104,10 @@ export const getEmployees = unstable_cache(
       `)
     
     // 필터 적용
-    if (filters.orgId) {
-      query = query.eq('org_id', filters.orgId)
-    }
+    // org_id는 현재 테이블에 없음
+    // if (filters.orgId) {
+    //   query = query.eq('org_id', filters.orgId)
+    // }
     
     if (filters.storeId) {
       query = query.eq('store_id', filters.storeId)

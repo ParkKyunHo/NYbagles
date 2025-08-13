@@ -83,18 +83,16 @@ export class SystemFlowTester {
       }
       
       const saleData = {
-        product_id: product.id,
+        transaction_number: `TXN_${Date.now()}`,
         store_id: testProduct.store_id,
-        quantity: 2,
-        unit_price: testProduct.base_price,
+        subtotal: testProduct.base_price * 2,
         total_amount: testProduct.base_price * 2,
-        recorded_by: profiles.id,
-        sale_date: new Date().toISOString().split('T')[0],
-        sale_time: new Date().toTimeString().split(' ')[0]
+        payment_method: 'cash',
+        sold_by: profiles.id
       }
       
       const { data: sale, error: saleError } = await this.adminClient
-        .from('sales_records')
+        .from('sales_transactions')
         .insert(saleData)
         .select()
         .single()
@@ -106,7 +104,7 @@ export class SystemFlowTester {
         return {
           testName,
           passed: false,
-          error: `판매 기록 생성 실패: ${saleError.message}`,
+          error: `판매 기록 생성 실패: ${saleError?.message || JSON.stringify(saleError)}`,
           details: { saleData, error: saleError }
         }
       }
