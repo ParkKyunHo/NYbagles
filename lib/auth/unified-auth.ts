@@ -519,3 +519,8 @@ export async function signOut() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+/**
+ * getAuthUser는 requireAuth의 별칭 (레거시 호환성)
+ */
+export const getAuthUser = requireAuth

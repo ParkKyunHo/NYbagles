@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server-admin'
-import { getAuthUser } from '@/lib/auth/server-auth'
+import { requireAuth, getAuthUser } from '@/lib/auth/unified-auth'
 
 export interface CreateSaleInput {
   productId: string
@@ -17,13 +17,8 @@ export interface CreateSaleInput {
  * 트랜잭션 처리 및 재고 관리
  */
 export async function createSale(input: CreateSaleInput) {
-  const user = await getAuthUser()
+  const user = await requireAuth()
   const adminClient = createAdminClient()
-  
-  // 권한 체크
-  if (!['super_admin', 'admin', 'manager', 'employee'].includes(user.role)) {
-    throw new Error('판매 권한이 없습니다')
-  }
   
   try {
     // 트랜잭션 시작
@@ -37,26 +32,37 @@ export async function createSale(input: CreateSaleInput) {
       throw new Error('재고가 부족합니다')
     }
     
-    // 1. 판매 트랜잭션 생성
-    const { data: transaction, error: transactionError } = await adminClient
-      .from('sales_transactions')
+    // 직원 정보 조회
+    const { data: employee } = await adminClient
+      .from('employees')
+      .select('id, store_id')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (!employee) {
+      throw new Error('직원 정보를 찾을 수 없습니다')
+    }
+    
+    // 1. 판매 기록 생성
+    const { data: saleRecord, error: saleError } = await adminClient
+      .from('sales_records')
       .insert({
-        store_id: user.storeId,
+        store_id: employee.store_id,
+        employee_id: employee.id,
         total_amount: input.unitPrice * input.quantity,
         payment_method: input.paymentMethod,
-        status: 'completed',
-        created_by: user.id
+        status: 'completed'
       })
       .select()
       .single()
     
-    if (transactionError) throw transactionError
+    if (saleError) throw saleError
     
     // 2. 판매 아이템 생성
     const { error: itemError } = await adminClient
       .from('sales_items')
       .insert({
-        transaction_id: transaction.id,
+        transaction_id: saleRecord.id,
         product_id: input.productId,
         quantity: input.quantity,
         unit_price: input.unitPrice,
@@ -83,7 +89,7 @@ export async function createSale(input: CreateSaleInput) {
     
     return {
       success: true,
-      transactionId: transaction.id,
+      transactionId: saleRecord.id,
       message: `${product.name} ${input.quantity}개 판매 완료`
     }
   } catch (error) {

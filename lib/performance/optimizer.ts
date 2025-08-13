@@ -59,7 +59,7 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean
   
-  return function(...args: Parameters<T>) {
+  return function(this: any, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args)
       inThrottle = true
@@ -170,8 +170,11 @@ export function trackWebVitals() {
   // FID (First Input Delay)
   new PerformanceObserver((list) => {
     for (const entry of list.getEntries()) {
-      const delay = entry.processingStart - entry.startTime
-      console.log('[CWV] FID:', delay)
+      const eventEntry = entry as any
+      if (eventEntry.processingStart) {
+        const delay = eventEntry.processingStart - entry.startTime
+        console.log('[CWV] FID:', delay)
+      }
     }
   }).observe({ type: 'first-input', buffered: true })
   

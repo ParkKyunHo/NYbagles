@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/server-admin'
-import { getAuthUser } from '@/lib/auth/server-auth'
+import { requireRole, getAuthUser } from '@/lib/auth/unified-auth'
 import { redirect } from 'next/navigation'
 
 export interface CreateProductInput {
@@ -26,13 +26,8 @@ export interface UpdateProductInput extends Partial<CreateProductInput> {
  * 상품 생성 Server Action
  */
 export async function createProduct(input: CreateProductInput) {
-  const user = await getAuthUser()
+  const user = await requireRole(['super_admin', 'admin', 'manager'])
   const adminClient = createAdminClient()
-  
-  // 권한 체크
-  if (!['super_admin', 'admin', 'manager'].includes(user.role)) {
-    throw new Error('상품 생성 권한이 없습니다')
-  }
   
   // 매니저는 자신의 매장 상품만 생성 가능
   if (user.role === 'manager' && input.store_id !== user.storeId) {

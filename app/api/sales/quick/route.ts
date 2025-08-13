@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     // 직원 정보 조회
     const { data: employee } = await adminClient
       .from('employees')
-      .select('id, org_id')
+      .select('id, store_id')
       .eq('user_id', user.id)
       .single()
     
@@ -45,12 +45,14 @@ export async function POST(request: NextRequest) {
     const { data: saleRecord, error: saleError } = await adminClient
       .from('sales_records')
       .insert({
-        store_id: storeId,
-        org_id: employee.org_id,
-        employee_id: employee.id,
+        store_id: storeId || employee.store_id,
+        product_id: productId,
+        quantity: 1,
+        unit_price: price,
         total_amount: price,
-        payment_method: 'cash',
-        status: 'completed'
+        recorded_by: user.id,
+        sale_date: new Date().toISOString().split('T')[0],
+        sale_time: new Date().toTimeString().split(' ')[0]
       })
       .select()
       .single()
@@ -60,23 +62,7 @@ export async function POST(request: NextRequest) {
       throw saleError
     }
     
-    // 2. 판매 아이템 추가
-    const { error: itemError } = await adminClient
-      .from('sales_items')
-      .insert({
-        sale_id: saleRecord.id,
-        product_id: productId,
-        quantity: 1,
-        unit_price: price,
-        subtotal: price
-      })
-    
-    if (itemError) {
-      console.error('Item error:', itemError)
-      throw itemError
-    }
-    
-    // 3. 재고 차감 - 먼저 현재 재고 확인
+    // 2. 재고 차감 - 먼저 현재 재고 확인
     const { data: product } = await adminClient
       .from('products')
       .select('stock_quantity')

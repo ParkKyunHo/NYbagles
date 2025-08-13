@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/server-admin'
-import { getAuthUser } from '@/lib/auth/server-auth'
+import { requireAuth, requireRole, getAuthUser } from '@/lib/auth/unified-auth'
 import { redirect } from 'next/navigation'
 
 export interface CreateEmployeeInput {
