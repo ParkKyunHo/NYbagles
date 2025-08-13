@@ -27,29 +27,44 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // 1. 판매 트랜잭션 생성
-    const { data: transaction, error: transactionError } = await adminClient
-      .from('sales_transactions')
+    // 직원 정보 조회
+    const { data: employee } = await adminClient
+      .from('employees')
+      .select('id, org_id')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (!employee) {
+      return NextResponse.json(
+        { error: '직원 정보를 찾을 수 없습니다' },
+        { status: 403 }
+      )
+    }
+    
+    // 1. 판매 기록 생성
+    const { data: saleRecord, error: saleError } = await adminClient
+      .from('sales_records')
       .insert({
         store_id: storeId,
+        org_id: employee.org_id,
+        employee_id: employee.id,
         total_amount: price,
         payment_method: 'cash',
-        status: 'completed',
-        created_by: user.id
+        status: 'completed'
       })
       .select()
       .single()
     
-    if (transactionError) {
-      console.error('Transaction error:', transactionError)
-      throw transactionError
+    if (saleError) {
+      console.error('Sale record error:', saleError)
+      throw saleError
     }
     
     // 2. 판매 아이템 추가
     const { error: itemError } = await adminClient
       .from('sales_items')
       .insert({
-        transaction_id: transaction.id,
+        sale_id: saleRecord.id,
         product_id: productId,
         quantity: 1,
         unit_price: price,
@@ -89,7 +104,8 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      transactionId: transaction.id
+      transactionId: saleRecord.id,
+      message: '판매가 성공적으로 처리되었습니다'
     })
     
   } catch (error) {

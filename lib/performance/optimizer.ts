@@ -14,7 +14,7 @@ export function lazyLoad<T extends ComponentType<any>>(
   fallback?: React.ReactElement
 ) {
   const Component = dynamic(importFn, {
-    loading: () => fallback,
+    loading: fallback ? () => fallback : undefined,
     ssr: false // 클라이언트 사이드만
   })
   return Component

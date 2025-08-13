@@ -43,7 +43,7 @@ export const getSalesSummary = unstable_cache(
     const [salesData, topProducts, dailySales, paymentData] = await Promise.all([
       // 1. 총 매출 및 거래 수
       adminClient
-        .from('sales_transactions')
+        .from('sales_records')
         .select('total_amount')
         .gte('created_at', startDate)
         .lte('created_at', endDate)
@@ -75,7 +75,7 @@ export const getSalesSummary = unstable_cache(
       
       // 4. 결제 방법별 매출
       adminClient
-        .from('sales_transactions')
+        .from('sales_records')
         .select('payment_method, total_amount')
         .gte('created_at', startDate)
         .lte('created_at', endDate)
@@ -143,11 +143,11 @@ export const getSalesSummary = unstable_cache(
  * 실시간 매출 데이터 (캐싱 없음)
  */
 export const getRealtimeSales = cache(async (storeId: string) => {
-  const supabase = await createClient()
+  const adminClient = createAdminClient()
   const today = format(new Date(), 'yyyy-MM-dd')
   
-  const { data, error } = await supabase
-    .from('sales_transactions')
+  const { data, error } = await adminClient
+    .from('sales_records')
     .select('*')
     .eq('store_id', storeId)
     .gte('created_at', today)
@@ -260,7 +260,7 @@ export const getSalesHistory = unstable_cache(
     
     // 쿼리 빌드
     let query = adminClient
-      .from('sales_transactions')
+      .from('sales_records')
       .select(`
         *,
         sales_items (
@@ -274,7 +274,8 @@ export const getSalesHistory = unstable_cache(
           id,
           name
         ),
-        profiles:created_by (
+        employees (
+          id,
           full_name
         )
       `)

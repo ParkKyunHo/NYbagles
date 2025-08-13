@@ -58,6 +58,7 @@ export default async function EmployeesPage({ searchParams }: PageProps) {
     
     // 필터 설정
     const filters = {
+      orgId: user.organizationId,
       storeId,
       role: searchParams.role,
       department: searchParams.department,

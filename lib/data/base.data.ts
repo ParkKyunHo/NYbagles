@@ -18,24 +18,32 @@ export interface DataFetchOptions {
  * Admin 클라이언트 사용, 캐싱, 직렬화 통합
  */
 export async function fetchData<T>(
-  queryFn: (client: ReturnType<typeof createAdminClient>) => Promise<{ data: T | null; error: any }>,
+  queryFn: (client: ReturnType<typeof createAdminClient>) => Promise<any>,
   options: DataFetchOptions = {}
 ) {
   const { tags = [], revalidate = 60, serialize = true } = options
   
   const fetchFn = async () => {
     const adminClient = createAdminClient()
-    const { data, error } = await queryFn(adminClient)
+    const result = await queryFn(adminClient)
     
-    if (error) {
-      console.error('[DataLayer] Query error:', error)
-      throw new Error(error.message)
+    // PostgrestResponse 형태 처리
+    if ('data' in result && 'error' in result) {
+      const { data, error } = result
+      
+      if (error) {
+        console.error('[DataLayer] Query error:', error)
+        throw new Error(error.message)
+      }
+      
+      if (!data) return null
+      
+      // 직렬화 옵션에 따라 처리
+      return serialize ? serializeRows(data as any) : data
     }
     
-    if (!data) return null
-    
-    // 직렬화 옵션에 따라 처리
-    return serialize ? serializeRows(data as any) : data
+    // 직접 데이터 반환하는 경우
+    return serialize ? serializeRows(result as any) : result
   }
   
   // 캐싱 적용
