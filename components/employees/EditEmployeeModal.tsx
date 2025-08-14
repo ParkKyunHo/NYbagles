@@ -206,15 +206,15 @@ export default function EditEmployeeModal({
             <div className="space-y-2">
               <Label htmlFor="department">부서</Label>
               <Select
-                value={basicForm.department}
-                onValueChange={(value) => setBasicForm({ ...basicForm, department: value })}
+                value={basicForm.department || 'none'}
+                onValueChange={(value) => setBasicForm({ ...basicForm, department: value === 'none' ? '' : value })}
                 disabled={isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="부서를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">부서 없음</SelectItem>
+                  <SelectItem value="none">부서 없음</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
@@ -307,15 +307,15 @@ export default function EditEmployeeModal({
             <div className="space-y-2">
               <Label htmlFor="roleDepartment">부서</Label>
               <Select
-                value={roleForm.department}
-                onValueChange={(value) => setRoleForm({ ...roleForm, department: value })}
+                value={roleForm.department || 'none'}
+                onValueChange={(value) => setRoleForm({ ...roleForm, department: value === 'none' ? '' : value })}
                 disabled={isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="부서를 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">부서 없음</SelectItem>
+                  <SelectItem value="none">부서 없음</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
