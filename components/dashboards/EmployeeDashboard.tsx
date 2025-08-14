@@ -70,24 +70,24 @@ export function EmployeeDashboard() {
         <h1 className="text-3xl font-bold">
           {userRole === 'part_time' ? '파트타임' : '직원'} 대시보드
         </h1>
-        <p className="text-gray-600 mt-2">{storeName} - 근무 관리</p>
+        <p className="text-gray-800 mt-2">{storeName} - 근무 관리</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">오늘 근무</div>
+          <div className="text-sm text-gray-800">오늘 근무</div>
           <div className="text-2xl font-bold">{stats.todayHours}시간</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">이번달 근무</div>
+          <div className="text-sm text-gray-800">이번달 근무</div>
           <div className="text-2xl font-bold">{stats.monthlyHours}시간</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">출근 상태</div>
+          <div className="text-sm text-gray-800">출근 상태</div>
           <div className="text-2xl font-bold text-green-600">{stats.todayStatus}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">다음 근무</div>
+          <div className="text-sm text-gray-800">다음 근무</div>
           <div className="text-2xl font-bold">{stats.nextSchedule}</div>
         </Card>
       </div>
@@ -100,7 +100,7 @@ export function EmployeeDashboard() {
                 <div className="text-4xl">{feature.icon}</div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.desc}</p>
+                  <p className="text-sm text-gray-700">{feature.desc}</p>
                 </div>
               </div>
             </Card>
@@ -113,13 +113,13 @@ export function EmployeeDashboard() {
         <div className="space-y-3">
           <div className="p-3 bg-blue-50 rounded">
             <div className="font-medium">월말 정산 안내</div>
-            <div className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-gray-700 mt-1">
               이번 달 급여는 다음 주 월요일에 지급됩니다.
             </div>
           </div>
           <div className="p-3 bg-yellow-50 rounded">
             <div className="font-medium">건강검진 안내</div>
-            <div className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-gray-700 mt-1">
               연례 건강검진이 다음 달에 예정되어 있습니다.
             </div>
           </div>

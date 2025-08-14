@@ -159,7 +159,7 @@ export default function EditEmployeeModal({
             className={`px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === 'basic'
                 ? 'border-bagel-yellow text-bagel-yellow'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-700 hover:text-gray-700'
             }`}
           >
             기본 정보
@@ -169,7 +169,7 @@ export default function EditEmployeeModal({
             className={`px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === 'role'
                 ? 'border-bagel-yellow text-bagel-yellow'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-gray-700 hover:text-gray-700'
             }`}
           >
             역할 & 부서

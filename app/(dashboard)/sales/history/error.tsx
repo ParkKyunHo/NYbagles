@@ -51,16 +51,16 @@ export default function SalesHistoryError({
         ) : (
           // 프로덕션 환경: 간단한 메시지와 digest
           <div className="text-center">
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-700 mb-6">
               판매 내역을 불러오는 중 오류가 발생했습니다.
             </p>
             {error?.digest && (
               <div className="bg-gray-50 rounded p-4 mb-6 inline-block">
-                <p className="text-sm text-gray-600 mb-1">오류 코드:</p>
+                <p className="text-sm text-gray-700 mb-1">오류 코드:</p>
                 <code className="text-sm font-mono text-red-600">
                   {error.digest}
                 </code>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-700 mt-2">
                   관리자에게 이 코드를 전달해주세요
                 </p>
               </div>

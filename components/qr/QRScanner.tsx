@@ -96,7 +96,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
             <div className="text-center">
               <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 sm:mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500"
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

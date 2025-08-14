@@ -143,7 +143,7 @@ export default function ProductsClient({
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
               <input
                 type="text"
                 placeholder="상품명으로 검색..."
@@ -192,7 +192,7 @@ export default function ProductsClient({
       {/* 상품 목록 */}
       {initialProducts.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <Package className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <Package className="h-16 w-16 mx-auto text-gray-700 mb-4" />
           <p className="text-gray-700 text-lg">등록된 상품이 없습니다.</p>
           {canManageProducts && (
             <Link href="/products/create">
@@ -237,7 +237,7 @@ export default function ProductsClient({
                       <div>
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
                         {product.sku && (
-                          <div className="text-xs text-gray-500">SKU: {product.sku}</div>
+                          <div className="text-xs text-gray-700">SKU: {product.sku}</div>
                         )}
                       </div>
                     </td>

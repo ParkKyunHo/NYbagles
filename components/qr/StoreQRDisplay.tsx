@@ -122,7 +122,7 @@ export function StoreQRDisplay({
         <p className="text-sm text-gray-600">
           자동 갱신까지: <span className="font-mono font-bold">{nextRefresh}초</span>
         </p>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-700 mt-2">
           이 QR 코드는 보안을 위해 {refreshInterval}초마다 자동으로 갱신됩니다
         </p>
       </div>

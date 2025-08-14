@@ -30,10 +30,10 @@ export default function ProductsError({
             상품 페이지 오류
           </h2>
           
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-700 mb-6">
             상품 데이터를 불러오는 중 오류가 발생했습니다.
             {error.message && (
-              <span className="block mt-2 text-sm text-gray-500">
+              <span className="block mt-2 text-sm text-gray-700">
                 {error.message}
               </span>
             )}

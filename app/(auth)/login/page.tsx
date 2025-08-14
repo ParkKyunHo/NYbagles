@@ -200,7 +200,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleTestLogin}
-                className="w-full text-xs text-gray-500 hover:text-gray-700"
+                className="w-full text-xs text-gray-800 hover:text-gray-900"
               >
                 테스트 계정으로 자동 입력 (admin@nylovebagel.com)
               </button>
@@ -208,7 +208,7 @@ export default function LoginPage() {
           )}
 
           <div className="text-center">
-            <span className="text-xs sm:text-sm text-gray-600">
+            <span className="text-xs sm:text-sm text-gray-700">
               계정이 없으신가요?{' '}
               <Link href="/signup" className="font-medium text-bagel-brown hover:text-bagel-yellow-700">
                 회원가입

@@ -116,7 +116,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
   if (!['super_admin', 'admin'].includes(profile.role)) {
     return (
       <div className="text-center py-12">
-        <ShieldCheck className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+        <ShieldCheck className="h-12 w-12 text-gray-700 mx-auto mb-4" />
         <p className="text-gray-700">시스템 설정은 관리자만 접근 가능합니다.</p>
       </div>
     );
@@ -274,7 +274,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">음수 재고 허용</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-700 mt-1">
                   재고가 부족해도 판매를 허용할지 설정
                 </p>
               </div>
@@ -377,7 +377,7 @@ export default function SystemSettings({ profile, onUpdate }: SystemSettingsProp
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">2단계 인증 필수</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-700 mt-1">
                   모든 사용자에게 2단계 인증을 강제할지 설정
                 </p>
               </div>

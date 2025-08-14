@@ -125,7 +125,7 @@ export default function QRScanPage() {
       <div className="bg-white rounded-lg shadow-lg">
         <div className="p-4 sm:p-6 border-b">
           <h1 className="text-lg sm:text-xl font-bold">출퇴근 QR 스캔</h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+          <p className="text-xs sm:text-sm text-gray-700 mt-1">
             매장의 QR 코드를 스캔하세요
           </p>
           {locationError && (
@@ -156,7 +156,7 @@ export default function QRScanPage() {
                 <>
                   <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-3 sm:mb-4" />
                   <h3 className="text-lg sm:text-xl font-semibold mb-2">{scanResult.message}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+                  <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">
                     잠시 후 대시보드로 이동합니다...
                   </p>
                 </>
@@ -164,7 +164,7 @@ export default function QRScanPage() {
                 <>
                   <XCircle className="h-12 w-12 sm:h-16 sm:w-16 text-red-500 mx-auto mb-3 sm:mb-4" />
                   <h3 className="text-lg sm:text-xl font-semibold mb-2">오류 발생</h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{scanResult.message}</p>
+                  <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">{scanResult.message}</p>
                   <Button onClick={() => setScanResult(null)} className="text-sm sm:text-base">
                     다시 스캔하기
                   </Button>

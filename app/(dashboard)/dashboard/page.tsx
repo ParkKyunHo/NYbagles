@@ -274,11 +274,11 @@ export default async function DashboardPage() {
           <div className="space-y-3">
             <div className="border-l-4 border-blue-500 pl-4">
               <p className="text-sm font-medium text-gray-900">월말 정산 안내</p>
-              <p className="text-sm text-gray-600 mt-1">이번 달 급여는 다음 주 월요일에 지급됩니다.</p>
+              <p className="text-sm text-gray-700 mt-1">이번 달 급여는 다음 주 월요일에 지급됩니다.</p>
             </div>
             <div className="border-l-4 border-yellow-500 pl-4">
               <p className="text-sm font-medium text-gray-900">건강검진 안내</p>
-              <p className="text-sm text-gray-600 mt-1">연례 건강검진이 다음 달에 예정되어 있습니다.</p>
+              <p className="text-sm text-gray-700 mt-1">연례 건강검진이 다음 달에 예정되어 있습니다.</p>
             </div>
           </div>
         </div>
@@ -290,15 +290,15 @@ export default async function DashboardPage() {
               <>
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded">
                   <span className="text-sm font-medium">오전 재고 확인</span>
-                  <span className="text-xs text-gray-600">09:00</span>
+                  <span className="text-xs text-gray-700">09:00</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded">
                   <span className="text-sm font-medium">중간 정산</span>
-                  <span className="text-xs text-gray-600">15:00</span>
+                  <span className="text-xs text-gray-700">15:00</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
                   <span className="text-sm font-medium">마감 정산</span>
-                  <span className="text-xs text-gray-600">22:00</span>
+                  <span className="text-xs text-gray-700">22:00</span>
                 </div>
               </>
             )}
@@ -306,15 +306,15 @@ export default async function DashboardPage() {
               <>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
                   <span className="text-sm font-medium">출근 체크</span>
-                  <span className="text-xs text-gray-600">근무 시작 시</span>
+                  <span className="text-xs text-gray-700">근무 시작 시</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded">
                   <span className="text-sm font-medium">판매 업무</span>
-                  <span className="text-xs text-gray-600">근무 중</span>
+                  <span className="text-xs text-gray-700">근무 중</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded">
                   <span className="text-sm font-medium">퇴근 체크</span>
-                  <span className="text-xs text-gray-600">근무 종료 시</span>
+                  <span className="text-xs text-gray-700">근무 종료 시</span>
                 </div>
               </>
             )}
@@ -322,15 +322,15 @@ export default async function DashboardPage() {
               <>
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded">
                   <span className="text-sm font-medium">가입 승인 확인</span>
-                  <span className="text-xs text-gray-600">매일</span>
+                  <span className="text-xs text-gray-700">매일</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-purple-50 rounded">
                   <span className="text-sm font-medium">매출 리포트 확인</span>
-                  <span className="text-xs text-gray-600">매일</span>
+                  <span className="text-xs text-gray-700">매일</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-indigo-50 rounded">
                   <span className="text-sm font-medium">시스템 점검</span>
-                  <span className="text-xs text-gray-600">주 1회</span>
+                  <span className="text-xs text-gray-700">주 1회</span>
                 </div>
               </>
             )}

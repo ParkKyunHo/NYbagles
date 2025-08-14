@@ -73,7 +73,7 @@ export default async function PendingApprovalPage() {
             </div>
             
             <div className="pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-700 mb-4">
                 문의사항이 있으신가요?
               </p>
               <p className="text-sm text-gray-600">

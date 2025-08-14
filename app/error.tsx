@@ -35,7 +35,7 @@ export default function Error({
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             오류가 발생했습니다
           </h1>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-700 mb-8">
             {errorMessage}
           </p>
           

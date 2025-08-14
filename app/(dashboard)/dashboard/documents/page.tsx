@@ -353,7 +353,7 @@ export default function DocumentsPage() {
 
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+            <FileText className="h-12 w-12 text-gray-700 mx-auto mb-4" />
             <p className="text-gray-700">등록된 문서가 없습니다.</p>
           </div>
         ) : (

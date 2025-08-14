@@ -112,7 +112,7 @@ export default function SystemSettingsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-800 중...</p>
         </div>
       </div>
     )
@@ -125,7 +125,7 @@ export default function SystemSettingsPage() {
           <Settings className="h-8 w-8 text-gray-700" />
           <h1 className="text-3xl font-bold text-gray-900">시스템 설정</h1>
         </div>
-        <p className="text-gray-600 mt-2">전체 시스템의 기능을 관리합니다.</p>
+        <p className="text-gray-800 mt-2">전체 시스템의 기능을 관리합니다.</p>
       </div>
 
       {error && (
@@ -153,7 +153,7 @@ export default function SystemSettingsPage() {
                   {setting.key === 'store_selection_required' && '매장 선택 필수'}
                   {setting.key === 'manager_store_restriction' && '매니저 매장 제한'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-700 mt-1">
                   {setting.description}
                 </p>
               </div>

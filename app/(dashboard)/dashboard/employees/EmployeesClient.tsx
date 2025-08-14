@@ -225,7 +225,7 @@ export default function EmployeesClient({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">전체 직원</p>
+              <p className="text-sm text-gray-800">전체 직원</p>
               <p className="text-2xl font-bold">{stats.total}명</p>
             </div>
             <Users className="h-8 w-8 text-blue-500" />
@@ -235,7 +235,7 @@ export default function EmployeesClient({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">활성 직원</p>
+              <p className="text-sm text-gray-800">활성 직원</p>
               <p className="text-2xl font-bold">{stats.active}명</p>
             </div>
             <UserCheck className="h-8 w-8 text-green-500" />
@@ -245,7 +245,7 @@ export default function EmployeesClient({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">비활성 직원</p>
+              <p className="text-sm text-gray-800">비활성 직원</p>
               <p className="text-2xl font-bold">{stats.total - stats.active}명</p>
             </div>
             <UserX className="h-8 w-8 text-red-500" />
@@ -255,7 +255,7 @@ export default function EmployeesClient({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">이달 신규</p>
+              <p className="text-sm text-gray-800">이달 신규</p>
               <p className="text-2xl font-bold">{stats.newThisMonth}명</p>
             </div>
             <BarChart3 className="h-8 w-8 text-yellow-500" />
@@ -272,7 +272,7 @@ export default function EmployeesClient({
         
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
             <input
               type="text"
               placeholder="이름, 이메일 검색..."
@@ -380,12 +380,12 @@ export default function EmployeesClient({
                         <div className="text-sm font-medium text-gray-900">
                           {employee.profiles?.full_name || '이름 없음'}
                         </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <div className="text-sm text-gray-700 flex items-center gap-1">
                           <Mail className="h-3 w-3" />
                           {employee.profiles?.email}
                         </div>
                         {employee.profiles?.phone && (
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                          <div className="text-sm text-gray-700 flex items-center gap-1">
                             <Phone className="h-3 w-3" />
                             {employee.profiles.phone}
                           </div>
@@ -428,7 +428,7 @@ export default function EmployeesClient({
                     <div className="relative inline-block text-left" ref={expandedMenu === employee.id ? menuRef : null}>
                       <button
                         onClick={() => setExpandedMenu(expandedMenu === employee.id ? null : employee.id)}
-                        className="text-gray-600 hover:text-gray-900"
+                        className="text-gray-800 hover:text-gray-900"
                       >
                         <MoreVertical className="h-5 w-5" />
                       </button>
@@ -491,7 +491,7 @@ export default function EmployeesClient({
         
         {initialEmployees.length === 0 && (
           <div className="text-center py-12">
-            <Users className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <Users className="h-16 w-16 mx-auto text-gray-700 mb-4" />
             <p className="text-gray-700">등록된 직원이 없습니다.</p>
           </div>
         )}

@@ -237,7 +237,7 @@ export default function EmployeeRequestsPage() {
           <UserPlus className="mr-3 h-8 w-8 text-bagel-yellow" />
           직원 가입 요청 관리
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-800 mt-2">
           신규 직원의 가입 요청을 검토하고 승인/거절할 수 있습니다.
         </p>
       </div>
@@ -272,7 +272,7 @@ export default function EmployeeRequestsPage() {
       {/* Requests List */}
       {requests.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
-          <UserPlus className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+          <UserPlus className="h-12 w-12 text-gray-700 mx-auto mb-4" />
           <p className="text-gray-700">가입 요청이 없습니다.</p>
         </div>
       ) : (
@@ -290,17 +290,17 @@ export default function EmployeeRequestsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                     <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-600" />
+                      <Mail className="h-4 w-4 mr-2 text-gray-700"" />
                       {request.email}
                     </div>
                     {request.phone && (
                       <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-600" />
+                        <Phone className="h-4 w-4 mr-2 text-gray-700"" />
                         {request.phone}
                       </div>
                     )}
                     <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-2 text-gray-600" />
+                      <Building2 className="h-4 w-4 mr-2 text-gray-700"" />
                       {getLocationDisplay(request)}
                     </div>
                     <div className="flex items-center">

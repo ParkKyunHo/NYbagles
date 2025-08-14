@@ -10,7 +10,7 @@ export default function DashboardLoading() {
           <p className="mt-6 text-lg font-medium text-gray-700">
             로딩 중...
           </p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-gray-700">
             잠시만 기다려주세요
           </p>
         </div>

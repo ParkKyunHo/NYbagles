@@ -32,7 +32,7 @@ export default function GlobalError({
               <h2 className="text-2xl font-semibold text-gray-700 mb-2">
                 시스템 오류가 발생했습니다
               </h2>
-              <p className="text-gray-600 mb-8">
+              <p className="text-gray-700 mb-8">
                 예기치 않은 오류가 발생했습니다. 
                 문제가 지속되면 관리자에게 문의해주세요.
               </p>

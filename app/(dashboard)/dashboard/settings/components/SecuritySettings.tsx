@@ -277,7 +277,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
               <p className="font-medium text-gray-900">2단계 인증</p>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 계정 보안을 강화하기 위한 추가 인증
               </p>
             </div>
@@ -289,7 +289,7 @@ export default function SecuritySettings({ profile, onUpdate }: SecuritySettings
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
               <p className="font-medium text-gray-900">로그인 기록</p>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 최근 로그인 활동 확인
               </p>
             </div>

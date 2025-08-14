@@ -170,7 +170,7 @@ export function CategoryManagementModal({ isOpen, onClose, onCategoryUpdate }: C
                         autoFocus
                       />
                     ) : (
-                      <span className={!category.is_active ? 'text-gray-400' : 'text-gray-900 font-medium'}>
+                      <span className={!category.is_active ? 'text-gray-600' : 'text-gray-900 font-medium'}>
                         {category.name}
                       </span>
                     )}

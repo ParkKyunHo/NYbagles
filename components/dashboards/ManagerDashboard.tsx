@@ -60,24 +60,24 @@ export function ManagerDashboard() {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">매니저 대시보드</h1>
-        <p className="text-gray-600 mt-2">{storeName} 매장 운영 관리</p>
+        <p className="text-gray-800 mt-2">{storeName} 매장 운영 관리</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">오늘 매출</div>
+          <div className="text-sm text-gray-800">오늘 매출</div>
           <div className="text-2xl font-bold">₩{stats.todaySales.toLocaleString()}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">출근 직원</div>
+          <div className="text-sm text-gray-800">출근 직원</div>
           <div className="text-2xl font-bold">{stats.todayEmployees}명</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">대기 업무</div>
+          <div className="text-sm text-gray-800">대기 업무</div>
           <div className="text-2xl font-bold text-orange-600">{stats.pendingTasks}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">재고 부족</div>
+          <div className="text-sm text-gray-800">재고 부족</div>
           <div className="text-2xl font-bold text-red-600">{stats.lowStock}</div>
         </Card>
       </div>
@@ -90,7 +90,7 @@ export function ManagerDashboard() {
                 <div className="text-4xl">{feature.icon}</div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.desc}</p>
+                  <p className="text-sm text-gray-700">{feature.desc}</p>
                 </div>
               </div>
             </Card>
@@ -103,15 +103,15 @@ export function ManagerDashboard() {
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-yellow-50 rounded">
             <span>오전 재고 확인</span>
-            <span className="text-sm text-gray-600">09:00</span>
+            <span className="text-sm text-gray-700">09:00</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-green-50 rounded">
             <span>중간 정산</span>
-            <span className="text-sm text-gray-600">15:00</span>
+            <span className="text-sm text-gray-700">15:00</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
             <span>마감 정산</span>
-            <span className="text-sm text-gray-600">22:00</span>
+            <span className="text-sm text-gray-700">22:00</span>
           </div>
         </div>
       </Card>

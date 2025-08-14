@@ -201,7 +201,7 @@ export default function SchedulePage() {
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">근무 스케줄</h1>
-          <p className="text-gray-600 mt-2">주간 근무 일정을 확인하고 관리하세요.</p>
+          <p className="text-gray-800 mt-2">주간 근무 일정을 확인하고 관리하세요.</p>
         </div>
         {canManageSchedules && (
           <div className="flex gap-2">
@@ -326,7 +326,7 @@ export default function SchedulePage() {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">이번 주 총 근무 시간</p>
+              <p className="text-sm font-medium text-gray-800">이번 주 총 근무 시간</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {weekDays.reduce((total, day) => {
                   return total + day.schedules.reduce((dayTotal, schedule) => {
@@ -337,31 +337,31 @@ export default function SchedulePage() {
                 }, 0).toFixed(1)}시간
               </p>
             </div>
-            <Clock className="h-8 w-8 text-gray-600" />
+            <Clock className="h-8 w-8 text-gray-800" />
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">이번 주 근무일</p>
+              <p className="text-sm font-medium text-gray-800">이번 주 근무일</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {weekDays.filter(day => day.schedules.length > 0).length}일
               </p>
             </div>
-            <Calendar className="h-8 w-8 text-gray-600" />
+            <Calendar className="h-8 w-8 text-gray-800" />
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">총 스케줄 수</p>
+              <p className="text-sm font-medium text-gray-800">총 스케줄 수</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {weekDays.reduce((total, day) => total + day.schedules.length, 0)}개
               </p>
             </div>
-            <Users className="h-8 w-8 text-gray-600" />
+            <Users className="h-8 w-8 text-gray-800" />
           </div>
         </div>
       </div>

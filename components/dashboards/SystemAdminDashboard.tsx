@@ -57,32 +57,32 @@ export function SystemAdminDashboard() {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">시스템 관리자 대시보드</h1>
-        <p className="text-gray-600 mt-2">전체 시스템 관리 및 모니터링</p>
+        <p className="text-gray-800 mt-2">전체 시스템 관리 및 모니터링</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">전체 매장</div>
+          <div className="text-sm text-gray-800">전체 매장</div>
           <div className="text-2xl font-bold">{stats.totalStores}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">전체 직원</div>
+          <div className="text-sm text-gray-800">전체 직원</div>
           <div className="text-2xl font-bold">{stats.totalEmployees}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">상품 수</div>
+          <div className="text-sm text-gray-800">상품 수</div>
           <div className="text-2xl font-bold">{stats.totalProducts}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">오늘 매출</div>
+          <div className="text-sm text-gray-800">오늘 매출</div>
           <div className="text-2xl font-bold">₩{stats.todaySales.toLocaleString()}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">대기중 승인</div>
+          <div className="text-sm text-gray-800">대기중 승인</div>
           <div className="text-2xl font-bold text-orange-600">{stats.pendingApprovals}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">활성 사용자</div>
+          <div className="text-sm text-gray-800">활성 사용자</div>
           <div className="text-2xl font-bold text-green-600">{stats.activeUsers}</div>
         </Card>
       </div>
@@ -95,7 +95,7 @@ export function SystemAdminDashboard() {
                 <div className="text-4xl">{feature.icon}</div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.desc}</p>
+                  <p className="text-sm text-gray-700">{feature.desc}</p>
                 </div>
               </div>
             </Card>

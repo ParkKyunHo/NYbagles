@@ -80,7 +80,7 @@ export default function AttendancePage() {
     <div className="container mx-auto px-4 py-4 sm:p-6">
       <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">출퇴근 관리</h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-1">QR 코드로 간편하게 출퇴근을 기록하세요</p>
+        <p className="text-sm sm:text-base text-gray-800 mt-1">QR 코드로 간편하게 출퇴근을 기록하세요</p>
       </div>
 
       {/* QR 스캔 버튼 */}
@@ -135,10 +135,10 @@ export default function AttendancePage() {
               ) : (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
-                    <span className="text-sm sm:text-base font-medium text-gray-600">퇴근</span>
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-800" />
+                    <span className="text-sm sm:text-base font-medium text-gray-800">퇴근</span>
                   </div>
-                  <span className="text-sm sm:text-base text-gray-600">미등록</span>
+                  <span className="text-sm sm:text-base text-gray-800">미등록</span>
                 </div>
               )}
             </div>
@@ -167,7 +167,7 @@ export default function AttendancePage() {
               {recentRecords.map((record) => (
                 <div key={record.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b last:border-0">
                   <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-0">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-800" />
                     <span className="text-sm sm:text-base font-medium">{formatDate(record.date)}</span>
                   </div>
                   <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm ml-5 sm:ml-0">
@@ -179,7 +179,7 @@ export default function AttendancePage() {
                         퇴근 {formatTime(record.check_out_time)}
                       </span>
                     ) : (
-                      <span className="text-gray-600">퇴근 미등록</span>
+                      <span className="text-gray-800">퇴근 미등록</span>
                     )}
                   </div>
                 </div>

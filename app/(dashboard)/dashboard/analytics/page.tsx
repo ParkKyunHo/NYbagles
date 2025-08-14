@@ -320,7 +320,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-800 중...</p>
         </div>
       </div>
     );
@@ -373,7 +373,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">총 매출</p>
+              <p className="text-sm font-medium text-gray-800">총 매출</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{totalSales.toLocaleString()}
               </p>
@@ -385,7 +385,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">판매 수량</p>
+              <p className="text-sm font-medium text-gray-800">판매 수량</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 {totalQuantity.toLocaleString()}개
               </p>
@@ -397,7 +397,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">평균 객단가</p>
+              <p className="text-sm font-medium text-gray-800">평균 객단가</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ₩{Math.round(averageTicket).toLocaleString()}
               </p>
@@ -409,7 +409,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">거래 건수</p>
+              <p className="text-sm font-medium text-gray-800">거래 건수</p>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 {uniqueTransactions.toLocaleString()}건
               </p>

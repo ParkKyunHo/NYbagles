@@ -130,7 +130,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
           <Bell className="h-6 w-6 mr-2" />
           알림 설정
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-gray-800">
           중요한 업데이트와 알림을 받을 방법을 선택하세요.
         </p>
       </div>
@@ -147,7 +147,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">스케줄 변경</p>
-                <p className="text-sm text-gray-600">근무 스케줄이 변경될 때 알림</p>
+                <p className="text-sm text-gray-800">근무 스케줄이 변경될 때 알림</p>
               </div>
               <input
                 type="checkbox"
@@ -160,7 +160,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">출퇴근 알림</p>
-                <p className="text-sm text-gray-600">출퇴근 누락 시 알림</p>
+                <p className="text-sm text-gray-800">출퇴근 누락 시 알림</p>
               </div>
               <input
                 type="checkbox"
@@ -173,7 +173,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">매출 리포트</p>
-                <p className="text-sm text-gray-600">일일/주간 매출 요약 리포트</p>
+                <p className="text-sm text-gray-800">일일/주간 매출 요약 리포트</p>
               </div>
               <input
                 type="checkbox"
@@ -186,7 +186,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">시스템 업데이트</p>
-                <p className="text-sm text-gray-600">새로운 기능 및 시스템 공지</p>
+                <p className="text-sm text-gray-800">새로운 기능 및 시스템 공지</p>
               </div>
               <input
                 type="checkbox"
@@ -209,7 +209,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">스케줄 변경</p>
-                <p className="text-sm text-gray-600">즉시 알림 받기</p>
+                <p className="text-sm text-gray-800">즉시 알림 받기</p>
               </div>
               <input
                 type="checkbox"
@@ -222,7 +222,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">출퇴근 알림</p>
-                <p className="text-sm text-gray-600">출퇴근 시간 리마인더</p>
+                <p className="text-sm text-gray-800">출퇴근 시간 리마인더</p>
               </div>
               <input
                 type="checkbox"
@@ -235,7 +235,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">긴급 알림</p>
-                <p className="text-sm text-gray-600">매장 긴급 상황 알림</p>
+                <p className="text-sm text-gray-800">매장 긴급 상황 알림</p>
               </div>
               <input
                 type="checkbox"
@@ -258,7 +258,7 @@ export default function NotificationSettings({ profile, onUpdate }: Notification
             <label className="flex items-center justify-between mb-4 cursor-pointer">
               <div className="flex-1">
                 <p className="font-medium text-gray-900">방해 금지 모드 사용</p>
-                <p className="text-sm text-gray-600">설정된 시간 동안 알림을 받지 않습니다</p>
+                <p className="text-sm text-gray-800">설정된 시간 동안 알림을 받지 않습니다</p>
               </div>
               <input
                 type="checkbox"

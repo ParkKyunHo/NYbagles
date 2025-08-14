@@ -135,7 +135,7 @@ export default function AdminPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-        <p className="text-gray-600 mt-2">뉴욕러브베이글 통합 관리 시스템</p>
+        <p className="text-gray-800 mt-2">뉴욕러브베이글 통합 관리 시스템</p>
       </div>
 
       {/* 통계 카드 */}
@@ -143,7 +143,7 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">전체 매장</p>
+              <p className="text-sm font-medium text-gray-800">전체 매장</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {loading ? '...' : stats.totalStores}
               </p>
@@ -155,7 +155,7 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">전체 직원</p>
+              <p className="text-sm font-medium text-gray-800">전체 직원</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {loading ? '...' : stats.totalEmployees}
               </p>
@@ -167,7 +167,7 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">대기 중인 요청</p>
+              <p className="text-sm font-medium text-gray-800">대기 중인 요청</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {loading ? '...' : stats.pendingRequests}
               </p>
@@ -179,7 +179,7 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">오늘 출근</p>
+              <p className="text-sm font-medium text-gray-800">오늘 출근</p>
               <p className="text-2xl font-semibold text-gray-900 mt-1">
                 {loading ? '...' : stats.todayAttendance}
               </p>

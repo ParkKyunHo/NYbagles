@@ -375,7 +375,7 @@ export default function SalesPage() {
                       </h4>
                       <button
                         onClick={() => removeFromCart(item.product_id)}
-                        className="text-gray-600 hover:text-red-600"
+                        className="text-gray-800 hover:text-red-600"
                       >
                         <X className="h-4 w-4" />
                       </button>

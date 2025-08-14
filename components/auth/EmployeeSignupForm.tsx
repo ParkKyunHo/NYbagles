@@ -176,7 +176,7 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
           </svg>
         </div>
         <h3 className="text-lg font-semibold mb-2">회원가입 요청 완료</h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-700 mb-4">
           관리자가 승인하면 이메일로 알려드리겠습니다.
         </p>
         <Button onClick={() => router.push('/login')} variant="outline">
@@ -346,9 +346,9 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
               ))
             })()}
           </select>
-          <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Building2 className="h-4 w-4 mr-2 text-gray-700"" />
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-700 mt-1">
           근무하실 매장을 선택해주세요
         </p>
       </div>

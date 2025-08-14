@@ -44,7 +44,7 @@ const SimpleBarChart = ({ data, dataKey, color = '#FDB813' }: any) => {
     <div className="space-y-2">
       {data.map((item: any, index: number) => (
         <div key={index} className="flex items-center gap-3">
-          <div className="w-20 text-sm text-gray-600">{item.label}</div>
+          <div className="w-20 text-sm text-gray-800">{item.label}</div>
           <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
             <div
               className="absolute left-0 top-0 h-full rounded-full transition-all"
@@ -106,7 +106,7 @@ export default function SalesSummaryClient({
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">매출 요약</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-800 mt-1">
             {storeName} | {format(new Date(dateRange.start), 'yyyy년 MM월 dd일', { locale: ko })} 
             ~ {format(new Date(dateRange.end), 'yyyy년 MM월 dd일', { locale: ko })}
           </p>
@@ -142,7 +142,7 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">총 매출</p>
+              <p className="text-sm text-gray-800">총 매출</p>
               <p className="text-2xl font-bold">₩{initialData.totalSales.toLocaleString()}</p>
               {comparison && (
                 <p className={`text-sm mt-1 flex items-center ${
@@ -164,7 +164,7 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">거래 수</p>
+              <p className="text-sm text-gray-800">거래 수</p>
               <p className="text-2xl font-bold">{initialData.transactionCount}</p>
               {comparison && (
                 <p className={`text-sm mt-1 flex items-center ${
@@ -186,7 +186,7 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">평균 거래액</p>
+              <p className="text-sm text-gray-800">평균 거래액</p>
               <p className="text-2xl font-bold">₩{Math.round(initialData.averageTransaction).toLocaleString()}</p>
             </div>
             <CreditCard className="h-8 w-8 text-green-500" />
@@ -196,11 +196,11 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">인기 상품</p>
+              <p className="text-sm text-gray-800">인기 상품</p>
               <p className="text-lg font-semibold">
                 {initialData.topProducts[0]?.name || '없음'}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-700">
                 {initialData.topProducts[0]?.quantity || 0}개 판매
               </p>
             </div>
@@ -236,7 +236,7 @@ export default function SalesSummaryClient({
                 </span>
                 <div>
                   <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-gray-600">{product.quantity}개 판매</p>
+                  <p className="text-sm text-gray-800">{product.quantity}개 판매</p>
                 </div>
               </div>
               <p className="font-semibold">₩{product.revenue.toLocaleString()}</p>

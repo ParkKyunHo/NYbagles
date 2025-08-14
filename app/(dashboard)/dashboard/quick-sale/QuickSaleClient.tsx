@@ -80,7 +80,7 @@ export default function QuickSaleClient({
       <div className="mb-6 bg-yellow-50 p-4 rounded-lg">
         <h1 className="text-2xl font-bold mb-2">🥯 빠른 판매</h1>
         <p className="text-xl text-black">오늘 매출: ₩{todaySales.toLocaleString()}</p>
-        <p className="text-sm text-gray-600 mt-1">매장: {storeName}</p>
+        <p className="text-sm text-gray-800: {storeName}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

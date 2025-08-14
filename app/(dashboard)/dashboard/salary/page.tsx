@@ -332,7 +332,7 @@ export default function SalaryPage() {
                                   [employee.id]: employee.hourly_wage?.toString() || ''
                                 })
                               }}
-                              className="text-gray-600 hover:text-gray-900"
+                              className="text-gray-800 hover:text-gray-900"
                             >
                               취소
                             </button>

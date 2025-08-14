@@ -36,7 +36,7 @@ export default function DashboardError({
             시스템 오류
           </h1>
           
-          <p className="text-gray-600 mb-2">
+          <p className="text-gray-700 mb-2">
             예상치 못한 오류가 발생했습니다.
           </p>
           
@@ -83,7 +83,7 @@ export default function DashboardError({
             </Button>
           </div>
           
-          <p className="text-xs text-gray-500 mt-6">
+          <p className="text-xs text-gray-700 mt-6">
             문제가 계속되면 관리자에게 문의하세요.
           </p>
         </div>

@@ -171,7 +171,7 @@ export default function WorkHoursPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">근무 시간 조회</h1>
-        <p className="text-gray-600 mt-2">출퇴근 기록과 근무 시간을 확인하세요.</p>
+        <p className="text-gray-800 mt-2">출퇴근 기록과 근무 시간을 확인하세요.</p>
       </div>
 
       {/* 필터 컨트롤 */}
@@ -213,43 +213,43 @@ export default function WorkHoursPage() {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">총 근무일</p>
+                <p className="text-sm font-medium text-gray-800">총 근무일</p>
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {monthSummary.totalDays}일
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-gray-600" />
+              <Calendar className="h-8 w-8 text-gray-800" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">총 근무시간</p>
+                <p className="text-sm font-medium text-gray-800">총 근무시간</p>
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {monthSummary.totalHours.toFixed(1)}시간
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-gray-600" />
+              <Clock className="h-8 w-8 text-gray-800" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">평균 근무시간</p>
+                <p className="text-sm font-medium text-gray-800">평균 근무시간</p>
                 <p className="text-2xl font-semibold text-gray-900 mt-1">
                   {monthSummary.averageHours.toFixed(1)}시간
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-gray-600" />
+              <Clock className="h-8 w-8 text-gray-800" />
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">지각</p>
+                <p className="text-sm font-medium text-gray-800">지각</p>
                 <p className="text-2xl font-semibold text-yellow-600 mt-1">
                   {monthSummary.lateDays}일
                 </p>
@@ -261,7 +261,7 @@ export default function WorkHoursPage() {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">결근</p>
+                <p className="text-sm font-medium text-gray-800">결근</p>
                 <p className="text-2xl font-semibold text-red-600 mt-1">
                   {monthSummary.absentDays}일
                 </p>
@@ -277,7 +277,7 @@ export default function WorkHoursPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-            <p className="mt-4 text-gray-600">로딩 중...</p>
+            <p className="mt-4 text-gray-800 중...</p>
           </div>
         ) : records.length === 0 ? (
           <div className="p-8 text-center">

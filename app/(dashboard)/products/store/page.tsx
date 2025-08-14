@@ -190,7 +190,7 @@ export default function StoreProductsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-800 중...</p>
         </div>
       </div>
     )
@@ -200,7 +200,7 @@ export default function StoreProductsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">매장 상품 관리</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-800 mt-2">
           {store ? `${store.name} (${store.code})` : '매장'}의 상품 가격과 재고를 관리합니다.
         </p>
       </div>

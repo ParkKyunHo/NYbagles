@@ -44,7 +44,7 @@ export default function SignupPage() {
           <div className="relative block w-full px-4 sm:px-6 py-3 sm:py-4 border-2 border-gray-200 rounded-lg bg-bagel-cream">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600" />
+                <Building2 className="h-4 w-4 mr-2 text-gray-700"" />
               </div>
               <div className="ml-4">
                 <h3 className="text-base sm:text-lg font-medium text-gray-700">관리자 계정</h3>
@@ -60,7 +60,7 @@ export default function SignupPage() {
         <div className="mt-6">
           <Link
             href="/login"
-            className="flex items-center justify-center text-xs sm:text-sm text-gray-600 hover:text-bagel-brown transition-colors duration-200"
+            className="flex items-center justify-center text-xs sm:text-sm text-gray-800 hover:text-bagel-brown transition-colors duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             로그인 페이지로 돌아가기

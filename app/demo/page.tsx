@@ -22,7 +22,7 @@ export default function DemoPage() {
           {/* 매장 QR 코드 */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">2. 매장 QR 코드</h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               매장에 설치된 디스플레이에 표시되는 QR 코드입니다.
               30초마다 자동으로 갱신됩니다.
             </p>
@@ -36,7 +36,7 @@ export default function DemoPage() {
           {/* QR 스캐너 */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">3. QR 스캐너</h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               직원이 모바일 기기로 QR 코드를 스캔합니다.
             </p>
             <QRScanner 
