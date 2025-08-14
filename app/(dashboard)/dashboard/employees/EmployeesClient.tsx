@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { deactivateEmployee, activateEmployee } from '@/lib/actions/employees.actions'
+import EditEmployeeModal from '@/components/employees/EditEmployeeModal'
 import type { Employee } from '@/lib/data/employees.data'
 import type { Store } from '@/lib/data/products.data'
 
@@ -74,6 +75,24 @@ export default function EmployeesClient({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  
+  // Click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setExpandedMenu(null)
+      }
+    }
+    
+    if (expandedMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [expandedMenu])
   
   // 필터 상태
   const [searchTerm, setSearchTerm] = useState(initialFilters.search)
@@ -101,6 +120,17 @@ export default function EmployeesClient({
     startTransition(() => {
       router.refresh()
     })
+  }
+  
+  // 수정 모달 열기
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee(employee)
+    setExpandedMenu(null) // 드롭다운 닫기
+  }
+  
+  // 수정 완료 후 처리
+  const handleEditSuccess = () => {
+    handleRefresh()
   }
   
   // 직원 비활성화
@@ -395,7 +425,7 @@ export default function EmployeesClient({
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="relative inline-block text-left">
+                    <div className="relative inline-block text-left" ref={expandedMenu === employee.id ? menuRef : null}>
                       <button
                         onClick={() => setExpandedMenu(expandedMenu === employee.id ? null : employee.id)}
                         className="text-gray-600 hover:text-gray-900"
@@ -406,6 +436,13 @@ export default function EmployeesClient({
                       {expandedMenu === employee.id && (
                         <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
                           <div className="py-1">
+                            <button 
+                              onClick={() => handleEditEmployee(employee)}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Details
+                            </button>
                             <Link href={`/dashboard/employees/${employee.id}`}>
                               <button className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full">
                                 <Edit className="h-4 w-4 mr-2" />
@@ -459,6 +496,18 @@ export default function EmployeesClient({
           </div>
         )}
       </div>
+      
+      {/* Edit Employee Modal */}
+      {editingEmployee && (
+        <EditEmployeeModal
+          employee={editingEmployee}
+          isOpen={!!editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+          onSuccess={handleEditSuccess}
+          departments={departments}
+          userRole={user.role}
+        />
+      )}
     </div>
   )
 }

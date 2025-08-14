@@ -33,6 +33,15 @@ export interface UpdateEmployeeInput extends Partial<CreateEmployeeInput> {
   isActive?: boolean
 }
 
+export interface EmployeeEditFormData {
+  fullName: string
+  role: string
+  department: string
+  phone: string
+  employmentType: string
+  hourlyWage: string
+}
+
 /**
  * 직원 생성 Server Action
  * 트랜잭션으로 profiles와 employees 테이블 동시 생성
@@ -211,6 +220,211 @@ export async function updateEmployee(input: UpdateEmployeeInput) {
     return {
       success: false,
       error: error instanceof Error ? error.message : '직원 정보 수정 중 오류가 발생했습니다'
+    }
+  }
+}
+
+/**
+ * Quick Employee Role Update Server Action
+ * For simple role/position updates from the employee list
+ */
+export async function updateEmployeeRole(employeeId: string, newRole: string, department?: string) {
+  const user = await getAuthUser()
+  const adminClient = createAdminClient()
+  
+  // 권한 체크 - manager는 admin 역할 부여 불가
+  if (!['super_admin', 'admin', 'manager'].includes(user.role)) {
+    return {
+      success: false,
+      error: '직원 정보 수정 권한이 없습니다'
+    }
+  }
+  
+  // 매니저는 관리자 권한 부여 불가
+  if (user.role === 'manager' && ['admin', 'super_admin'].includes(newRole)) {
+    return {
+      success: false,
+      error: '관리자 권한을 부여할 수 없습니다'
+    }
+  }
+  
+  try {
+    // 기존 직원 정보 조회
+    const { data: existingEmployee, error: fetchError } = await adminClient
+      .from('employees')
+      .select('user_id, store_id')
+      .eq('id', employeeId)
+      .single()
+    
+    if (fetchError || !existingEmployee) {
+      return {
+        success: false,
+        error: '직원을 찾을 수 없습니다'
+      }
+    }
+    
+    // 매니저는 자신의 매장 직원만 수정 가능
+    if (user.role === 'manager' && existingEmployee.store_id !== user.storeId) {
+      return {
+        success: false,
+        error: '다른 매장의 직원 정보를 수정할 수 없습니다'
+      }
+    }
+    
+    // Profile의 role 업데이트
+    const { error: profileError } = await adminClient
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', existingEmployee.user_id)
+    
+    if (profileError) {
+      console.error('Profile update error:', profileError)
+      return {
+        success: false,
+        error: '직원 역할 업데이트에 실패했습니다'
+      }
+    }
+    
+    // Employee의 department 업데이트 (있는 경우)
+    if (department !== undefined) {
+      const { error: employeeError } = await adminClient
+        .from('employees')
+        .update({ 
+          department,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', employeeId)
+      
+      if (employeeError) {
+        console.error('Employee department update error:', employeeError)
+        // department 업데이트는 실패해도 role 업데이트는 성공으로 처리
+      }
+    }
+    
+    // 캐시 무효화
+    revalidateTag('employees')
+    revalidateTag('stats')
+    revalidatePath('/dashboard/employees')
+    
+    return {
+      success: true,
+      message: '직원 역할이 업데이트되었습니다'
+    }
+  } catch (error) {
+    console.error('Employee role update error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '직원 역할 업데이트 중 오류가 발생했습니다'
+    }
+  }
+}
+
+/**
+ * 직원 기본 정보 수정 Server Action
+ * 이름, 연락처, 부서 등 기본 정보 수정용
+ */
+export async function updateEmployeeBasicInfo(
+  employeeId: string, 
+  updates: {
+    fullName?: string
+    phone?: string
+    department?: string
+    employmentType?: string
+    hourlyWage?: number
+  }
+) {
+  const user = await getAuthUser()
+  const adminClient = createAdminClient()
+  
+  // 권한 체크
+  if (!['super_admin', 'admin', 'manager'].includes(user.role)) {
+    return {
+      success: false,
+      error: '직원 정보 수정 권한이 없습니다'
+    }
+  }
+  
+  try {
+    // 기존 직원 정보 조회
+    const { data: existingEmployee, error: fetchError } = await adminClient
+      .from('employees')
+      .select('user_id, store_id')
+      .eq('id', employeeId)
+      .single()
+    
+    if (fetchError || !existingEmployee) {
+      return {
+        success: false,
+        error: '직원을 찾을 수 없습니다'
+      }
+    }
+    
+    // 매니저는 자신의 매장 직원만 수정 가능
+    if (user.role === 'manager' && existingEmployee.store_id !== user.storeId) {
+      return {
+        success: false,
+        error: '다른 매장의 직원 정보를 수정할 수 없습니다'
+      }
+    }
+    
+    // Profile 업데이트 (이름, 연락처)
+    if (updates.fullName || updates.phone) {
+      const profileUpdates: any = {}
+      if (updates.fullName) profileUpdates.full_name = updates.fullName
+      if (updates.phone) profileUpdates.phone = updates.phone
+      
+      const { error: profileError } = await adminClient
+        .from('profiles')
+        .update(profileUpdates)
+        .eq('id', existingEmployee.user_id)
+      
+      if (profileError) {
+        console.error('Profile update error:', profileError)
+        return {
+          success: false,
+          error: '프로필 정보 업데이트에 실패했습니다'
+        }
+      }
+    }
+    
+    // Employee 테이블 업데이트 (부서, 고용 형태, 시급)
+    if (updates.department !== undefined || updates.employmentType || updates.hourlyWage !== undefined) {
+      const employeeUpdates: any = {
+        updated_at: new Date().toISOString()
+      }
+      
+      if (updates.department !== undefined) employeeUpdates.department = updates.department
+      if (updates.employmentType) employeeUpdates.employment_type = updates.employmentType
+      if (updates.hourlyWage !== undefined) employeeUpdates.hourly_wage = updates.hourlyWage
+      
+      const { error: employeeError } = await adminClient
+        .from('employees')
+        .update(employeeUpdates)
+        .eq('id', employeeId)
+      
+      if (employeeError) {
+        console.error('Employee update error:', employeeError)
+        return {
+          success: false,
+          error: '직원 정보 업데이트에 실패했습니다'
+        }
+      }
+    }
+    
+    // 캐시 무효화
+    revalidateTag('employees')
+    revalidateTag('stats')
+    revalidatePath('/dashboard/employees')
+    
+    return {
+      success: true,
+      message: '직원 정보가 업데이트되었습니다'
+    }
+  } catch (error) {
+    console.error('Employee basic info update error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '직원 정보 업데이트 중 오류가 발생했습니다'
     }
   }
 }

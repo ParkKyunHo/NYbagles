@@ -137,6 +137,69 @@ revalidateTag('employees')
 revalidatePath('/dashboard/employees')
 ```
 
+### 5. PostgREST 조인 오류 (400/500 에러) ⚠️ 중요
+```typescript
+// ❌ 문제: 외래키가 다른 테이블 참조 시 직접 조인 불가
+// sales_transactions.sold_by → auth.users (profiles 아님!)
+.select(`
+  profiles!sold_by (full_name)  // 실패: sold_by는 users 참조
+`)
+
+// ✅ 해결 1: 올바른 외래키 이름 사용
+.select(`
+  seller:profiles!sales_transactions_sold_by_fkey (full_name)
+`)
+
+// ✅ 해결 2: 별도 조회 후 매핑 (권장)
+const transactions = await adminClient
+  .from('sales_transactions')
+  .select('*, sold_by')
+
+const sellerIds = transactions.map(t => t.sold_by)
+const profiles = await adminClient
+  .from('profiles')
+  .select('id, full_name')
+  .in('id', sellerIds)
+
+// 데이터 매핑
+const transactionsWithProfiles = transactions.map(t => ({
+  ...t,
+  seller: profiles.find(p => p.id === t.sold_by)
+}))
+```
+
+### 6. Employees 테이블 조인 충돌
+```typescript
+// ❌ 문제: employees가 profiles를 2개 컬럼으로 참조
+// user_id → profiles.id, profile_id → profiles.id
+.select(`
+  profiles!inner (full_name)  // 실패: 어느 외래키인지 모호함
+`)
+
+// ✅ 해결: 명시적 외래키 지정
+.select(`
+  profiles!employees_user_id_fkey (full_name)
+`)
+```
+
+### 7. 환경 변수 누락 (빌드 에러)
+```typescript
+// ❌ 문제: SERVICE_ROLE_KEY 없을 때 빌드 실패
+const adminClient = createClient(url, serviceKey!)
+
+// ✅ 해결: Fallback 처리 (createSafeAdminClient)
+export function createSafeAdminClient() {
+  try {
+    return createAdminClient()
+  } catch {
+    // Anon key로 fallback
+    return createClient(url, anonKey, {
+      auth: { persistSession: false }
+    })
+  }
+}
+```
+
 ## ✅ 개발 체크리스트
 
 ### 새 페이지 작성 시
@@ -158,9 +221,9 @@ if (!user.organizationId) redirect('/select-organization')
 
 - ✅ `/dashboard/quick-sale` - 간편 판매
 - ✅ `/sales/summary` - 매출 요약
-- ✅ `/sales/history` - 판매 내역
+- ✅ `/sales/history` - 판매 내역 (2025.01.14 PostgREST 조인 이슈 해결)
 - ✅ `/products` - 상품 관리
-- ✅ `/dashboard/employees` - 직원 관리
+- ✅ `/dashboard/employees` - 직원 관리 (2025.01.14 외래키 충돌 해결)
 
 ## 🎯 특수 기능
 
@@ -185,12 +248,31 @@ if (!user.organizationId) redirect('/select-organization')
 - [ ] 실시간 업데이트 (Supabase Realtime)
 - [ ] PWA 기능 강화
 
+## 📌 최근 해결된 이슈 (2025.01.14)
+
+### 판매 내역 페이지 오류
+- **문제**: PostgREST 조인 실패 (sold_by → auth.users, not profiles)
+- **해결**: 별도 프로필 조회 후 매핑 방식 적용
+- **파일**: `/lib/data/sales.data.ts`
+
+### 직원 관리 페이지 오류
+- **문제**: employees 테이블의 2개 외래키 충돌
+- **해결**: 명시적 외래키 이름 사용 (`employees_user_id_fkey`)
+- **파일**: `/lib/data/employees.data.ts`
+
+### 환경 변수 빌드 오류
+- **문제**: SERVICE_ROLE_KEY 없을 때 빌드 실패
+- **해결**: createSafeAdminClient로 fallback 처리
+- **파일**: `/lib/supabase/server-admin.ts`
+
 ## 💡 Quick Tips
 
 1. **서버 컴포넌트 예시**: `/app/(dashboard)/dashboard/quick-sale/`
 2. **에러 시 확인**: 데이터 직렬화, 조직 설정, RLS 정책
 3. **성능**: 병렬 페칭, 캐싱, 클라이언트 컴포넌트 최소화
 4. **디버깅**: digest 코드 확인, 개발 환경에서 상세 에러 표시
+5. **PostgREST 조인 실패 시**: 외래키 대상 테이블 확인 (auth.users vs profiles)
+6. **빌드 실패 시**: 환경 변수 확인, fallback 처리 적용
 
 ---
 **언어**: 한글 답변 | **시간**: 대한민국 시간 | **코드 수정**: 단계별 진행
