@@ -274,7 +274,7 @@ export const getSalesHistory = unstable_cache(
           id,
           name
         ),
-        profiles!sold_by (
+        seller:profiles!sales_transactions_sold_by_fkey (
           full_name
         )
       `)
