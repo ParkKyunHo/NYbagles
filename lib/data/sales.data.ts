@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/server-admin'
+import { createAdminClient, createSafeAdminClient } from '@/lib/supabase/server-admin'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
@@ -37,7 +37,7 @@ export interface SalesSummaryData {
  */
 export const getSalesSummary = unstable_cache(
   async (storeId: string | null, startDate: string, endDate: string): Promise<SalesSummaryData> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     // 병렬 데이터 페칭으로 성능 최적화
     const [salesData, topProducts, dailySales, paymentData] = await Promise.all([
@@ -143,7 +143,7 @@ export const getSalesSummary = unstable_cache(
  * 실시간 매출 데이터 (캐싱 없음)
  */
 export const getRealtimeSales = cache(async (storeId: string) => {
-  const adminClient = createAdminClient()
+  const adminClient = createSafeAdminClient()
   const today = format(new Date(), 'yyyy-MM-dd')
   
   const { data, error } = await adminClient
@@ -163,7 +163,7 @@ export const getRealtimeSales = cache(async (storeId: string) => {
  */
 export const compareSalesPeriods = unstable_cache(
   async (storeId: string | null, currentStart: string, currentEnd: string) => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     // 이전 기간 계산
     const daysDiff = Math.ceil(
@@ -250,7 +250,7 @@ export const getSalesHistory = unstable_cache(
       cancelledCount: number
     }
   }> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     // 시간 설정
     const startDateTime = new Date(filters.startDate)

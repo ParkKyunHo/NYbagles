@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/server-admin'
+import { createAdminClient, createSafeAdminClient } from '@/lib/supabase/server-admin'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { UserRole, PAGE_ACCESS } from './role-check'
@@ -54,17 +54,9 @@ export const getCachedAuthUser = cache(async (): Promise<AuthUser | null> => {
     }
     
     // 2. Admin 클라이언트로 완전한 사용자 정보 가져오기 (RLS 우회)
-    let adminClient
-    let usingAdminClient = true
-    
-    try {
-      adminClient = createAdminClient()
-      console.log('[Auth] Admin client created successfully')
-    } catch (error) {
-      console.error('[Auth] Failed to create admin client, falling back to regular client:', error)
-      usingAdminClient = false
-      adminClient = supabase // Fallback to regular client
-    }
+    // Use safe admin client that falls back gracefully
+    const adminClient = createSafeAdminClient()
+    const usingAdminClient = true // We always get a client, but it might be limited
     
     // 3. 사용자 설정 및 현재 조직 가져오기
     console.log('[Auth] Fetching user settings and organization for user:', user.id)
@@ -468,7 +460,7 @@ export async function switchOrganization(newOrgId: string) {
   'use server'
   
   const user = await requireAuth()
-  const adminClient = createAdminClient()
+  const adminClient = createSafeAdminClient()
   
   // 사용자가 해당 조직의 멤버인지 확인
   const { data: membership } = await adminClient

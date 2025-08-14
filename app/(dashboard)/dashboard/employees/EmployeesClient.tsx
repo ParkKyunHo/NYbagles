@@ -380,7 +380,7 @@ export default function EmployeesClient({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {format(new Date(employee.hire_date), 'yyyy-MM-dd', { locale: ko })}
+                      {employee.hire_date ? format(new Date(employee.hire_date), 'yyyy-MM-dd', { locale: ko }) : '-'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

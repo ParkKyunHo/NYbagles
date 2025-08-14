@@ -3,7 +3,7 @@
  * 모든 데이터 페칭 모듈의 기반이 되는 공통 패턴
  */
 
-import { createAdminClient } from '@/lib/supabase/server-admin'
+import { createAdminClient, createSafeAdminClient } from '@/lib/supabase/server-admin'
 import { unstable_cache } from 'next/cache'
 import { serializeRows } from '@/lib/utils/serialization'
 
@@ -24,7 +24,7 @@ export async function fetchData<T>(
   const { tags = [], revalidate = 60, serialize = true } = options
   
   const fetchFn = async () => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     const result = await queryFn(adminClient)
     
     // PostgrestResponse 형태 처리

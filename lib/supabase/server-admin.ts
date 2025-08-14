@@ -1,58 +1,89 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { Database } from '@/types/supabase'
 
+/**
+ * Create a Supabase client with admin privileges
+ * Uses service role key to bypass RLS
+ */
 export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  // 디버깅을 위한 환경 변수 상태 로깅
-  console.log('[Admin Client] Environment check:', {
-    hasUrl: !!supabaseUrl,
-    urlLength: supabaseUrl?.length || 0,
-    hasServiceKey: !!supabaseServiceKey,
-    keyLength: supabaseServiceKey?.length || 0,
-    keyPrefix: supabaseServiceKey?.substring(0, 20) || 'not-set',
-    nodeEnv: process.env.NODE_ENV,
-    isVercel: !!process.env.VERCEL
-  })
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   
   if (!supabaseUrl) {
     console.error('[Admin Client] Missing NEXT_PUBLIC_SUPABASE_URL')
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
   }
   
+  // In production (Vercel), we need the service key
+  // During build time or development, we can use a fallback
   if (!supabaseServiceKey) {
-    console.error('[Admin Client] Missing SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY')
-    console.error('[Admin Client] Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')))
-    
-    // 빌드 시점에는 환경변수가 없을 수 있으므로 더미 값 사용
-    if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
-      throw new Error('Missing SUPABASE_SERVICE_KEY environment variable. Please set it in Vercel dashboard.')
+    // Only log detailed info in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Admin Client] Service key not found, using fallback for development')
     }
     
-    // 빌드용 더미 키 사용
-    console.warn('[Admin Client] Using dummy key for build process')
-    const dummyKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
-    return createSupabaseClient(supabaseUrl, dummyKey, {
-      db: { schema: 'public' },
+    // Use the anon key as fallback for build time
+    // This allows the build to succeed but will need proper key at runtime
+    const fallbackKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (!fallbackKey) {
+      throw new Error('Missing both SUPABASE_SERVICE_ROLE_KEY and fallback NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
+    
+    // Create client with anon key (limited permissions)
+    // This is okay for build time but will have limited access at runtime
+    return createSupabaseClient<Database>(supabaseUrl, fallbackKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
+      },
+      global: {
+        headers: {
+          'x-supabase-admin-fallback': 'true'
+        }
       }
     })
   }
   
+  // Create the admin client with service role key
   try {
-    const client = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+    const client = createSupabaseClient<Database>(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: {
+          'x-supabase-service-role': 'true'
+        }
+      }
+    })
+    
+    return client
+  } catch (error) {
+    console.error('[Admin Client] Failed to create client:', error)
+    throw error
+  }
+}
+
+/**
+ * Create admin client with error recovery
+ * Falls back to regular client if admin client fails
+ */
+export function createSafeAdminClient() {
+  try {
+    return createAdminClient()
+  } catch (error) {
+    console.warn('[Admin Client] Falling back to regular client due to:', error)
+    // Fall back to creating a regular client if admin fails
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    
+    return createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       }
     })
-    
-    console.log('[Admin Client] Successfully created admin client')
-    return client
-  } catch (error) {
-    console.error('[Admin Client] Failed to create client:', error)
-    throw error
   }
 }

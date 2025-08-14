@@ -8,7 +8,7 @@
  * - 병렬 데이터 페칭으로 성능 최적화
  */
 
-import { createAdminClient } from '@/lib/supabase/server-admin'
+import { createAdminClient, createSafeAdminClient } from '@/lib/supabase/server-admin'
 import { unstable_cache } from 'next/cache'
 import { startOfMonth, endOfMonth } from 'date-fns'
 
@@ -83,7 +83,7 @@ export interface SalaryCalculation {
  */
 export const getEmployees = unstable_cache(
   async (filters: EmployeeFilters = {}): Promise<Employee[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('employees')
@@ -196,7 +196,7 @@ export const getEmployees = unstable_cache(
  */
 export const getEmployee = unstable_cache(
   async (employeeId: string): Promise<Employee | null> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const { data, error } = await adminClient
       .from('employees')
@@ -278,7 +278,7 @@ export const getEmployeeStats = unstable_cache(
     byDepartment: Record<string, number>
     newThisMonth: number
   }> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('employees')
@@ -344,7 +344,7 @@ export const getAttendanceRecords = unstable_cache(
     startDate?: string,
     endDate?: string
   ): Promise<AttendanceRecord[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('attendance_records')
@@ -386,7 +386,7 @@ export const getSalaryCalculations = unstable_cache(
     month?: string,
     storeId?: string
   ): Promise<SalaryCalculation[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('salary_calculations')
@@ -429,7 +429,7 @@ export const getSalaryCalculations = unstable_cache(
  */
 export const getDepartments = unstable_cache(
   async (): Promise<string[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const { data, error } = await adminClient
       .from('employees')
@@ -467,7 +467,7 @@ export const getMonthlyWorkSummary = unstable_cache(
     totalHours: number
     overtimeHours: number
   }> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
     const endDate = endOfMonth(new Date(year, month - 1, 1)).toISOString().split('T')[0]

@@ -4,7 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/server-admin'
+import { createAdminClient, createSafeAdminClient } from '@/lib/supabase/server-admin'
 import { unstable_cache } from 'next/cache'
 
 export interface Product {
@@ -54,7 +54,7 @@ export interface ProductFilters {
  */
 export const getProducts = unstable_cache(
   async (filters: ProductFilters = {}): Promise<Product[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('products')
@@ -114,7 +114,7 @@ export const getProducts = unstable_cache(
  */
 export const getProduct = unstable_cache(
   async (productId: string): Promise<Product | null> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const { data, error } = await adminClient
       .from('products')
@@ -148,7 +148,7 @@ export const getProduct = unstable_cache(
  */
 export const getCategories = unstable_cache(
   async (): Promise<Category[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const { data, error } = await adminClient
       .from('product_categories')
@@ -172,7 +172,7 @@ export const getCategories = unstable_cache(
  */
 export const getStores = unstable_cache(
   async (): Promise<Store[]> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     const { data, error } = await adminClient
       .from('stores')
@@ -200,7 +200,7 @@ export const getProductStock = unstable_cache(
     outOfStock: Product[]
     total: number
   }> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     let query = adminClient
       .from('products')
@@ -235,7 +235,7 @@ export const getProductStock = unstable_cache(
  */
 export const getPendingProductChanges = unstable_cache(
   async (storeId?: string | null): Promise<number> => {
-    const adminClient = createAdminClient()
+    const adminClient = createSafeAdminClient()
     
     if (storeId) {
       // Join with products table to filter by store
