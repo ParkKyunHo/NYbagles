@@ -43,11 +43,11 @@ export const getSalesSummary = unstable_cache(
     const [salesData, topProducts, dailySales, paymentData] = await Promise.all([
       // 1. 총 매출 및 거래 수
       adminClient
-        .from('sales_records')
+        .from('sales_transactions')
         .select('total_amount')
-        .gte('created_at', startDate)
-        .lte('created_at', endDate)
-        .eq('status', 'completed')
+        .gte('sold_at', startDate)
+        .lte('sold_at', endDate)
+        .eq('payment_status', 'completed')
         .match(storeId ? { store_id: storeId } : {}),
       
       // 2. 인기 상품 TOP 5
@@ -75,11 +75,11 @@ export const getSalesSummary = unstable_cache(
       
       // 4. 결제 방법별 매출
       adminClient
-        .from('sales_records')
+        .from('sales_transactions')
         .select('payment_method, total_amount')
-        .gte('created_at', startDate)
-        .lte('created_at', endDate)
-        .eq('status', 'completed')
+        .gte('sold_at', startDate)
+        .lte('sold_at', endDate)
+        .eq('payment_status', 'completed')
         .match(storeId ? { store_id: storeId } : {})
     ])
     
@@ -147,11 +147,11 @@ export const getRealtimeSales = cache(async (storeId: string) => {
   const today = format(new Date(), 'yyyy-MM-dd')
   
   const { data, error } = await adminClient
-    .from('sales_records')
+    .from('sales_transactions')
     .select('*')
     .eq('store_id', storeId)
-    .gte('created_at', today)
-    .order('created_at', { ascending: false })
+    .gte('sold_at', today)
+    .order('sold_at', { ascending: false })
     .limit(10)
   
   if (error) throw error
@@ -260,7 +260,7 @@ export const getSalesHistory = unstable_cache(
     
     // 쿼리 빌드
     let query = adminClient
-      .from('sales_records')
+      .from('sales_transactions')
       .select(`
         *,
         sales_items (
@@ -274,14 +274,13 @@ export const getSalesHistory = unstable_cache(
           id,
           name
         ),
-        employees (
-          id,
+        profiles!sold_by (
           full_name
         )
       `)
-      .gte('created_at', startDateTime.toISOString())
-      .lte('created_at', endDateTime.toISOString())
-      .order('created_at', { ascending: false })
+      .gte('sold_at', startDateTime.toISOString())
+      .lte('sold_at', endDateTime.toISOString())
+      .order('sold_at', { ascending: false })
       .limit(filters.limit || 100)
     
     // 필터 적용
@@ -294,7 +293,7 @@ export const getSalesHistory = unstable_cache(
     }
     
     if (filters.status) {
-      query = query.eq('status', filters.status)
+      query = query.eq('payment_status', filters.status)
     }
     
     const { data, error } = await query
