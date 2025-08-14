@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // 판매 기록 생성
     const { data: saleId, error: saleError } = await supabase
-      .rpc('create_sales_record', {
+      .rpc('create_sales_transaction', {
         p_store_id: employee.store_id,
         p_items: items,
         p_payment_method: payment_method,
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // 생성된 판매 기록 조회
     const { data: saleRecord, error: fetchError } = await supabase
-      .from('sales_records')
+      .from('sales_transactions')
       .select(`
         *,
         sales_items (
@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
           id,
           name
         ),
-        profiles!recorded_by (
+        profiles:sold_by (
           id,
-          name
+          full_name
         )
       `)
       .eq('id', saleId)
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // 기본 쿼리
     let query = supabase
-      .from('sales_records')
+      .from('sales_transactions')
       .select(`
         *,
         sales_items (
@@ -126,11 +126,7 @@ export async function GET(request: NextRequest) {
             id,
             name,
             unit,
-            category_id,
-            product_categories (
-              id,
-              name
-            )
+            category
           )
         ),
         stores (
@@ -138,25 +134,24 @@ export async function GET(request: NextRequest) {
           name,
           code
         ),
-        profiles!recorded_by (
+        seller:profiles!sold_by (
           id,
-          name
-        ),
-        profiles!canceled_by (
-          id,
-          name
+          full_name
         )
       `, { count: 'exact' })
-      .order('sale_date', { ascending: false })
-      .order('sale_time', { ascending: false })
+      .order('sold_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     // 필터 적용
     if (startDate) {
-      query = query.gte('sale_date', startDate)
+      const startDateTime = new Date(startDate)
+      startDateTime.setHours(0, 0, 0, 0)
+      query = query.gte('sold_at', startDateTime.toISOString())
     }
     if (endDate) {
-      query = query.lte('sale_date', endDate)
+      const endDateTime = new Date(endDate)
+      endDateTime.setHours(23, 59, 59, 999)
+      query = query.lte('sold_at', endDateTime.toISOString())
     }
     if (storeId) {
       query = query.eq('store_id', storeId)
