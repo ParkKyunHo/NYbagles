@@ -282,9 +282,9 @@ export default function SalesHistoryClient({
             <tbody className="bg-white divide-y divide-gray-200">
               {initialTransactions.map((sale) => (
                 <React.Fragment key={sale.id}>
-                  <tr className={sale.status === 'cancelled' ? 'bg-gray-50' : ''}>
+                  <tr className={sale.payment_status === 'cancelled' ? 'bg-gray-50' : ''}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {format(new Date(sale.created_at), 'yyyy-MM-dd HH:mm', { locale: ko })}
+                      {format(new Date(sale.sold_at || sale.transaction_number), 'yyyy-MM-dd HH:mm', { locale: ko })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {sale.stores?.name || '-'}
@@ -295,12 +295,12 @@ export default function SalesHistoryClient({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                      <span className={sale.status === 'cancelled' ? 'line-through text-gray-600' : 'text-gray-900'}>
+                      <span className={sale.payment_status === 'cancelled' ? 'line-through text-gray-600' : 'text-gray-900'}>
                         ₩{sale.total_amount.toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {sale.status === 'cancelled' ? (
+                      {sale.payment_status === 'cancelled' ? (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                           취소됨
                         </span>
@@ -322,7 +322,7 @@ export default function SalesHistoryClient({
                             <ChevronDown className="h-5 w-5" />
                           )}
                         </button>
-                        {user.canCancelSale && sale.status !== 'cancelled' && (
+                        {user.canCancelSale && sale.payment_status !== 'cancelled' && (
                           <button
                             onClick={() => handleCancelSale(sale.id)}
                             disabled={isPending}
@@ -344,26 +344,7 @@ export default function SalesHistoryClient({
                               <span className="font-medium text-gray-700">판매자:</span>{' '}
                               <span className="text-gray-900">{sale.profiles?.full_name || '알 수 없음'}</span>
                             </div>
-                            {sale.customer_name && (
-                              <div>
-                                <span className="font-medium text-gray-700">고객명:</span>{' '}
-                                <span className="text-gray-900">{sale.customer_name}</span>
-                              </div>
-                            )}
-                            {sale.cancelled_at && (
-                              <div>
-                                <span className="font-medium text-gray-700">취소일시:</span>{' '}
-                                <span className="text-gray-900">
-                                  {format(new Date(sale.cancelled_at), 'yyyy-MM-dd HH:mm', { locale: ko })}
-                                </span>
-                              </div>
-                            )}
-                            {sale.cancelled_reason && (
-                              <div>
-                                <span className="font-medium text-gray-700">취소사유:</span>{' '}
-                                <span className="text-gray-900">{sale.cancelled_reason}</span>
-                              </div>
-                            )}
+                            {/* 고객명, 취소 정보는 현재 스키마에 없음 - 추후 추가 필요 */}
                           </div>
 
                           {/* 판매 항목 */}

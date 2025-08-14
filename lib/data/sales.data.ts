@@ -199,16 +199,18 @@ export const compareSalesPeriods = unstable_cache(
 
 export interface SaleTransaction {
   id: string
+  transaction_number: string
   store_id: string
-  customer_name?: string
-  created_at: string
+  transaction_type: string
+  subtotal: number
+  tax_amount?: number
+  discount_amount?: number
   total_amount: number
   payment_method: string
-  status: string
-  cancelled_at?: string
-  cancelled_by?: string
-  cancelled_reason?: string
-  created_by: string
+  payment_status: string
+  sold_by: string
+  sold_at?: string
+  parent_transaction_id?: string
   sales_items?: Array<{
     id: string
     product_id: string
@@ -226,7 +228,7 @@ export interface SaleTransaction {
   }
   profiles?: {
     full_name: string
-  }
+  } | null
 }
 
 export interface SalesHistoryFilters {
@@ -258,7 +260,7 @@ export const getSalesHistory = unstable_cache(
     const endDateTime = new Date(filters.endDate)
     endDateTime.setHours(23, 59, 59, 999)
     
-    // 쿼리 빌드
+    // 쿼리 빌드 - sold_by를 통한 profiles 조인
     let query = adminClient
       .from('sales_transactions')
       .select(`
@@ -273,9 +275,6 @@ export const getSalesHistory = unstable_cache(
         stores (
           id,
           name
-        ),
-        seller:profiles!sales_transactions_sold_by_fkey (
-          full_name
         )
       `)
       .gte('sold_at', startDateTime.toISOString())
@@ -300,15 +299,53 @@ export const getSalesHistory = unstable_cache(
     
     if (error) throw error
     
+    // sold_by ID들을 수집하여 profiles 정보 가져오기
+    const sellerIds = [...new Set((data || []).map(t => t.sold_by).filter(Boolean))]
+    
+    let profilesMap = new Map<string, { full_name: string }>()
+    
+    if (sellerIds.length > 0) {
+      const { data: profilesData } = await adminClient
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', sellerIds)
+      
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.id, { full_name: profile.full_name })
+        })
+      }
+    }
+    
+    // 데이터에 profiles 정보 추가 및 타입 캐스팅
+    const enrichedData: SaleTransaction[] = (data || []).map(transaction => ({
+      id: transaction.id,
+      transaction_number: transaction.transaction_number,
+      store_id: transaction.store_id,
+      transaction_type: transaction.transaction_type,
+      subtotal: Number(transaction.subtotal),
+      tax_amount: transaction.tax_amount ? Number(transaction.tax_amount) : undefined,
+      discount_amount: transaction.discount_amount ? Number(transaction.discount_amount) : undefined,
+      total_amount: Number(transaction.total_amount),
+      payment_method: transaction.payment_method,
+      payment_status: transaction.payment_status,
+      sold_by: transaction.sold_by,
+      sold_at: transaction.sold_at,
+      parent_transaction_id: transaction.parent_transaction_id,
+      sales_items: transaction.sales_items,
+      stores: transaction.stores,
+      profiles: profilesMap.get(transaction.sold_by) || null
+    }))
+    
     // 통계 계산
-    const stats = (data || []).reduce((acc, sale) => ({
+    const stats = enrichedData.reduce((acc, sale) => ({
       count: acc.count + 1,
-      totalAmount: acc.totalAmount + (sale.status === 'cancelled' ? 0 : sale.total_amount),
-      cancelledCount: acc.cancelledCount + (sale.status === 'cancelled' ? 1 : 0)
+      totalAmount: acc.totalAmount + (sale.payment_status === 'cancelled' ? 0 : Number(sale.total_amount)),
+      cancelledCount: acc.cancelledCount + (sale.payment_status === 'cancelled' ? 1 : 0)
     }), { count: 0, totalAmount: 0, cancelledCount: 0 })
     
     return {
-      transactions: data || [],
+      transactions: enrichedData,
       stats
     }
   },
