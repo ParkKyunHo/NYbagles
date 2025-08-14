@@ -102,7 +102,7 @@ export const getEmployees = unstable_cache(
         emergency_contact,
         is_active,
         updated_at,
-        profiles:profiles!employees_user_id_fkey!inner (
+        profiles!employees_user_id_fkey (
           id,
           full_name,
           email,
@@ -215,7 +215,7 @@ export const getEmployee = unstable_cache(
         emergency_contact,
         is_active,
         updated_at,
-        profiles:profiles!employees_user_id_fkey!inner (
+        profiles!employees_user_id_fkey (
           id,
           full_name,
           email,

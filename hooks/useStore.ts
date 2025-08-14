@@ -65,7 +65,7 @@ export function useStore() {
           }
         } else {
           // Other users only see their assigned store
-          const { data: employee } = await supabase
+          const { data: employee, error: empError } = await supabase
             .from('employees')
             .select(`
               store_id,
@@ -80,9 +80,11 @@ export function useStore() {
               )
             `)
             .eq('user_id', user.id)
-            .single()
+            .maybeSingle()
 
-          if (employee?.stores) {
+          if (empError) {
+            console.warn('Error fetching employee store:', empError)
+          } else if (employee?.stores) {
             const storeData = Array.isArray(employee.stores) 
               ? employee.stores[0] 
               : employee.stores;
