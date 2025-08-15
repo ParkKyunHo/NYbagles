@@ -258,7 +258,7 @@ export default function EmployeeDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-800 중...</p>
+          <p className="mt-4 text-gray-800">로딩 중...</p>
         </div>
       </div>
     )
@@ -349,7 +349,7 @@ export default function EmployeeDetailPage() {
               <div>
                 <label className="text-sm text-gray-700">이메일</label>
                 <p className="font-medium text-gray-900 flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-gray-700"" />
+                  <Mail className="h-4 w-4 mr-2 text-gray-700" />
                   {employee.profiles.email}
                 </p>
               </div>
@@ -379,7 +379,7 @@ export default function EmployeeDetailPage() {
                   </select>
                 ) : (
                   <p className="font-medium text-gray-900 flex items-center">
-                    <Shield className="h-4 w-4 mr-2 text-gray-700"" />
+                    <Shield className="h-4 w-4 mr-2 text-gray-700" />
                     {getRoleLabel(employee.profiles.role)}
                   </p>
                 )}
@@ -401,7 +401,7 @@ export default function EmployeeDetailPage() {
                   </select>
                 ) : (
                   <p className="font-medium text-gray-900 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-gray-700"" />
+                    <MapPin className="h-4 w-4 mr-2 text-gray-700" />
                     {employee.stores.name}
                   </p>
                 )}

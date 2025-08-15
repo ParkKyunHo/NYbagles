@@ -190,7 +190,7 @@ export default function StoreProductsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bagel-yellow mx-auto"></div>
-          <p className="mt-4 text-gray-800 중...</p>
+          <p className="mt-4 text-gray-800">로딩 중...</p>
         </div>
       </div>
     )

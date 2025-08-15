@@ -290,17 +290,17 @@ export default function EmployeeRequestsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                     <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-700"" />
+                      <Mail className="h-4 w-4 mr-2 text-gray-700" />
                       {request.email}
                     </div>
                     {request.phone && (
                       <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-700"" />
+                        <Phone className="h-4 w-4 mr-2 text-gray-700" />
                         {request.phone}
                       </div>
                     )}
                     <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-2 text-gray-700"" />
+                      <Building2 className="h-4 w-4 mr-2 text-gray-700" />
                       {getLocationDisplay(request)}
                     </div>
                     <div className="flex items-center">

@@ -346,7 +346,7 @@ export function EmployeeSignupForm({ onSuccess }: EmployeeSignupFormProps) {
               ))
             })()}
           </select>
-          <Building2 className="h-4 w-4 mr-2 text-gray-700"" />
+          <Building2 className="h-4 w-4 mr-2 text-gray-700" />
         </div>
         <p className="text-xs text-gray-700 mt-1">
           근무하실 매장을 선택해주세요

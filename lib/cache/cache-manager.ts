@@ -46,7 +46,9 @@ class CacheManager {
     // Implement LRU if cache is full
     if (this.memoryCache.size >= this.MAX_CACHE_SIZE) {
       const firstKey = this.memoryCache.keys().next().value
-      this.memoryCache.delete(firstKey)
+      if (firstKey) {
+        this.memoryCache.delete(firstKey)
+      }
     }
 
     this.memoryCache.set(key, {
