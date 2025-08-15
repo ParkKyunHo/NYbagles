@@ -260,12 +260,21 @@ export async function POST(
           .insert({
             user_id: userId,
             store_id: signupRequest.store_id,
+            qr_code: `EMP-${userId}-${Date.now()}-${Math.random().toString(36).substring(7)}`, // QR 코드 생성
             hourly_wage: 10500, // 최저시급
+            employment_type: 'full_time', // 기본값 설정
+            department: '미지정', // 기본 부서
+            hire_date: new Date().toISOString().split('T')[0], // 입사일
             is_active: true
           })
           
         if (createEmployeeError) {
           console.error('Failed to create employee manually:', createEmployeeError)
+          // 직원 레코드 생성 실패 시 에러 반환
+          return NextResponse.json(
+            { error: `직원 레코드 생성 실패: ${createEmployeeError.message}` },
+            { status: 500 }
+          )
         }
       }
     }
