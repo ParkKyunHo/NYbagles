@@ -1,10 +1,22 @@
 -- 승인되었지만 employees 레코드가 없는 사용자 복구
 -- 2025-01-15: employees 테이블의 qr_code 필드 누락으로 인한 데이터 복구
 
--- 1. 먼저 employees 테이블의 qr_code 제약 조건 확인
--- qr_code가 NOT NULL이면서 UNIQUE여야 함
+-- 1. 먼저 user_id에 UNIQUE 제약 조건 추가 (필요한 경우)
+-- employees 테이블에서 한 사용자는 하나의 직원 레코드만 가져야 함
+DO $$
+BEGIN
+  -- user_id에 대한 UNIQUE 제약이 없는 경우 추가
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'employees_user_id_key' 
+    AND conrelid = 'employees'::regclass
+  ) THEN
+    ALTER TABLE employees ADD CONSTRAINT employees_user_id_key UNIQUE (user_id);
+  END IF;
+END $$;
 
 -- 2. 승인된 직원 중 employees 레코드가 없는 사용자 찾기 및 복구
+-- 이미 존재하는 레코드는 건너뛰기
 INSERT INTO employees (
   user_id, 
   store_id, 
