@@ -295,6 +295,12 @@ export async function POST(
     }
 
     // 비밀번호 재설정 이메일 전송 제거 (사용자가 입력한 비밀번호 사용)
+    
+    // 캐시 무효화 - 직원 목록이 즉시 업데이트되도록
+    const { revalidateTag, revalidatePath } = await import('next/cache')
+    revalidateTag('employees')
+    revalidatePath('/dashboard/employees')
+    revalidatePath('/dashboard')
 
     return NextResponse.json({
       message: 'Employee approved successfully',
