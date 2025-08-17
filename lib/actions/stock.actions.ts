@@ -1,7 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { getCachedAuthUser } from '@/lib/auth/unified-auth';
 
 export interface UpdateStockData {
   productId: string;
@@ -18,18 +19,28 @@ export interface UpdateStockResult {
 
 /**
  * 재고 수량 직접 업데이트 (승인 불필요)
+ * 권한: manager, admin, super_admin만 가능
  */
 export async function updateProductStock(data: UpdateStockData): Promise<UpdateStockResult> {
   try {
     const supabase = await createClient();
     
-    // 현재 사용자 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 현재 사용자 확인 및 권한 체크
+    const authUser = await getCachedAuthUser();
     
-    if (authError || !user) {
+    if (!authUser) {
       return {
         success: false,
         error: '인증되지 않은 요청입니다.'
+      };
+    }
+
+    // 권한 체크: manager, admin, super_admin만 가능
+    const allowedRoles = ['manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(authUser.role)) {
+      return {
+        success: false,
+        error: '재고 수정 권한이 없습니다. 매니저 이상의 권한이 필요합니다.'
       };
     }
 
@@ -87,16 +98,19 @@ export async function updateProductStock(data: UpdateStockData): Promise<UpdateS
           stock_quantity: data.newQuantity
         },
         change_reason: data.reason || '재고 수정',
-        requested_by: user.id,
-        approved_by: user.id,
+        requested_by: authUser.id,
+        approved_by: authUser.id,
         approved_at: new Date().toISOString(),
         status: 'approved'
       });
 
     // 캐시 무효화
     revalidatePath('/products');
+    revalidatePath('/sales');
     revalidatePath('/dashboard');
     revalidatePath('/');
+    revalidateTag('products');
+    revalidateTag('sales');
 
     return {
       success: true,
@@ -115,6 +129,7 @@ export async function updateProductStock(data: UpdateStockData): Promise<UpdateS
 
 /**
  * 재고 조정 (증가/감소)
+ * 권한: manager, admin, super_admin만 가능
  */
 export async function adjustProductStock(
   productId: string, 
@@ -124,13 +139,22 @@ export async function adjustProductStock(
   try {
     const supabase = await createClient();
     
-    // 현재 사용자 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 현재 사용자 확인 및 권한 체크
+    const authUser = await getCachedAuthUser();
     
-    if (authError || !user) {
+    if (!authUser) {
       return {
         success: false,
         error: '인증되지 않은 요청입니다.'
+      };
+    }
+
+    // 권한 체크: manager, admin, super_admin만 가능
+    const allowedRoles = ['manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(authUser.role)) {
+      return {
+        success: false,
+        error: '재고 수정 권한이 없습니다. 매니저 이상의 권한이 필요합니다.'
       };
     }
 
@@ -175,6 +199,7 @@ export async function adjustProductStock(
 
 /**
  * 여러 상품의 재고 일괄 업데이트
+ * 권한: manager, admin, super_admin만 가능
  */
 export async function batchUpdateStock(
   updates: UpdateStockData[]
@@ -182,13 +207,22 @@ export async function batchUpdateStock(
   try {
     const supabase = await createClient();
     
-    // 현재 사용자 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 현재 사용자 확인 및 권한 체크
+    const authUser = await getCachedAuthUser();
     
-    if (authError || !user) {
+    if (!authUser) {
       return {
         success: false,
         error: '인증되지 않은 요청입니다.'
+      };
+    }
+
+    // 권한 체크: manager, admin, super_admin만 가능
+    const allowedRoles = ['manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(authUser.role)) {
+      return {
+        success: false,
+        error: '재고 수정 권한이 없습니다. 매니저 이상의 권한이 필요합니다.'
       };
     }
 

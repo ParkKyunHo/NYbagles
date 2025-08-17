@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { salesService } from '@/lib/services/sales.service'
-import { ShoppingCart, Plus, Minus, X, CreditCard, DollarSign } from 'lucide-react'
+import { ShoppingCart, Plus, Minus, X, CreditCard, DollarSign, Package, Edit2, Wifi, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import QuickStockUpdateModal from '@/components/products/QuickStockUpdateModal'
 import type { Product, CreateSaleItem, PaymentMethod } from '@/types/sales'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface CartItem extends CreateSaleItem {
   product: Product
@@ -31,12 +33,114 @@ export default function SalesPage() {
   const [stores, setStores] = useState<Store[]>([])
   const [selectedStoreId, setSelectedStoreId] = useState<string>('')
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [selectedProductForStock, setSelectedProductForStock] = useState<Product | null>(null)
+  const [isStockModalOpen, setIsStockModalOpen] = useState(false)
+  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null)
+  const [updatedProductIds, setUpdatedProductIds] = useState<Set<string>>(new Set())
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
     checkAuthAndLoadData()
   }, [])
+
+  // Real-time subscription for stock updates
+  useEffect(() => {
+    if (!selectedStoreId) return
+
+    // Clean up previous subscription if exists
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel)
+    }
+
+    // Create new subscription for the selected store's products
+    const channel = supabase
+      .channel(`products-stock-${selectedStoreId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'products',
+          filter: `store_id=eq.${selectedStoreId}`
+        },
+        (payload) => {
+          console.log('Stock update received:', payload)
+          
+          if (payload.eventType === 'UPDATE') {
+            // Update the specific product in the state
+            setProducts(prevProducts => 
+              prevProducts.map(product => 
+                product.id === payload.new.id
+                  ? {
+                      ...product,
+                      stock_quantity: payload.new.stock_quantity,
+                      name: payload.new.name,
+                      base_price: payload.new.base_price,
+                      price: payload.new.base_price,
+                      status: payload.new.status
+                    }
+                  : product
+              )
+            )
+            
+            // Add visual indicator for updated product
+            setUpdatedProductIds(prev => new Set([...prev, payload.new.id]))
+            
+            // Remove visual indicator after 2 seconds
+            setTimeout(() => {
+              setUpdatedProductIds(prev => {
+                const newSet = new Set(prev)
+                newSet.delete(payload.new.id)
+                return newSet
+              })
+            }, 2000)
+          } else if (payload.eventType === 'INSERT') {
+            // Add new product to the list
+            const newProduct = {
+              ...payload.new,
+              price: payload.new.base_price,
+              product_categories: { 
+                id: payload.new.category, 
+                name: payload.new.category 
+              }
+            }
+            setProducts(prevProducts => [...prevProducts, newProduct])
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted product from the list
+            setProducts(prevProducts => 
+              prevProducts.filter(product => product.id !== payload.old.id)
+            )
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsRealtimeConnected(true)
+          console.log('Real-time subscription connected')
+        } else if (status === 'CHANNEL_ERROR') {
+          setIsRealtimeConnected(false)
+          console.error('Real-time subscription error')
+        } else if (status === 'TIMED_OUT') {
+          setIsRealtimeConnected(false)
+          console.error('Real-time subscription timed out')
+        } else if (status === 'CLOSED') {
+          setIsRealtimeConnected(false)
+          console.log('Real-time subscription closed')
+        }
+      })
+
+    setRealtimeChannel(channel)
+
+    // Cleanup function
+    return () => {
+      if (channel) {
+        setIsRealtimeConnected(false)
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [selectedStoreId, supabase])
 
   const checkAuthAndLoadData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -147,10 +251,39 @@ export default function SalesPage() {
     }
   }
 
+  // 재고 수정 권한 확인
+  const canEditStock = () => {
+    return userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin'
+  }
+
+  // 재고 수정 모달 열기
+  const openStockModal = (product: Product) => {
+    setSelectedProductForStock(product)
+    setIsStockModalOpen(true)
+  }
+
+  // 재고 업데이트 성공 후 처리
+  const handleStockUpdateSuccess = async () => {
+    // Real-time subscription will automatically update the stock
+    // No need to refetch products manually
+    console.log('Stock updated successfully - real-time update will reflect changes')
+  }
+
   const addToCart = (product: Product) => {
+    // 재고가 0인 경우 경고
+    if (product.stock_quantity !== undefined && product.stock_quantity <= 0) {
+      alert('재고가 부족합니다.')
+      return
+    }
+
     const existingItem = cart.find(item => item.product_id === product.id)
     
     if (existingItem) {
+      // 재고 체크
+      if (product.stock_quantity !== undefined && existingItem.quantity + 1 > product.stock_quantity) {
+        alert(`재고가 부족합니다. 현재 재고: ${product.stock_quantity}개`)
+        return
+      }
       updateQuantity(product.id, existingItem.quantity + 1)
     } else {
       setCart([...cart, {
@@ -170,9 +303,16 @@ export default function SalesPage() {
       return
     }
 
+    // 재고 체크
+    const product = products.find(p => p.id === productId)
+    if (product && product.stock_quantity !== undefined && quantity > product.stock_quantity) {
+      alert(`재고가 부족합니다. 현재 재고: ${product.stock_quantity}개`)
+      return
+    }
+
     setCart(cart.map(item => 
       item.product_id === productId
-        ? { ...item, quantity }
+        ? { ...item, quantity, subtotal: quantity * item.unit_price }
         : item
     ))
   }
@@ -213,6 +353,8 @@ export default function SalesPage() {
         setCart([])
         setNotes('')
         setPaymentMethod('cash')
+        // Real-time subscription will automatically update the stock
+        // No need to refetch products after sale
       } else {
         alert(result.error || '판매 기록 실패')
       }
@@ -240,13 +382,30 @@ export default function SalesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-black">판매 관리</h1>
-            <p className="text-black mt-2">{store?.name} - 판매 입력</p>
-          </div>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-black">판매 관리</h1>
+              <div className="flex items-center gap-3 mt-2">
+                <p className="text-black">{store?.name} - 판매 입력</p>
+                {/* Real-time connection status */}
+                <div className="flex items-center gap-1">
+                  {isRealtimeConnected ? (
+                    <>
+                      <Wifi className="h-4 w-4 text-green-600" />
+                      <span className="text-xs text-green-600">실시간 연결됨</span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="h-4 w-4 text-gray-400" />
+                      <span className="text-xs text-gray-400">연결 대기중</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           <div className="flex gap-2">
             {/* 관리자/슈퍼관리자용 매장 선택 */}
             {(userRole === 'super_admin' || userRole === 'admin') && stores.length > 0 && (
@@ -324,23 +483,75 @@ export default function SalesPage() {
             <div className="p-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
-                  <button
+                  <div
                     key={product.id}
-                    onClick={() => addToCart(product)}
-                    className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 hover:border-bagel-yellow hover:bg-yellow-50 transition-all"
+                    className={`bg-gray-50 border-2 rounded-lg p-4 hover:border-bagel-yellow hover:bg-yellow-50 transition-all relative ${
+                      updatedProductIds.has(product.id) 
+                        ? 'border-green-500 animate-pulse bg-green-50' 
+                        : 'border-gray-200'
+                    }`}
                   >
-                    <h3 className="font-medium text-black mb-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-bagel-yellow font-bold">
-                      ₩{product.price.toLocaleString()}
-                    </p>
-                    {product.stock_quantity !== undefined && product.stock_quantity < 10 && (
-                      <p className="text-xs text-red-600 mt-1">
-                        재고: {product.stock_quantity}개
-                      </p>
+                    {/* 재고 수정 버튼 (권한이 있는 경우에만 표시) */}
+                    {canEditStock() && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openStockModal(product)
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-white rounded-md shadow-sm hover:bg-gray-100 transition-colors"
+                        title="재고 수정"
+                      >
+                        <Edit2 className="h-4 w-4 text-gray-600" />
+                      </button>
                     )}
-                  </button>
+                    
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="w-full text-left"
+                      disabled={product.stock_quantity === 0}
+                    >
+                      <h3 className="font-medium text-black mb-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-bagel-yellow font-bold text-lg">
+                        ₩{product.price.toLocaleString()}
+                      </p>
+                      
+                      {/* 재고 표시 - 항상 표시 */}
+                      <div className="mt-2 pt-2 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <Package className={`h-4 w-4 ${
+                              product.stock_quantity === 0 
+                                ? 'text-red-500' 
+                                : product.stock_quantity < 10 
+                                  ? 'text-orange-500' 
+                                  : 'text-green-600'
+                            }`} />
+                            <span className={`text-sm font-medium ${
+                              product.stock_quantity === 0 
+                                ? 'text-red-600' 
+                                : product.stock_quantity < 10 
+                                  ? 'text-orange-600' 
+                                  : 'text-green-700'
+                            }`}>
+                              재고: {product.stock_quantity !== undefined ? product.stock_quantity : 0}개
+                            </span>
+                          </div>
+                          {product.stock_quantity === 0 && (
+                            <span className="text-xs text-red-600 font-bold bg-red-50 px-2 py-1 rounded">
+                              품절
+                            </span>
+                          )}
+                          {product.stock_quantity > 0 && product.stock_quantity < 10 && (
+                            <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
+                              부족
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -375,7 +586,7 @@ export default function SalesPage() {
                       </h4>
                       <button
                         onClick={() => removeFromCart(item.product_id)}
-                        className="text-gray-800 hover:text-red-600"
+                        className="text-black hover:text-red-600"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -466,6 +677,19 @@ export default function SalesPage() {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* 재고 수정 모달 */}
+      {selectedProductForStock && (
+        <QuickStockUpdateModal
+          product={selectedProductForStock}
+          isOpen={isStockModalOpen}
+          onClose={() => {
+            setIsStockModalOpen(false)
+            setSelectedProductForStock(null)
+          }}
+          onSuccess={handleStockUpdateSuccess}
+        />
+      )}
+    </>
   )
 }

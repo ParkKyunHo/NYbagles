@@ -97,9 +97,9 @@ export async function DELETE(
     const body = await request.json()
     const { reason } = body
 
-    // 판매 기록 취소
+    // 판매 기록 취소 (stock restoration 포함)
     const { data: result, error: cancelError } = await supabase
-      .rpc('cancel_sales_record', {
+      .rpc('cancel_sales_transaction', {
         p_sale_id: params.id,
         p_reason: reason || null
       })

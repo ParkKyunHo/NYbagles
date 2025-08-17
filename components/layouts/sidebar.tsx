@@ -31,7 +31,6 @@ const navigation = [
   { name: '상품 승인', href: '/products/approvals', icon: UserCheck, roles: ['super_admin', 'admin'] },
   { name: '일일 마감', href: '/sales/closing', icon: Calendar, roles: ['super_admin', 'admin', 'manager'] },
   { name: '상품 관리', href: '/products', icon: Package, roles: ['super_admin', 'admin', 'manager'] },
-  { name: '빠른 판매', href: '/dashboard/quick-sale', icon: ShoppingCart, roles: ['super_admin', 'admin', 'manager'] },
   { name: '판매 입력', href: '/sales', icon: ShoppingCart, roles: ['super_admin', 'admin', 'manager'] },
   { name: '판매 내역', href: '/sales/history', icon: FileText, roles: ['super_admin', 'admin', 'manager'] },
   { name: '매출 요약', href: '/sales/summary', icon: BarChart3, roles: ['super_admin', 'admin', 'manager'] },
