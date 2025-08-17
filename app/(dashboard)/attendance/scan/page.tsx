@@ -111,27 +111,30 @@ export default function QRScanPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-6 max-w-2xl">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-2xl">
       <div className="mb-4 sm:mb-6">
-        <Link href="/dashboard/attendance">
-          <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
-            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+        <Link href="/attendance">
+          <Button variant="ghost" size="sm" className="text-xs sm:text-sm min-h-[44px] touch-manipulation">
+            <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
             <span className="hidden sm:inline">출퇴근 페이지로 돌아가기</span>
             <span className="sm:hidden">뒤로</span>
           </Button>
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg">
-        <div className="p-4 sm:p-6 border-b">
-          <h1 className="text-lg sm:text-xl font-bold">출퇴근 QR 스캔</h1>
-          <p className="text-xs sm:text-sm text-gray-700 mt-1">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-100">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">출퇴근 QR 스캔</h1>
+          <p className="text-sm text-gray-600 mt-1">
             매장의 QR 코드를 스캔하세요
           </p>
           {locationError && (
-            <p className="text-xs text-yellow-600 mt-2">
-              ⚠️ {locationError}
-            </p>
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 flex items-start">
+                <span className="mr-2">⚠️</span>
+                <span>{locationError}</span>
+              </p>
+            </div>
           )}
         </div>
         <div className="p-4 sm:p-6">
@@ -142,42 +145,59 @@ export default function QRScanPage() {
                 onError={handleError}
               />
               {isProcessing && (
-                <div className="mt-4 text-center">
-                  <div className="inline-flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-bagel-yellow mr-2"></div>
-                    처리 중...
+                <div className="mt-6 text-center">
+                  <div className="inline-flex items-center justify-center p-4 bg-bagel-yellow-50 rounded-lg">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-bagel-yellow border-t-transparent mr-3"></div>
+                    <span className="text-bagel-black font-medium">처리 중...</span>
                   </div>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center py-8 sm:py-12">
               {scanResult.success ? (
-                <>
-                  <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-3 sm:mb-4" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{scanResult.message}</h3>
-                  <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">
-                    잠시 후 대시보드로 이동합니다...
-                  </p>
-                </>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{scanResult.message}</h3>
+                    <p className="text-sm text-gray-600 mb-4 sm:mb-6">
+                      잠시 후 대시보드로 이동합니다...
+                    </p>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-green-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-600 border-t-transparent"></div>
+                      <span>이동 중...</span>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <>
-                  <XCircle className="h-12 w-12 sm:h-16 sm:w-16 text-red-500 mx-auto mb-3 sm:mb-4" />
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">오류 발생</h3>
-                  <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-6">{scanResult.message}</p>
-                  <Button onClick={() => setScanResult(null)} className="text-sm sm:text-base">
-                    다시 스캔하기
-                  </Button>
-                </>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <XCircle className="h-8 w-8 sm:h-10 sm:w-10 text-red-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">오류 발생</h3>
+                    <p className="text-sm text-gray-600 mb-6">{scanResult.message}</p>
+                    <Button 
+                      onClick={() => setScanResult(null)} 
+                      className="min-h-[44px] touch-manipulation bg-bagel-yellow hover:bg-bagel-yellow-600 text-bagel-black px-6"
+                    >
+                      다시 스캔하기
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-600">
-        <p>문제가 있나요?</p>
-        <p>매장 관리자에게 문의하세요.</p>
+      <div className="mt-6 text-center">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p className="text-sm text-gray-600 mb-1">문제가 있나요?</p>
+          <p className="text-sm text-gray-500">매장 관리자에게 문의하세요.</p>
+        </div>
       </div>
     </div>
   )
