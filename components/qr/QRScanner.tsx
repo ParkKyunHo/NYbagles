@@ -137,9 +137,18 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       const cameraConstraints = getOptimalCameraConstraints()
       const isIOS = deviceInfo?.isIOS || isIOSDevice()
       
-      // iOS-specific pre-start delay
+      // iOS-specific pre-start delay and video setup
       if (isIOS) {
-        await new Promise(resolve => setTimeout(resolve, 200))
+        // Ensure video element has correct attributes for iOS
+        const video = videoRef.current
+        video.setAttribute('playsinline', 'true')
+        video.setAttribute('webkit-playsinline', 'true')
+        video.setAttribute('controls', 'false')
+        video.muted = true
+        video.autoplay = true
+        
+        // Additional iOS-specific delay for camera initialization
+        await new Promise(resolve => setTimeout(resolve, 300))
       }
 
       // Device-optimized scanner configuration
@@ -313,11 +322,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           x-webkit-airplay="deny"
           disablePictureInPicture
           data-testid="qr-scanner-video"
-          // iOS-specific optimizations
+          // Enhanced iOS-specific optimizations
           {...(deviceInfo?.isIOS && {
-            preload: 'none',
+            preload: 'metadata',
             'webkit-playsinline': 'true',
-            playsinline: true
+            playsinline: true,
+            poster: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
           })}
         />
         

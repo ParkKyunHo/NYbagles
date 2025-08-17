@@ -422,6 +422,91 @@ export interface Database {
           created_at?: string
         }
       }
+      sales_transactions: {
+        Row: {
+          id: string
+          transaction_number: string
+          store_id: string
+          transaction_type: 'sale' | 'return' | 'exchange' | 'void'
+          subtotal: number
+          tax_amount: number
+          discount_amount: number
+          total_amount: number
+          payment_method: string
+          payment_status: 'pending' | 'completed' | 'failed' | 'refunded'
+          sold_by: string
+          sold_at: string
+          parent_transaction_id: string | null
+        }
+        Insert: {
+          id?: string
+          transaction_number: string
+          store_id: string
+          transaction_type?: 'sale' | 'return' | 'exchange' | 'void'
+          subtotal: number
+          tax_amount?: number
+          discount_amount?: number
+          total_amount: number
+          payment_method: string
+          payment_status?: 'pending' | 'completed' | 'failed' | 'refunded'
+          sold_by: string
+          sold_at?: string
+          parent_transaction_id?: string | null
+        }
+        Update: {
+          id?: string
+          transaction_number?: string
+          store_id?: string
+          transaction_type?: 'sale' | 'return' | 'exchange' | 'void'
+          subtotal?: number
+          tax_amount?: number
+          discount_amount?: number
+          total_amount?: number
+          payment_method?: string
+          payment_status?: 'pending' | 'completed' | 'failed' | 'refunded'
+          sold_by?: string
+          sold_at?: string
+          parent_transaction_id?: string | null
+        }
+      }
+      sales_items: {
+        Row: {
+          id: string
+          transaction_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          discount_amount: number
+          total_amount: number
+          stock_before: number
+          stock_after: number
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          transaction_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          discount_amount?: number
+          total_amount: number
+          stock_before: number
+          stock_after: number
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          transaction_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+          discount_amount?: number
+          total_amount?: number
+          stock_before?: number
+          stock_after?: number
+          notes?: string | null
+        }
+      }
       documents: {
         Row: {
           id: string

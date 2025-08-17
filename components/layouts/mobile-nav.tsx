@@ -20,7 +20,8 @@ import {
   Package,
   DollarSign,
   Shield,
-  Store
+  Store,
+  ScanLine
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -43,6 +44,7 @@ export function MobileNav({ initialRole }: MobileNavProps) {
     { name: 'QR 출퇴근', href: '/attendance', icon: QrCode, roles: ['all'] },
     { name: 'QR 스캔', href: '/attendance/scan', icon: QrCode, roles: ['all'], quickAccess: true },
     { name: '스케줄 관리', href: '/schedule', icon: Calendar, roles: ['all'] },
+    { name: 'QR 매출 조회', href: '/qr-sales', icon: ScanLine, roles: ['super_admin', 'admin'] },
     { name: '상품 승인', href: '/products/approvals', icon: UserCheck, roles: ['super_admin', 'admin'] },
     { name: '일일 마감', href: '/sales/closing', icon: Calendar, roles: ['super_admin', 'admin', 'manager'] },
     { name: '상품 관리', href: '/products', icon: Package, roles: ['super_admin', 'admin', 'manager'] },

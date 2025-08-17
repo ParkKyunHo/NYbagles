@@ -52,6 +52,7 @@ export const PAGE_ACCESS = {
   '/admin/signup-requests': ['super_admin', 'admin'],
   '/admin/stores': ['super_admin', 'admin'],
   '/admin': ['super_admin', 'admin'],
+  '/qr-sales': ['super_admin', 'admin'],
   
   // System admin only
   '/admin/system-settings': ['super_admin'],
