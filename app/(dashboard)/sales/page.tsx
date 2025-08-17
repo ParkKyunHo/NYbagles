@@ -98,12 +98,26 @@ export default function SalesPage() {
             }, 2000)
           } else if (payload.eventType === 'INSERT') {
             // Add new product to the list
-            const newProduct = {
-              ...payload.new,
-              price: payload.new.base_price,
+            const newProduct: Product = {
+              id: payload.new.id,
+              name: payload.new.name,
+              description: payload.new.description,
+              sku: payload.new.sku,
+              category_id: payload.new.category || '',
+              price: payload.new.base_price || payload.new.price,
+              unit: payload.new.unit || '개',
+              display_order: payload.new.display_order,
+              is_active: payload.new.is_active ?? true,
+              created_at: payload.new.created_at,
+              updated_at: payload.new.updated_at,
+              stock_quantity: payload.new.stock_quantity,
               product_categories: { 
-                id: payload.new.category, 
-                name: payload.new.category 
+                id: payload.new.category || '', 
+                name: payload.new.category || '',
+                description: null,
+                display_order: 0,
+                is_active: true,
+                created_at: ''
               }
             }
             setProducts(prevProducts => [...prevProducts, newProduct])
@@ -406,8 +420,8 @@ export default function SalesPage() {
                 </div>
               </div>
             </div>
-          <div className="flex gap-2">
-            {/* 관리자/슈퍼관리자용 매장 선택 */}
+            <div className="flex gap-2">
+              {/* 관리자/슈퍼관리자용 매장 선택 */}
             {(userRole === 'super_admin' || userRole === 'admin') && stores.length > 0 && (
               <select
                 value={selectedStoreId}
@@ -442,6 +456,7 @@ export default function SalesPage() {
             >
               매출 요약
             </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -522,28 +537,28 @@ export default function SalesPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
                             <Package className={`h-4 w-4 ${
-                              product.stock_quantity === 0 
+                              (product.stock_quantity ?? 0) === 0 
                                 ? 'text-red-500' 
-                                : product.stock_quantity < 10 
+                                : (product.stock_quantity ?? 0) < 10 
                                   ? 'text-orange-500' 
                                   : 'text-green-600'
                             }`} />
                             <span className={`text-sm font-medium ${
-                              product.stock_quantity === 0 
+                              (product.stock_quantity ?? 0) === 0 
                                 ? 'text-red-600' 
-                                : product.stock_quantity < 10 
+                                : (product.stock_quantity ?? 0) < 10 
                                   ? 'text-orange-600' 
                                   : 'text-green-700'
                             }`}>
                               재고: {product.stock_quantity !== undefined ? product.stock_quantity : 0}개
                             </span>
                           </div>
-                          {product.stock_quantity === 0 && (
+                          {(product.stock_quantity ?? 0) === 0 && (
                             <span className="text-xs text-red-600 font-bold bg-red-50 px-2 py-1 rounded">
                               품절
                             </span>
                           )}
-                          {product.stock_quantity > 0 && product.stock_quantity < 10 && (
+                          {(product.stock_quantity ?? 0) > 0 && (product.stock_quantity ?? 0) < 10 && (
                             <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
                               부족
                             </span>
@@ -681,7 +696,12 @@ export default function SalesPage() {
       {/* 재고 수정 모달 */}
       {selectedProductForStock && (
         <QuickStockUpdateModal
-          product={selectedProductForStock}
+          product={{
+            id: selectedProductForStock.id,
+            name: selectedProductForStock.name,
+            stock_quantity: selectedProductForStock.stock_quantity ?? 0,
+            category: selectedProductForStock.product_categories?.name || ''
+          }}
           isOpen={isStockModalOpen}
           onClose={() => {
             setIsStockModalOpen(false)
