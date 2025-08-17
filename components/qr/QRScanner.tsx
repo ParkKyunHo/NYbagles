@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import QrScanner from 'qr-scanner'
 import { Button } from '@/components/ui/button'
 import { Camera, AlertCircle, RefreshCw } from 'lucide-react'
+import { detectDevice, getOptimalCameraConstraints, isIOSDevice } from '@/lib/utils/device-detection'
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -20,11 +21,21 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const [availableCameras, setAvailableCameras] = useState<QrScanner.Camera[]>([])
   const [selectedCamera, setSelectedCamera] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(false)
+  const [deviceInfo, setDeviceInfo] = useState<ReturnType<typeof detectDevice> | null>(null)
 
   // Check camera permissions and availability on component mount
   useEffect(() => {
     const initializeCamera = async () => {
       try {
+        // Detect device capabilities first
+        const device = detectDevice()
+        setDeviceInfo(device)
+        
+        // iOS-specific initialization delay for better stability
+        if (device.isIOS) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
         // Check if QR Scanner and cameras are supported
         const hasCamera = await QrScanner.hasCamera()
         if (!hasCamera) {
@@ -33,24 +44,46 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           return
         }
 
-        // Get available cameras
+        // Get available cameras with iOS-specific handling
         const cameras = await QrScanner.listCameras(true)
         setAvailableCameras(cameras)
         
-        // Prefer environment camera (back camera) on mobile
-        const backCamera = cameras.find(camera => 
-          camera.label.toLowerCase().includes('back') || 
-          camera.label.toLowerCase().includes('environment') ||
-          camera.label.toLowerCase().includes('rear')
-        )
+        // Enhanced camera selection for iOS devices
+        let preferredCamera = null
         
-        setSelectedCamera(backCamera?.id || cameras[0]?.id || null)
+        if (device.isIOS) {
+          // iOS: Look for back camera more specifically
+          preferredCamera = cameras.find(camera => {
+            const label = camera.label.toLowerCase()
+            return label.includes('back') || 
+                   label.includes('environment') ||
+                   label.includes('rear') ||
+                   label.includes('주카메라') ||
+                   label.includes('main')
+          }) || cameras.find(camera => !camera.label.toLowerCase().includes('front'))
+        } else {
+          // Android/Desktop: Original logic
+          preferredCamera = cameras.find(camera => 
+            camera.label.toLowerCase().includes('back') || 
+            camera.label.toLowerCase().includes('environment') ||
+            camera.label.toLowerCase().includes('rear')
+          )
+        }
+        
+        setSelectedCamera(preferredCamera?.id || cameras[0]?.id || null)
 
-        // Check camera permissions
+        // Check camera permissions with iOS-specific handling
         if (navigator.permissions) {
           try {
             const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
             setPermissionStatus(permission.state)
+            
+            // iOS: Monitor permission changes
+            if (device.isIOS) {
+              permission.addEventListener('change', () => {
+                setPermissionStatus(permission.state)
+              })
+            }
           } catch (err) {
             // Fallback for browsers that don't support permissions API
             setPermissionStatus('unknown')
@@ -100,6 +133,45 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     setCameraError(null)
 
     try {
+      // Get device-specific configurations
+      const cameraConstraints = getOptimalCameraConstraints()
+      const isIOS = deviceInfo?.isIOS || isIOSDevice()
+      
+      // iOS-specific pre-start delay
+      if (isIOS) {
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
+
+      // Device-optimized scanner configuration
+      const scannerConfig: any = {
+        returnDetailedScanResult: true,
+        // Use selected camera or prefer environment camera
+        preferredCamera: selectedCamera || 'environment',
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+        // iOS-specific scan rate optimization
+        maxScansPerSecond: isIOS ? 2 : 3,
+        calculateScanRegion: (video: HTMLVideoElement) => {
+          // iOS-specific scan region optimization
+          const smallestDimension = Math.min(video.videoWidth, video.videoHeight)
+          const scanSize = Math.round((isIOS ? 0.8 : 0.7) * smallestDimension)
+          
+          return {
+            x: Math.round((video.videoWidth - scanSize) / 2),
+            y: Math.round((video.videoHeight - scanSize) / 2),
+            width: scanSize,
+            height: scanSize,
+          }
+        },
+        onDecodeError: (error: any) => {
+          // Only log significant decode errors
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          if (errorMessage && !errorMessage.includes('No QR code found') && !errorMessage.includes('NotFoundException')) {
+            console.debug('QR decode error:', errorMessage)
+          }
+        }
+      }
+
       // Mobile-optimized scanner configuration
       const scanner = new QrScanner(
         videoRef.current,
@@ -108,48 +180,41 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           onScan(result.data)
           stopScanning()
         },
-        {
-          returnDetailedScanResult: true,
-          // Use selected camera or prefer environment camera
-          preferredCamera: selectedCamera || 'environment',
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-          maxScansPerSecond: 3, // Reduced for better mobile performance
-          calculateScanRegion: (video) => {
-            // Custom scan region for better mobile experience
-            const smallestDimension = Math.min(video.videoWidth, video.videoHeight)
-            const scanSize = Math.round(0.7 * smallestDimension)
-            
-            return {
-              x: Math.round((video.videoWidth - scanSize) / 2),
-              y: Math.round((video.videoHeight - scanSize) / 2),
-              width: scanSize,
-              height: scanSize,
-            }
-          },
-          onDecodeError: (error) => {
-            // Only log significant decode errors
-            const errorMessage = error instanceof Error ? error.message : String(error)
-            if (errorMessage && !errorMessage.includes('No QR code found') && !errorMessage.includes('NotFoundException')) {
-              console.debug('QR decode error:', errorMessage)
-            }
-          }
-        }
+        scannerConfig
       )
 
       scannerRef.current = scanner
-      
-      // Mobile-specific video constraints
-      const videoConstraints = {
-        facingMode: 'environment', // Back camera
-        width: { ideal: 1280, max: 1920 },
-        height: { ideal: 720, max: 1080 },
-        aspectRatio: { ideal: 16/9 },
-        frameRate: { ideal: 15, max: 30 } // Lower framerate for better performance
+
+      // Apply device-specific camera constraints if possible
+      if (scanner.setCamera && selectedCamera) {
+        try {
+          await scanner.setCamera(selectedCamera)
+        } catch (cameraError) {
+          console.warn('Failed to set specific camera, using default:', cameraError)
+        }
       }
 
-      // Start scanner with mobile optimizations
+      // Start scanner with device-specific optimizations
       await scanner.start()
+      
+      // iOS-specific post-start configuration
+      if (isIOS && videoRef.current) {
+        // Ensure video plays inline and with proper attributes
+        const video = videoRef.current
+        video.setAttribute('playsinline', 'true')
+        video.setAttribute('webkit-playsinline', 'true')
+        video.muted = true
+        
+        // Force play if needed
+        if (video.paused) {
+          try {
+            await video.play()
+          } catch (playError) {
+            console.warn('Video play error (may be normal):', playError)
+          }
+        }
+      }
+      
       setIsScanning(true)
       setPermissionStatus('granted')
     } catch (error) {
@@ -243,7 +308,17 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           playsInline
           autoPlay
           muted
-          webkit-playsinline="true" // iOS Safari specific
+          controls={false}
+          webkit-playsinline="true"
+          x-webkit-airplay="deny"
+          disablePictureInPicture
+          data-testid="qr-scanner-video"
+          // iOS-specific optimizations
+          {...(deviceInfo?.isIOS && {
+            preload: 'none',
+            'webkit-playsinline': 'true',
+            playsinline: true
+          })}
         />
         
         {!isScanning && !isInitializing && (

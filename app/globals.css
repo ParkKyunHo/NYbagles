@@ -37,39 +37,7 @@
     --radius: 0.5rem;
   }
   
-  @media (prefers-color-scheme: dark) {
-    :root {
-      /* 다크 모드 색상 */
-      --background: 222.2 84% 4.9%;
-      --foreground: 210 40% 98%;
-      
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
-      
-      --popover: 222.2 84% 4.9%;
-      --popover-foreground: 210 40% 98%;
-      
-      --card: 222.2 84% 4.9%;
-      --card-foreground: 210 40% 98%;
-      
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      
-      --primary: 41 96% 53%;
-      --primary-foreground: 222.2 47.4% 11.2%;
-      
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
-      
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
-      
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 0 85.7% 97.3%;
-      
-      --ring: 217.2 32.6% 17.5%;
-    }
-  }
+  /* Dark mode removed - using light mode only */
 }
 
 @layer base {
@@ -77,12 +45,7 @@
     @apply bg-gray-50 text-black;
   }
   
-  /* 다크 모드 지원 (옵션) */
-  @media (prefers-color-scheme: dark) {
-    body {
-      @apply bg-gray-900 text-gray-100;
-    }
-  }
+  /* Dark mode removed for mobile optimization */
   
   /* Form 요소 색상 개선 */
   select,
@@ -323,14 +286,62 @@
   }
 }
 
-/* 다크모드 지원 강화 */
-@media (prefers-color-scheme: dark) {
-  .camera-container {
-    background-color: #1f1f1f;
-  }
-  
-  .bg-white {
-    background-color: #1f1f1f !important;
-    color: #f5f5f5 !important;
-  }
+/* Dark mode removed - maintaining light theme consistency */
+
+/* Device-specific optimizations */
+.device-mobile {
+  /* Mobile-specific overrides */
+}
+
+.device-ios {
+  /* iOS-specific optimizations */
+}
+
+.device-ios video {
+  /* iOS video optimizations for QR scanner */
+  -webkit-playsinline: true;
+  playsinline: true;
+  object-fit: cover;
+  transform: translateZ(0); /* Hardware acceleration */
+}
+
+.device-ios .camera-container {
+  /* iOS camera container optimization */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.device-android video {
+  /* Android-specific video optimizations */
+  object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure dashboard cards maintain white background */
+.bg-white {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Override any remaining dark mode artifacts */
+[data-theme="dark"] .bg-white,
+.dark .bg-white {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Mobile device detection classes */
+.device-mobile .dashboard-card {
+  /* Mobile-specific card optimizations */
+  min-height: 120px;
+  padding: 12px;
+}
+
+.device-desktop .dashboard-card {
+  /* Desktop-specific card optimizations */
+  min-height: 140px;
+  padding: 20px;
 }

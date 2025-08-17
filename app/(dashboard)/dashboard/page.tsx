@@ -151,7 +151,7 @@ export default async function DashboardPage() {
 
       {/* 대시보드 통계 카드 */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-white overflow-hidden shadow rounded-lg dashboard-card">
           <div className="p-3 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-white overflow-hidden shadow rounded-lg dashboard-card">
           <div className="p-3 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-white overflow-hidden shadow rounded-lg dashboard-card">
           <div className="p-3 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -225,7 +225,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-white overflow-hidden shadow rounded-lg dashboard-card">
           <div className="p-3 sm:p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
