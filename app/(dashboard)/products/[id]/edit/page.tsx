@@ -79,8 +79,23 @@ export default function EditProductPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('사용자 정보를 찾을 수 없습니다.')
 
-      // Create change request
+      // 직접 상품 정보 업데이트 (승인 불필요)
       const { error } = await supabase
+        .from('products')
+        .update({
+          name: formData.name,
+          base_price: parseFloat(formData.base_price),
+          stock_quantity: parseInt(formData.stock_quantity),
+          category: formData.category,
+          status: formData.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', product.id)
+
+      if (error) throw error
+
+      // 수정 이력 기록 (참고용)
+      await supabase
         .from('product_changes')
         .insert({
           product_id: product.id,
@@ -100,12 +115,13 @@ export default function EditProductPage() {
             status: formData.status
           },
           change_reason: '상품 정보 수정',
-          requested_by: user.id
+          requested_by: user.id,
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+          status: 'approved'
         })
 
-      if (error) throw error
-
-      alert('상품 수정 요청이 제출되었습니다. 승인 후 반영됩니다.')
+      alert('상품 정보가 성공적으로 수정되었습니다.')
       router.push('/products')
     } catch (error) {
       console.error('Error updating product:', error)
@@ -226,7 +242,7 @@ export default function EditProductPage() {
               </Button>
             </Link>
             <Button type="submit" disabled={saving}>
-              {saving ? '저장 중...' : '수정 요청'}
+              {saving ? '저장 중...' : '확인'}
             </Button>
           </div>
         </form>

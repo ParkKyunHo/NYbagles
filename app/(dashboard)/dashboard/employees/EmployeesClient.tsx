@@ -28,6 +28,10 @@ import { deactivateEmployee, activateEmployee } from '@/lib/actions/employees.ac
 import EditEmployeeModal from '@/components/employees/EditEmployeeModal'
 import type { Employee } from '@/lib/data/employees.data'
 import type { Store } from '@/lib/data/products.data'
+import { createClient } from '@/lib/supabase/client'
+import RealtimeNotification from '@/components/ui/RealtimeNotification'
+import { useProfileUpdateNotification } from '@/hooks/useRealtimeProfiles'
+import { RealtimeChannel } from '@supabase/supabase-js'
 
 interface EmployeesClientProps {
   initialEmployees: Employee[]
@@ -76,7 +80,64 @@ export default function EmployeesClient({
   const [isPending, startTransition] = useTransition()
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees)
+  const [notification, setNotification] = useState<{ message: string; type: 'info' | 'success' } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const supabase = createClient()
+  
+  // 실시간 프로필 업데이트 구독
+  useEffect(() => {
+    // profiles 테이블의 실시간 변경사항 구독
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Profile change detected:', payload);
+          
+          // 변경된 프로필 정보로 직원 목록 업데이트
+          if (payload.eventType === 'UPDATE') {
+            setEmployees(prevEmployees => 
+              prevEmployees.map(emp => {
+                if (emp.profiles && emp.profiles.id === payload.new.id) {
+                  return {
+                    ...emp,
+                    profiles: {
+                      ...emp.profiles,
+                      full_name: payload.new.full_name,
+                      phone: payload.new.phone,
+                      email: payload.new.email,
+                      role: payload.new.role
+                    }
+                  };
+                }
+                return emp;
+              })
+            );
+            
+            // 사용자에게 알림 표시
+            const message = `${payload.new.full_name}님의 정보가 실시간으로 업데이트되었습니다.`;
+            setNotification({ message, type: 'success' });
+          }
+        }
+      )
+      .subscribe();
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  // initialEmployees가 변경될 때 employees 상태 업데이트
+  useEffect(() => {
+    setEmployees(initialEmployees);
+  }, [initialEmployees]);
   
   // Click outside to close menu
   useEffect(() => {
@@ -191,6 +252,15 @@ export default function EmployeesClient({
   
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 실시간 알림 */}
+      {notification && (
+        <RealtimeNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+      
       {/* 헤더 */}
       <div className="mb-8 flex justify-between items-center">
         <div>
@@ -367,7 +437,7 @@ export default function EmployeesClient({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {initialEmployees.map((employee) => (
+              {employees.map((employee) => (
                 <tr key={employee.id} className={!employee.is_active ? 'bg-gray-50' : ''}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -489,7 +559,7 @@ export default function EmployeesClient({
           </table>
         </div>
         
-        {initialEmployees.length === 0 && (
+        {employees.length === 0 && (
           <div className="text-center py-12">
             <Users className="h-16 w-16 mx-auto text-gray-700 mb-4" />
             <p className="text-gray-700">등록된 직원이 없습니다.</p>

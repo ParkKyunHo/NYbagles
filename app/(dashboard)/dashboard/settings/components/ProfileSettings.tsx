@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
-import { Save, User } from 'lucide-react';
+import { Save, User, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { updateProfile } from '@/lib/actions/profile.actions';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -14,7 +16,10 @@ interface ProfileSettingsProps {
 }
 
 export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     full_name: profile.full_name,
     email: profile.email,
@@ -24,26 +29,48 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
   
   const supabase = createClient();
 
+  // 성공 메시지 자동 숨김
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
+  // 에러 메시지 자동 숨김
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccess(false);
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          phone: formData.phone || null,
-        })
-        .eq('id', profile.id);
+      // Server Action을 통한 업데이트 (캐시 무효화 포함)
+      const result = await updateProfile({
+        full_name: formData.full_name,
+        phone: formData.phone
+      });
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || '프로필 업데이트에 실패했습니다.');
+      }
 
-      alert('프로필이 업데이트되었습니다.');
+      setSuccess(true);
       onUpdate();
-    } catch (error) {
+      
+      // 페이지 새로고침으로 캐시 갱신
+      router.refresh();
+      
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert('프로필 업데이트에 실패했습니다.');
+      setError(error.message || '프로필 업데이트에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -158,6 +185,21 @@ export default function ProfileSettings({ profile, onUpdate }: ProfileSettingsPr
             />
           </div>
         </div>
+
+        {/* 알림 메시지 */}
+        {success && (
+          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            <Check className="h-5 w-5" />
+            <span>프로필이 성공적으로 업데이트되었습니다.</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <div className="pt-6 border-t border-gray-200">
           <Button

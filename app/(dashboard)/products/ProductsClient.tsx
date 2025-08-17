@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Edit, Trash2, Search, Settings, RefreshCw, Package } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Settings, RefreshCw, Package, Archive } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { CategoryManagementModal } from '@/components/products/CategoryManagementModal'
+import QuickStockUpdateModal from '@/components/products/QuickStockUpdateModal'
 import { deleteProduct } from '@/lib/actions/products.actions'
 import type { Product, Category, Store } from '@/lib/data/products.data'
 
@@ -41,6 +42,7 @@ export default function ProductsClient({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [stockUpdateProduct, setStockUpdateProduct] = useState<Product | null>(null)
   
   // 필터 상태
   const [searchTerm, setSearchTerm] = useState(initialFilters.search)
@@ -264,14 +266,25 @@ export default function ProductsClient({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStockColor(product.stock_quantity)}`}>
+                      <button
+                        onClick={() => setStockUpdateProduct(product)}
+                        className={`px-2 py-1 text-xs font-medium rounded-full cursor-pointer hover:opacity-80 ${getStockColor(product.stock_quantity)}`}
+                        title="클릭하여 재고 수정"
+                      >
                         {getStockLabel(product.stock_quantity)}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => setStockUpdateProduct(product)}
+                          className="text-green-600 hover:text-green-900"
+                          title="재고 수정"
+                        >
+                          <Archive className="h-4 w-4" />
+                        </button>
                         <Link href={`/products/${product.id}/edit`}>
-                          <button className="text-blue-600 hover:text-blue-900">
+                          <button className="text-blue-600 hover:text-blue-900" title="상품 정보 수정">
                             <Edit className="h-4 w-4" />
                           </button>
                         </Link>
@@ -280,6 +293,7 @@ export default function ProductsClient({
                             onClick={() => handleDelete(product.id)}
                             disabled={isPending}
                             className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                            title="상품 삭제"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -300,6 +314,19 @@ export default function ProductsClient({
           isOpen={showCategoryModal}
           onClose={() => setShowCategoryModal(false)}
           onCategoryUpdate={() => {
+            router.refresh()
+          }}
+        />
+      )}
+
+      {/* 재고 수정 모달 */}
+      {stockUpdateProduct && (
+        <QuickStockUpdateModal
+          product={stockUpdateProduct}
+          isOpen={!!stockUpdateProduct}
+          onClose={() => setStockUpdateProduct(null)}
+          onSuccess={() => {
+            setStockUpdateProduct(null)
             router.refresh()
           }}
         />

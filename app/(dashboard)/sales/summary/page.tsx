@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { requireRole } from '@/lib/auth/unified-auth'
-import { getSalesSummary, compareSalesPeriods } from '@/lib/data/sales.data'
+import { getSalesSummary, compareSalesPeriods, getHourlySalesComparison } from '@/lib/data/sales.data'
 import SalesSummaryClient from './SalesSummaryClient'
 import { format, subDays } from 'date-fns'
 
@@ -72,9 +72,11 @@ export default async function SalesSummaryPage({ searchParams }: PageProps) {
     : '전체 매장'
   
   // 병렬 데이터 페칭
-  const [summaryData, comparisonData] = await Promise.all([
+  const [summaryData, comparisonData, hourlySalesData] = await Promise.all([
     getSalesSummary(storeId, startDate, endDate),
-    compareSalesPeriods(storeId, startDate, endDate)
+    compareSalesPeriods(storeId, startDate, endDate),
+    // 일간 요약일 때만 시간별 데이터 가져오기
+    period === 'day' ? getHourlySalesComparison(storeId, endDate) : Promise.resolve(null)
   ])
   
   return (
@@ -82,6 +84,7 @@ export default async function SalesSummaryPage({ searchParams }: PageProps) {
       <SalesSummaryClient
         initialData={summaryData}
         comparison={comparisonData}
+        hourlySalesData={hourlySalesData}
         storeId={storeId}
         storeName={storeName}
         dateRange={{ start: startDate, end: endDate }}

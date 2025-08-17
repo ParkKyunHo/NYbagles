@@ -16,7 +16,8 @@ import {
   TrendingDown
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { SalesSummaryData } from '@/lib/data/sales.data'
+import HourlySalesComparison from '@/components/sales/HourlySalesComparison'
+import type { SalesSummaryData, HourlySalesData } from '@/lib/data/sales.data'
 
 interface SalesSummaryClientProps {
   initialData: SalesSummaryData
@@ -28,6 +29,7 @@ interface SalesSummaryClientProps {
       transactions: number
     }
   }
+  hourlySalesData?: HourlySalesData[] | null
   storeId: string | null
   storeName: string
   dateRange: {
@@ -44,7 +46,7 @@ const SimpleBarChart = ({ data, dataKey, color = '#FDB813' }: any) => {
     <div className="space-y-2">
       {data.map((item: any, index: number) => (
         <div key={index} className="flex items-center gap-3">
-          <div className="w-20 text-sm text-gray-800">{item.label}</div>
+          <div className="w-20 text-sm text-black font-medium">{item.label}</div>
           <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
             <div
               className="absolute left-0 top-0 h-full rounded-full transition-all"
@@ -53,7 +55,7 @@ const SimpleBarChart = ({ data, dataKey, color = '#FDB813' }: any) => {
                 backgroundColor: color
               }}
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-black">
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-black">
               ₩{item[dataKey].toLocaleString()}
             </span>
           </div>
@@ -66,6 +68,7 @@ const SimpleBarChart = ({ data, dataKey, color = '#FDB813' }: any) => {
 export default function SalesSummaryClient({
   initialData,
   comparison,
+  hourlySalesData,
   storeId,
   storeName,
   dateRange
@@ -106,7 +109,7 @@ export default function SalesSummaryClient({
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">매출 요약</h1>
-          <p className="text-sm text-gray-800 mt-1">
+          <p className="text-sm text-black mt-1">
             {storeName} | {format(new Date(dateRange.start), 'yyyy년 MM월 dd일', { locale: ko })} 
             ~ {format(new Date(dateRange.end), 'yyyy년 MM월 dd일', { locale: ko })}
           </p>
@@ -142,8 +145,8 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-800">총 매출</p>
-              <p className="text-2xl font-bold">₩{initialData.totalSales.toLocaleString()}</p>
+              <p className="text-sm text-black font-medium">총 매출</p>
+              <p className="text-2xl font-bold text-black">₩{initialData.totalSales.toLocaleString()}</p>
               {comparison && (
                 <p className={`text-sm mt-1 flex items-center ${
                   comparison.growth.sales >= 0 ? 'text-green-600' : 'text-red-600'
@@ -164,8 +167,8 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-800">거래 수</p>
-              <p className="text-2xl font-bold">{initialData.transactionCount}</p>
+              <p className="text-sm text-black font-medium">거래 수</p>
+              <p className="text-2xl font-bold text-black">{initialData.transactionCount}</p>
               {comparison && (
                 <p className={`text-sm mt-1 flex items-center ${
                   comparison.growth.transactions >= 0 ? 'text-green-600' : 'text-red-600'
@@ -186,8 +189,8 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-800">평균 거래액</p>
-              <p className="text-2xl font-bold">₩{Math.round(initialData.averageTransaction).toLocaleString()}</p>
+              <p className="text-sm text-black font-medium">평균 거래액</p>
+              <p className="text-2xl font-bold text-black">₩{Math.round(initialData.averageTransaction).toLocaleString()}</p>
             </div>
             <CreditCard className="h-8 w-8 text-green-500" />
           </div>
@@ -196,11 +199,11 @@ export default function SalesSummaryClient({
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-800">인기 상품</p>
-              <p className="text-lg font-semibold">
+              <p className="text-sm text-black font-medium">인기 상품</p>
+              <p className="text-lg font-semibold text-black">
                 {initialData.topProducts[0]?.name || '없음'}
               </p>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-black">
                 {initialData.topProducts[0]?.quantity || 0}개 판매
               </p>
             </div>
@@ -209,24 +212,33 @@ export default function SalesSummaryClient({
         </div>
       </div>
       
+      {/* 시간별 매출 비교 섹션 */}
+      {period === 'day' && (
+        <HourlySalesComparison 
+          storeId={storeId} 
+          selectedDate={new Date(dateRange.end)}
+          initialData={hourlySalesData || undefined}
+        />
+      )}
+      
       {/* 차트 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 일별 매출 차트 */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">일별 매출 추이</h3>
+          <h3 className="text-lg font-semibold text-black mb-4">일별 매출 추이</h3>
           <SimpleBarChart data={chartData} dataKey="sales" />
         </div>
         
         {/* 결제 방법별 매출 */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">결제 방법별 매출</h3>
+          <h3 className="text-lg font-semibold text-black mb-4">결제 방법별 매출</h3>
           <SimpleBarChart data={paymentChartData} dataKey="amount" color="#3B82F6" />
         </div>
       </div>
       
       {/* 인기 상품 TOP 5 */}
       <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">인기 상품 TOP 5</h3>
+        <h3 className="text-lg font-semibold text-black mb-4">인기 상품 TOP 5</h3>
         <div className="space-y-3">
           {initialData.topProducts.map((product, index) => (
             <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -235,11 +247,11 @@ export default function SalesSummaryClient({
                   {index + 1}
                 </span>
                 <div>
-                  <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-gray-800">{product.quantity}개 판매</p>
+                  <p className="font-medium text-black">{product.name}</p>
+                  <p className="text-sm text-black">{product.quantity}개 판매</p>
                 </div>
               </div>
-              <p className="font-semibold">₩{product.revenue.toLocaleString()}</p>
+              <p className="font-semibold text-black">₩{product.revenue.toLocaleString()}</p>
             </div>
           ))}
         </div>
