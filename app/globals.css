@@ -288,6 +288,59 @@
 
 /* Dark mode removed - maintaining light theme consistency */
 
+/* Radix UI Select dropdown visibility fix */
+[data-radix-popper-content-wrapper] {
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure Radix UI Select content has proper background */
+[role="listbox"] {
+  background-color: white !important;
+}
+
+/* Radix UI Select Portal content */
+div[id^="radix-"] {
+  background-color: white !important;
+}
+
+/* Radix UI Select Content specific styling */
+[data-radix-select-content] {
+  background-color: white !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Radix UI Select Viewport */
+[data-radix-select-viewport] {
+  background-color: white !important;
+}
+
+/* Additional specificity for Radix Select dropdown items */
+[role="option"] {
+  background-color: white !important;
+  color: black !important;
+}
+
+[role="option"]:hover,
+[role="option"]:focus {
+  background-color: #f3f4f6 !important;
+  color: black !important;
+}
+
+/* Ensure Select dropdown is visible on all backgrounds */
+.bg-popover {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Select dropdown container */
+[data-state="open"][data-side] {
+  background-color: white !important;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
 /* Device-specific optimizations */
 .device-mobile {
   /* Mobile-specific overrides */
