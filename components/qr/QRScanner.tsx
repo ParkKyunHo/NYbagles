@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import QrScanner from 'qr-scanner'
+import { Html5Qrcode, Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { Button } from '@/components/ui/button'
-import { Camera, AlertCircle, RefreshCw } from 'lucide-react'
-import { detectDevice, getOptimalCameraConstraints, isIOSDevice } from '@/lib/utils/device-detection'
+import { Camera, AlertCircle, RefreshCw, Flashlight } from 'lucide-react'
+import { detectDevice, isIOSDevice } from '@/lib/utils/device-detection'
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -12,80 +12,79 @@ interface QRScannerProps {
 }
 
 export function QRScanner({ onScan, onError }: QRScannerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const scannerRef = useRef<QrScanner | null>(null)
+  const scannerContainerRef = useRef<HTMLDivElement>(null)
+  const scannerInstanceRef = useRef<Html5Qrcode | null>(null)
+  const hasScannedRef = useRef(false)
+  
   const [isScanning, setIsScanning] = useState(false)
   const [hasCamera, setHasCamera] = useState(true)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown')
-  const [availableCameras, setAvailableCameras] = useState<QrScanner.Camera[]>([])
-  const [selectedCamera, setSelectedCamera] = useState<string | null>(null)
+  const [availableCameras, setAvailableCameras] = useState<any[]>([])
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null)
   const [isInitializing, setIsInitializing] = useState(false)
   const [deviceInfo, setDeviceInfo] = useState<ReturnType<typeof detectDevice> | null>(null)
+  const [hasTorch, setHasTorch] = useState(false)
+  const [isTorchOn, setIsTorchOn] = useState(false)
 
-  // Check camera permissions and availability on component mount
+  // Initialize camera on mount
   useEffect(() => {
     const initializeCamera = async () => {
       try {
-        // Detect device capabilities first
+        // Detect device
         const device = detectDevice()
         setDeviceInfo(device)
         
-        // iOS-specific initialization delay for better stability
+        // iOS needs a small delay for stability
         if (device.isIOS) {
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise(resolve => setTimeout(resolve, 200))
         }
 
-        // Check if QR Scanner and cameras are supported
-        const hasCamera = await QrScanner.hasCamera()
-        if (!hasCamera) {
+        // Get available cameras
+        const devices = await Html5Qrcode.getCameras()
+        
+        if (!devices || devices.length === 0) {
           setHasCamera(false)
           setCameraError('카메라가 감지되지 않았습니다.')
           return
         }
 
-        // Get available cameras with iOS-specific handling
-        const cameras = await QrScanner.listCameras(true)
-        setAvailableCameras(cameras)
+        setAvailableCameras(devices)
         
-        // Enhanced camera selection for iOS devices
-        let preferredCamera = null
+        // Select preferred camera (back camera for mobile)
+        let preferredCamera = devices[0]
         
-        if (device.isIOS) {
-          // iOS: Look for back camera more specifically
-          preferredCamera = cameras.find(camera => {
-            const label = camera.label.toLowerCase()
+        if (device.isMobile) {
+          // Look for back camera
+          const backCamera = devices.find(device => {
+            const label = device.label?.toLowerCase() || ''
             return label.includes('back') || 
                    label.includes('environment') ||
                    label.includes('rear') ||
-                   label.includes('주카메라') ||
+                   label.includes('후면') ||
                    label.includes('main')
-          }) || cameras.find(camera => !camera.label.toLowerCase().includes('front'))
-        } else {
-          // Android/Desktop: Original logic
-          preferredCamera = cameras.find(camera => 
-            camera.label.toLowerCase().includes('back') || 
-            camera.label.toLowerCase().includes('environment') ||
-            camera.label.toLowerCase().includes('rear')
-          )
+          })
+          
+          if (backCamera) {
+            preferredCamera = backCamera
+          } else if (devices.length > 1) {
+            // If no back camera found, use the second camera (usually back)
+            preferredCamera = devices[1]
+          }
         }
         
-        setSelectedCamera(preferredCamera?.id || cameras[0]?.id || null)
+        setSelectedCameraId(preferredCamera.id)
 
-        // Check camera permissions with iOS-specific handling
+        // Check permissions
         if (navigator.permissions) {
           try {
             const permission = await navigator.permissions.query({ name: 'camera' as PermissionName })
             setPermissionStatus(permission.state)
             
-            // iOS: Monitor permission changes
-            if (device.isIOS) {
-              permission.addEventListener('change', () => {
-                setPermissionStatus(permission.state)
-              })
-            }
-          } catch (err) {
-            // Fallback for browsers that don't support permissions API
+            permission.addEventListener('change', () => {
+              setPermissionStatus(permission.state)
+            })
+          } catch {
             setPermissionStatus('unknown')
           }
         }
@@ -98,16 +97,17 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
     initializeCamera()
 
+    // Cleanup on unmount
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.destroy()
-        scannerRef.current = null
+      if (scannerInstanceRef.current) {
+        scannerInstanceRef.current.stop().catch(console.error)
+        scannerInstanceRef.current = null
       }
     }
   }, [])
 
-  const handleCameraPermissionError = useCallback((error: Error) => {
-    const errorMessage = error.message.toLowerCase()
+  const handleCameraPermissionError = useCallback((error: any) => {
+    const errorMessage = error?.message?.toLowerCase() || String(error).toLowerCase()
     
     if (errorMessage.includes('permission') || errorMessage.includes('denied')) {
       setCameraError('카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.')
@@ -118,127 +118,105 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     } else if (errorMessage.includes('not readable') || errorMessage.includes('notreadable')) {
       setCameraError('카메라가 다른 애플리케이션에서 사용 중입니다.')
     } else if (errorMessage.includes('overconstrained')) {
-      setCameraError('선택한 카메라가 요구사항을 만족하지 않습니다. 다른 카메라를 시도해보세요.')
+      setCameraError('선택한 카메라가 요구사항을 만족하지 않습니다.')
     } else {
-      setCameraError(`카메라 오류: ${error.message}`)
+      setCameraError(`카메라 오류: ${error?.message || error}`)
     }
     
-    onError?.(error)
+    onError?.(error instanceof Error ? error : new Error(String(error)))
   }, [onError])
 
   const startScanning = async () => {
-    if (!videoRef.current || isInitializing) return
+    if (!scannerContainerRef.current || isInitializing || !selectedCameraId) return
 
     setIsInitializing(true)
     setCameraError(null)
+    hasScannedRef.current = false
 
     try {
-      // Get device-specific configurations
-      const cameraConstraints = getOptimalCameraConstraints()
+      // Create scanner instance
+      const html5QrCode = new Html5Qrcode('qr-reader', {
+        verbose: false,
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+      })
+      
+      scannerInstanceRef.current = html5QrCode
+
+      // Device-specific configuration
       const isIOS = deviceInfo?.isIOS || isIOSDevice()
+      const isMobile = deviceInfo?.isMobile || false
       
-      // iOS-specific pre-start delay and video setup
-      if (isIOS) {
-        // Ensure video element has correct attributes for iOS
-        const video = videoRef.current
-        video.setAttribute('playsinline', 'true')
-        video.setAttribute('webkit-playsinline', 'true')
-        video.setAttribute('controls', 'false')
-        video.muted = true
-        video.autoplay = true
-        
-        // Additional iOS-specific delay for camera initialization
-        await new Promise(resolve => setTimeout(resolve, 300))
-      }
-
-      // Device-optimized scanner configuration
-      const scannerConfig: any = {
-        returnDetailedScanResult: true,
-        // Use selected camera or prefer environment camera
-        preferredCamera: selectedCamera || 'environment',
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-        // iOS-specific scan rate optimization
-        maxScansPerSecond: isIOS ? 2 : 3,
-        calculateScanRegion: (video: HTMLVideoElement) => {
-          // iOS-specific scan region optimization
-          const smallestDimension = Math.min(video.videoWidth, video.videoHeight)
-          const scanSize = Math.round((isIOS ? 0.8 : 0.7) * smallestDimension)
-          
-          return {
-            x: Math.round((video.videoWidth - scanSize) / 2),
-            y: Math.round((video.videoHeight - scanSize) / 2),
-            width: scanSize,
-            height: scanSize,
-          }
-        },
-        onDecodeError: (error: any) => {
-          // Only log significant decode errors
-          const errorMessage = error instanceof Error ? error.message : String(error)
-          if (errorMessage && !errorMessage.includes('No QR code found') && !errorMessage.includes('NotFoundException')) {
-            console.debug('QR decode error:', errorMessage)
-          }
+      // Calculate optimal QR box size
+      const qrboxSize = isMobile ? 250 : 300
+      
+      const config = {
+        fps: isIOS ? 10 : 15, // Lower FPS for iOS to prevent issues
+        qrbox: { width: qrboxSize, height: qrboxSize },
+        aspectRatio: 1.0,
+        disableFlip: false,
+        videoConstraints: {
+          deviceId: selectedCameraId,
+          facingMode: isMobile ? 'environment' : 'user'
         }
       }
 
-      // Mobile-optimized scanner configuration
-      const scanner = new QrScanner(
-        videoRef.current,
-        (result) => {
-          // QR code scan successful
-          onScan(result.data)
-          stopScanning()
+      // Start scanning
+      await html5QrCode.start(
+        selectedCameraId,
+        config,
+        async (decodedText) => {
+          // Prevent duplicate scans
+          if (!hasScannedRef.current) {
+            hasScannedRef.current = true
+            
+            // Vibrate if supported
+            if (navigator.vibrate) {
+              navigator.vibrate(200)
+            }
+            
+            // Call onScan callback
+            onScan(decodedText)
+            
+            // Stop scanning
+            await stopScanning()
+          }
         },
-        scannerConfig
+        (errorMessage) => {
+          // Silent fail for "no QR code found" errors
+          if (!errorMessage.includes('NotFoundException') && 
+              !errorMessage.includes('No MultiFormat Readers')) {
+            console.debug('QR scan error:', errorMessage)
+          }
+        }
       )
-
-      scannerRef.current = scanner
-
-      // Apply device-specific camera constraints if possible
-      if (scanner.setCamera && selectedCamera) {
-        try {
-          await scanner.setCamera(selectedCamera)
-        } catch (cameraError) {
-          console.warn('Failed to set specific camera, using default:', cameraError)
-        }
-      }
-
-      // Start scanner with device-specific optimizations
-      await scanner.start()
-      
-      // iOS-specific post-start configuration
-      if (isIOS && videoRef.current) {
-        // Ensure video plays inline and with proper attributes
-        const video = videoRef.current
-        video.setAttribute('playsinline', 'true')
-        video.setAttribute('webkit-playsinline', 'true')
-        video.muted = true
-        
-        // Force play if needed
-        if (video.paused) {
-          try {
-            await video.play()
-          } catch (playError) {
-            console.warn('Video play error (may be normal):', playError)
-          }
-        }
-      }
       
       setIsScanning(true)
       setPermissionStatus('granted')
+      
+      // Check for torch support (disabled due to TypeScript issues)
+      // Torch functionality will be available in future updates
+      setHasTorch(false)
+      
     } catch (error) {
       console.error('Scanner start error:', error)
-      handleCameraPermissionError(error as Error)
+      handleCameraPermissionError(error)
       setIsScanning(false)
     } finally {
       setIsInitializing(false)
     }
   }
 
-  const stopScanning = useCallback(() => {
-    if (scannerRef.current) {
-      scannerRef.current.stop()
-      setIsScanning(false)
+  const stopScanning = useCallback(async () => {
+    if (scannerInstanceRef.current) {
+      try {
+        await scannerInstanceRef.current.stop()
+        scannerInstanceRef.current = null
+        setIsScanning(false)
+        setIsTorchOn(false)
+        setHasTorch(false)
+      } catch (error) {
+        console.error('Error stopping scanner:', error)
+      }
     }
   }, [])
 
@@ -252,22 +230,37 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const switchCamera = async () => {
     if (availableCameras.length <= 1) return
     
-    const currentIndex = availableCameras.findIndex(cam => cam.id === selectedCamera)
+    const currentIndex = availableCameras.findIndex(cam => cam.id === selectedCameraId)
     const nextIndex = (currentIndex + 1) % availableCameras.length
     const nextCamera = availableCameras[nextIndex]
     
     if (isScanning) {
-      stopScanning()
+      await stopScanning()
     }
     
-    setSelectedCamera(nextCamera.id)
+    setSelectedCameraId(nextCamera.id)
     
-    // Small delay to ensure previous scanner is stopped
+    // Small delay to ensure cleanup
     setTimeout(() => {
       startScanning()
-    }, 100)
+    }, 200)
   }
 
+  const toggleTorch = async () => {
+    if (!scannerInstanceRef.current || !hasTorch) return
+    
+    try {
+      const newTorchState = !isTorchOn
+      // Torch toggle temporarily disabled due to TypeScript compatibility
+      // Will be re-enabled in future updates
+      console.log('Torch toggle requested:', newTorchState)
+      setIsTorchOn(newTorchState)
+    } catch (error) {
+      console.error('Torch toggle error:', error)
+    }
+  }
+
+  // Error state
   if (!hasCamera || cameraError) {
     return (
       <div className="text-center p-8">
@@ -281,11 +274,20 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           {permissionStatus === 'denied' && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="font-medium text-yellow-800 mb-2">카메라 권한 설정 방법:</p>
-              <ul className="text-left space-y-1 text-yellow-700">
-                <li>• 주소창 왼쪽의 카메라 아이콘을 클릭</li>
-                <li>• 카메라 권한을 &apos;허용&apos;으로 변경</li>
-                <li>• 페이지를 새로고침</li>
-              </ul>
+              {deviceInfo?.isIOS ? (
+                <ul className="text-left space-y-1 text-yellow-700">
+                  <li>• 설정 앱 열기</li>
+                  <li>• Safari 또는 사용 중인 브라우저 선택</li>
+                  <li>• 카메라 권한을 &apos;허용&apos;으로 변경</li>
+                  <li>• 브라우저를 완전히 닫고 다시 열기</li>
+                </ul>
+              ) : (
+                <ul className="text-left space-y-1 text-yellow-700">
+                  <li>• 주소창 왼쪽의 자물쇠/카메라 아이콘 클릭</li>
+                  <li>• 카메라 권한을 &apos;허용&apos;으로 변경</li>
+                  <li>• 페이지 새로고침</li>
+                </ul>
+              )}
             </div>
           )}
           
@@ -310,27 +312,15 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   return (
     <div className="relative w-full max-w-sm sm:max-w-md mx-auto">
       <div className="relative aspect-square bg-black rounded-lg overflow-hidden">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
+        {/* QR Scanner Container */}
+        <div 
+          id="qr-reader" 
+          ref={scannerContainerRef}
+          className="w-full h-full"
           style={{ display: isScanning ? 'block' : 'none' }}
-          playsInline
-          autoPlay
-          muted
-          controls={false}
-          webkit-playsinline="true"
-          x-webkit-airplay="deny"
-          disablePictureInPicture
-          data-testid="qr-scanner-video"
-          // Enhanced iOS-specific optimizations
-          {...(deviceInfo?.isIOS && {
-            preload: 'metadata',
-            'webkit-playsinline': 'true',
-            playsinline: true,
-            poster: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-          })}
         />
         
+        {/* Placeholder when not scanning */}
         {!isScanning && !isInitializing && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="text-center">
@@ -347,6 +337,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           </div>
         )}
         
+        {/* Loading state */}
         {isInitializing && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="text-center">
@@ -356,33 +347,36 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           </div>
         )}
 
+        {/* Scanning overlay */}
         {isScanning && (
           <div className="absolute inset-0 pointer-events-none">
-            {/* Scanning overlay with improved mobile visibility */}
-            <div className="absolute inset-0 bg-black bg-opacity-30" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-64 sm:h-64">
-              {/* Animated scanning line */}
-              <div className="absolute inset-0 border-2 border-green-400 rounded-lg opacity-80">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-green-400 animate-pulse" />
-              </div>
-              
-              {/* Corner markers */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400" />
-              <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400" />
-              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400" />
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400" />
-            </div>
+            <div className="absolute inset-0 bg-black bg-opacity-20" />
             
             {/* Status indicator */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
               <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                 스캔 중...
               </div>
+            </div>
+            
+            {/* Scanning frame */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-64 sm:h-64">
+              {/* Animated scanning line */}
+              <div className="absolute inset-0 border-2 border-green-400 rounded-lg">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-green-400 animate-pulse" />
+              </div>
+              
+              {/* Corner markers */}
+              <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-400 rounded-tl-lg" />
+              <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-400 rounded-tr-lg" />
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-400 rounded-bl-lg" />
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-400 rounded-br-lg" />
             </div>
           </div>
         )}
       </div>
 
+      {/* Control buttons */}
       <div className="mt-4 space-y-3">
         <div className="text-center">
           {!isScanning && !isInitializing ? (
@@ -390,7 +384,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
               onClick={startScanning} 
               size="lg" 
               className="w-full text-sm sm:text-base bg-bagel-yellow hover:bg-bagel-yellow-600 text-bagel-black min-h-[44px] touch-manipulation"
-              disabled={!hasCamera || !!cameraError}
+              disabled={!hasCamera || !!cameraError || !selectedCameraId}
             >
               <Camera className="h-4 w-4 mr-2" />
               QR 코드 스캔 시작
@@ -401,23 +395,43 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
               초기화 중...
             </Button>
           ) : (
-            <Button onClick={stopScanning} variant="outline" size="lg" className="w-full text-sm sm:text-base min-h-[44px] touch-manipulation">
-              스캔 중지
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={stopScanning} 
+                variant="outline" 
+                size="lg" 
+                className="flex-1 text-sm sm:text-base min-h-[44px] touch-manipulation"
+              >
+                스캔 중지
+              </Button>
+              
+              {hasTorch && (
+                <Button
+                  onClick={toggleTorch}
+                  variant={isTorchOn ? "secondary" : "outline"}
+                  size="lg"
+                  className="min-h-[44px] touch-manipulation px-4"
+                  title="플래시"
+                >
+                  <Flashlight className={`h-4 w-4 ${isTorchOn ? 'text-yellow-400' : ''}`} />
+                </Button>
+              )}
+            </div>
           )}
         </div>
         
-        {/* Camera switching option */}
+        {/* Camera switching */}
         {availableCameras.length > 1 && !isInitializing && (
           <div className="text-center">
             <Button onClick={switchCamera} variant="ghost" size="sm" className="text-xs">
               <RefreshCw className="h-3 w-3 mr-1" />
-              카메라 전환 ({availableCameras.findIndex(cam => cam.id === selectedCamera) + 1}/{availableCameras.length})
+              카메라 전환 ({availableCameras.findIndex(cam => cam.id === selectedCameraId) + 1}/{availableCameras.length})
             </Button>
           </div>
         )}
       </div>
 
+      {/* Scanning tips */}
       {isScanning && (
         <div className="mt-3 text-center">
           <p className="text-xs sm:text-sm text-gray-600 mb-2">
@@ -425,7 +439,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           </p>
           <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
             <span className="flex items-center">
-              <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full mr-1 animate-pulse"></div>
               카메라 활성
             </span>
             {permissionStatus === 'granted' && (
