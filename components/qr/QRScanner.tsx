@@ -5,6 +5,7 @@ import { Html5Qrcode, Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'ht
 import { Button } from '@/components/ui/button'
 import { Camera, AlertCircle, RefreshCw, Flashlight } from 'lucide-react'
 import { detectDevice, isIOSDevice } from '@/lib/utils/device-detection'
+import '@/styles/qr-scanner.css'
 
 interface QRScannerProps {
   onScan: (data: string) => void
@@ -127,16 +128,29 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   }, [onError])
 
   const startScanning = async () => {
-    if (!scannerContainerRef.current || isInitializing || !selectedCameraId) return
+    if (!scannerContainerRef.current || isInitializing) return
 
     setIsInitializing(true)
     setCameraError(null)
     hasScannedRef.current = false
 
     try {
+      // Stop any existing scanner instance
+      if (scannerInstanceRef.current) {
+        try {
+          await scannerInstanceRef.current.stop()
+        } catch (e) {
+          console.log('Previous scanner cleanup:', e)
+        }
+        scannerInstanceRef.current = null
+      }
+
+      // Small delay to ensure DOM is ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+
       // Create scanner instance
       const html5QrCode = new Html5Qrcode('qr-reader', {
-        verbose: false,
+        verbose: true, // Enable verbose logging for debugging
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
       })
       
@@ -146,23 +160,45 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       const isIOS = deviceInfo?.isIOS || isIOSDevice()
       const isMobile = deviceInfo?.isMobile || false
       
-      // Calculate optimal QR box size
-      const qrboxSize = isMobile ? 250 : 300
+      // Calculate optimal QR box size based on viewport
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const minDimension = Math.min(viewportWidth, viewportHeight)
+      const qrboxSize = Math.floor(minDimension * 0.7) // 70% of smallest dimension
       
       const config = {
         fps: isIOS ? 10 : 15, // Lower FPS for iOS to prevent issues
         qrbox: { width: qrboxSize, height: qrboxSize },
-        aspectRatio: 1.0,
+        // Remove aspectRatio to let the library calculate it automatically
         disableFlip: false,
-        videoConstraints: {
-          deviceId: selectedCameraId,
-          facingMode: isMobile ? 'environment' : 'user'
-        }
+        // Simplified video constraints - use either deviceId OR facingMode, not both
+        videoConstraints: selectedCameraId ? {
+          deviceId: { exact: selectedCameraId },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } : {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        // Additional mobile optimizations
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: false
       }
 
-      // Start scanning
+      // Start scanning - use facingMode if no specific camera selected
+      const cameraIdOrConstraints = selectedCameraId || { facingMode: 'environment' }
+      
+      console.log('Starting QR scanner with config:', {
+        cameraIdOrConstraints,
+        qrboxSize,
+        isMobile,
+        isIOS,
+        selectedCameraId
+      })
+      
       await html5QrCode.start(
-        selectedCameraId,
+        cameraIdOrConstraints,
         config,
         async (decodedText) => {
           // Prevent duplicate scans
@@ -316,8 +352,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         <div 
           id="qr-reader" 
           ref={scannerContainerRef}
-          className="w-full h-full"
-          style={{ display: isScanning ? 'block' : 'none' }}
+          className="w-full h-full qr-scanner-container"
+          style={{ 
+            display: isScanning ? 'block' : 'none',
+            position: 'relative',
+            backgroundColor: 'black'
+          }}
         />
         
         {/* Placeholder when not scanning */}
@@ -451,6 +491,64 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           </div>
         </div>
       )}
+      
+      {/* Add custom styles for html5-qrcode */}
+      <style jsx global>{`
+        #qr-reader {
+          position: relative !important;
+          padding: 0 !important;
+          border: none !important;
+          width: 100% !important;
+          height: 100% !important;
+          background: black !important;
+        }
+        
+        #qr-reader video {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          display: block !important;
+        }
+        
+        #qr-reader__scan_region {
+          position: absolute !important;
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          z-index: 10 !important;
+          background: transparent !important;
+        }
+        
+        #qr-reader__dashboard {
+          display: none !important;
+        }
+        
+        #qr-reader__dashboard_section_csr {
+          display: none !important;
+        }
+        
+        #qr-reader__dashboard_section_fsr {
+          display: none !important;
+        }
+        
+        #qr-reader__dashboard_section_swaplink {
+          display: none !important;
+        }
+        
+        #qr-shaded-region {
+          background: transparent !important;
+        }
+        
+        /* Ensure video visibility on mobile */
+        @media (max-width: 640px) {
+          #qr-reader video {
+            min-width: 100% !important;
+            min-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
