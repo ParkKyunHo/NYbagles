@@ -1,0 +1,53 @@
+/* QR Scanner specific styles for mobile compatibility */
+
+/* QR Scanner container styles */
+.qr-scanner-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Ensure video element fills container properly */
+.qr-scanner-container video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Fix for mobile viewport */
+@media (max-width: 640px) {
+  .qr-scanner-container {
+    min-height: 300px;
+  }
+  
+  .qr-scanner-container video {
+    min-height: 300px;
+  }
+}
+
+/* Prevent zoom on mobile */
+.qr-scanner-container * {
+  touch-action: manipulation;
+}
+
+/* Custom viewfinder styles */
+.qr-scanner-viewfinder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .qr-scanner-viewfinder {
+    width: 250px;
+    height: 250px;
+  }
+}
