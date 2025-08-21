@@ -16,6 +16,8 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const scannerContainerRef = useRef<HTMLDivElement>(null)
   const scannerInstanceRef = useRef<Html5Qrcode | null>(null)
   const hasScannedRef = useRef(false)
+  const retryCountRef = useRef(0)
+  const maxRetries = 3
   
   const [isScanning, setIsScanning] = useState(false)
   const [hasCamera, setHasCamera] = useState(true)
@@ -27,11 +29,26 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const [deviceInfo, setDeviceInfo] = useState<ReturnType<typeof detectDevice> | null>(null)
   const [hasTorch, setHasTorch] = useState(false)
   const [isTorchOn, setIsTorchOn] = useState(false)
+  const [isHttps, setIsHttps] = useState(true)
+  const [showFileUpload, setShowFileUpload] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize camera on mount
   useEffect(() => {
     const initializeCamera = async () => {
       try {
+        // Check HTTPS requirement
+        if (typeof window !== 'undefined') {
+          const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
+          setIsHttps(isSecure)
+          
+          if (!isSecure) {
+            setCameraError('카메라 사용을 위해 HTTPS 연결이 필요합니다.')
+            setHasCamera(false)
+            return
+          }
+        }
+        
         // Detect device
         const device = detectDevice()
         setDeviceInfo(device)
@@ -120,6 +137,10 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       setCameraError('카메라가 다른 애플리케이션에서 사용 중입니다.')
     } else if (errorMessage.includes('overconstrained')) {
       setCameraError('선택한 카메라가 요구사항을 만족하지 않습니다.')
+    } else if (errorMessage.includes('not allowed') || errorMessage.includes('notallowed')) {
+      setCameraError('카메라 사용이 허용되지 않았습니다. HTTPS 연결인지 확인해주세요.')
+    } else if (errorMessage.includes('insecure')) {
+      setCameraError('보안되지 않은 연결에서는 카메라를 사용할 수 없습니다.')
     } else {
       setCameraError(`카메라 오류: ${error?.message || error}`)
     }
@@ -150,7 +171,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
 
       // Create scanner instance
       const html5QrCode = new Html5Qrcode('qr-reader', {
-        verbose: true, // Enable verbose logging for debugging
+        verbose: process.env.NODE_ENV === 'development', // Only verbose in dev
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
       })
       
@@ -167,27 +188,19 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       const qrboxSize = Math.floor(minDimension * 0.7) // 70% of smallest dimension
       
       const config = {
-        fps: isIOS ? 10 : 15, // Lower FPS for iOS to prevent issues
+        fps: isMobile ? 5 : 10, // Lower FPS for mobile performance
         qrbox: { width: qrboxSize, height: qrboxSize },
-        // Remove aspectRatio to let the library calculate it automatically
         disableFlip: false,
-        // Simplified video constraints - use either deviceId OR facingMode, not both
-        videoConstraints: selectedCameraId ? {
-          deviceId: { exact: selectedCameraId },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } : {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        // Additional mobile optimizations
         rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: false
+        showTorchButtonIfSupported: false,
+        // Disable verbose mode in production for better performance
+        verbose: process.env.NODE_ENV === 'development'
       }
 
-      // Start scanning - use facingMode if no specific camera selected
-      const cameraIdOrConstraints = selectedCameraId || { facingMode: 'environment' }
+      // Use facingMode only for mobile, avoid conflicts
+      const cameraIdOrConstraints = isMobile ? 
+        { facingMode: 'environment' } : 
+        (selectedCameraId || { facingMode: 'environment' })
       
       console.log('Starting QR scanner with config:', {
         cameraIdOrConstraints,
@@ -228,6 +241,22 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       
       setIsScanning(true)
       setPermissionStatus('granted')
+      retryCountRef.current = 0 // Reset retry count on successful start
+      
+      // Add iOS-specific video attributes after scanner starts
+      if (isIOS) {
+        setTimeout(() => {
+          const videoElement = document.querySelector('#qr-reader video') as HTMLVideoElement
+          if (videoElement) {
+            videoElement.setAttribute('autoplay', 'true')
+            videoElement.setAttribute('muted', 'true')
+            videoElement.setAttribute('playsinline', 'true')
+            videoElement.setAttribute('webkit-playsinline', 'true')
+            // Force play on iOS
+            videoElement.play().catch(console.error)
+          }
+        }, 100)
+      }
       
       // Check for torch support (disabled due to TypeScript issues)
       // Torch functionality will be available in future updates
@@ -237,6 +266,16 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       console.error('Scanner start error:', error)
       handleCameraPermissionError(error)
       setIsScanning(false)
+      
+      // Auto-retry with exponential backoff
+      if (retryCountRef.current < maxRetries) {
+        retryCountRef.current++
+        const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 5000)
+        console.log(`Retrying camera initialization (${retryCountRef.current}/${maxRetries}) in ${retryDelay}ms`)
+        setTimeout(() => {
+          startScanning()
+        }, retryDelay)
+      }
     } finally {
       setIsInitializing(false)
     }
@@ -296,6 +335,32 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     }
   }
 
+  // Handle file upload fallback
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const html5QrCode = new Html5Qrcode('qr-reader-file')
+      const result = await html5QrCode.scanFile(file, true)
+      onScan(result)
+      setShowFileUpload(false)
+      
+      // Vibrate if supported
+      if (navigator.vibrate) {
+        navigator.vibrate(200)
+      }
+    } catch (error) {
+      console.error('File scan error:', error)
+      setCameraError('QR 코드를 읽을 수 없습니다. 다른 이미지를 시도해주세요.')
+    }
+    
+    // Clear the input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   // Error state
   if (!hasCamera || cameraError) {
     return (
@@ -305,6 +370,16 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">카메라 문제</h3>
           <p className="text-red-500 mb-4">{cameraError || '카메라에 접근할 수 없습니다.'}</p>
         </div>
+        
+        {!isHttps && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <p className="font-medium text-red-800 mb-2">HTTPS 연결 필요</p>
+            <p className="text-sm text-red-700">
+              카메라 사용을 위해서는 보안 연결(HTTPS)이 필요합니다.
+              사이트 주소가 https://로 시작하는지 확인해주세요.
+            </p>
+          </div>
+        )}
         
         <div className="space-y-3 text-sm text-gray-600">
           {permissionStatus === 'denied' && (
@@ -334,11 +409,24 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
             </Button>
             
             {availableCameras.length > 1 && (
-              <Button onClick={switchCamera} variant="outline" size="sm">
+              <Button onClick={switchCamera} variant="outline" size="sm" className="w-full">
                 <Camera className="h-4 w-4 mr-2" />
                 다른 카메라 사용
               </Button>
             )}
+            
+            {/* File upload fallback */}
+            <div className="pt-2 border-t">
+              <p className="text-xs text-gray-500 mb-2">카메라를 사용할 수 없나요?</p>
+              <Button 
+                onClick={() => setShowFileUpload(true)} 
+                variant="secondary" 
+                size="sm"
+                className="w-full"
+              >
+                QR 코드 이미지 업로드
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -488,6 +576,52 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
                 권한 허용됨
               </span>
             )}
+          </div>
+        </div>
+      )}
+      
+      {/* File upload modal */}
+      {showFileUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full p-6">
+            <h3 className="text-lg font-semibold mb-4">QR 코드 이미지 업로드</h3>
+            <div className="space-y-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="qr-file-input"
+                />
+                <label
+                  htmlFor="qr-file-input"
+                  className="cursor-pointer"
+                >
+                  <div className="mb-3">
+                    <Camera className="h-12 w-12 text-gray-400 mx-auto" />
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    클릭하여 이미지 선택
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    JPG, PNG 형식 지원
+                  </p>
+                </label>
+              </div>
+              
+              {/* Hidden div for file scanner */}
+              <div id="qr-reader-file" style={{ display: 'none' }} />
+              
+              <Button
+                onClick={() => setShowFileUpload(false)}
+                variant="outline"
+                className="w-full"
+              >
+                취소
+              </Button>
+            </div>
           </div>
         </div>
       )}

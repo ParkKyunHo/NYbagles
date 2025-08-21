@@ -35,11 +35,13 @@ export function applySecurityHeaders(
   if (config.enableCSP) {
     const csp = config.customCSP || [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://vercel.live",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "worker-src 'self' blob:",
+      "media-src 'self' blob: data:",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'"
@@ -69,9 +71,10 @@ export function applySecurityHeaders(
   }
 
   // Permissions-Policy (formerly Feature-Policy)
+  // Allow camera from all origins for QR scanner compatibility
   response.headers.set(
     'Permissions-Policy',
-    'camera=(self), microphone=(), geolocation=(self), payment=()'
+    'camera=*, microphone=(), geolocation=(self), payment=()'
   )
 
   return response
