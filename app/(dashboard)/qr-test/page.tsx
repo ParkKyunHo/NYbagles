@@ -152,7 +152,7 @@ export default function QRTestPage() {
             <div className="text-sm text-gray-600 space-y-1">
               <p>• Browser: {typeof navigator !== 'undefined' ? navigator.userAgent.split(' ').slice(-2).join(' ') : 'Unknown'}</p>
               <p>• Secure Context: {typeof window !== 'undefined' && window.isSecureContext ? 'Yes' : 'No'}</p>
-              <p>• Camera Support: {typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia ? 'Yes' : 'No'}</p>
+              <p>• Camera Support: {typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function' ? 'Yes' : 'No'}</p>
             </div>
           </div>
         </CardContent>
